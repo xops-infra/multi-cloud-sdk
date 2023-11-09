@@ -122,6 +122,9 @@ func (s *DnsService) ModifyRecord(profile, region string, request model.ModifyRe
 }
 
 func (s *DnsService) DeleteRecord(profile, region string, request model.DeleteRecordRequest) (model.CommonDnsResponse, error) {
+	if request.Domain == nil || request.SubDomain == nil || request.RecordType == nil {
+		return model.CommonDnsResponse{}, fmt.Errorf("domain, subDomain, recordType is required")
+	}
 	for _, p := range s.Profiles {
 		if p.Name == profile {
 			switch p.Cloud {
@@ -130,7 +133,7 @@ func (s *DnsService) DeleteRecord(profile, region string, request model.DeleteRe
 			case model.TENCENT:
 				return s.Tencent.DeleteRecord(profile, region, request)
 			default:
-				return model.CommonDnsResponse{}, nil
+				return model.CommonDnsResponse{}, fmt.Errorf("not support cloud %s", p.Cloud)
 			}
 		}
 	}

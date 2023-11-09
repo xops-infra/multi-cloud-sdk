@@ -137,7 +137,7 @@ func TestAwsCreateRecord(t *testing.T) {
 func TestTencentCreateRecord(t *testing.T) {
 	resp, err := dnsS.CreateRecord("tencent", "ap-shanghai",
 		model.CreateRecordRequest{
-			Domain:     tea.String("test.com"),
+			Domain:     tea.String("test.co"),
 			SubDomain:  tea.String("tencent"),
 			RecordType: tea.String("A"),
 			Value:      tea.String("192.168.3.233"),
@@ -195,8 +195,9 @@ func TestAwsDeleteRecord(t *testing.T) {
 func TestTencentDeleteRecord(t *testing.T) {
 	resp, err := dnsS.DeleteRecord("tencent", "ap-shanghai",
 		model.DeleteRecordRequest{
-			Domain:    tea.String("test.com"),
-			SubDomain: tea.String("tencent"),
+			Domain:     tea.String("test.co"),
+			SubDomain:  tea.String("tencent"),
+			RecordType: tea.String("A"),
 		})
 	if err != nil {
 		t.Error(err)
