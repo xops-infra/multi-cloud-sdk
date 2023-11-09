@@ -670,7 +670,7 @@ func (c *tencentClient) ModifyRecord(profile, region string, input model.ModifyR
 	if err != nil {
 		return model.ModifyRecordResponse{}, err
 	}
-	recordId, err := c.getRecordIdBySubDomain(profile, region, *input.SubDomain, *input.Domain)
+	recordId, err := c.getRecordIdBySubDomain(profile, region, *input.SubDomain, *input.Domain, *input.RecordType)
 	if err != nil {
 		return model.ModifyRecordResponse{}, err
 	}
@@ -704,7 +704,7 @@ func (c *tencentClient) ModifyRecord(profile, region string, input model.ModifyR
 }
 
 // getRecordIdBySubDomain
-func (c *tencentClient) getRecordIdBySubDomain(profile, region, subDomain, domain string) (*uint64, error) {
+func (c *tencentClient) getRecordIdBySubDomain(profile, region, subDomain, domain, recordType string) (*uint64, error) {
 	resp, err := c.DescribeRecordList(profile, region, model.DescribeRecordListRequest{
 		Domain:  &domain,
 		Keyword: &subDomain,
@@ -713,7 +713,7 @@ func (c *tencentClient) getRecordIdBySubDomain(profile, region, subDomain, domai
 		return nil, err
 	}
 	for _, record := range resp.RecordList {
-		if *record.SubDomain == subDomain {
+		if *record.SubDomain == subDomain && *record.RecordType == recordType {
 			return record.RecordId, nil
 		}
 	}
@@ -726,7 +726,7 @@ func (c *tencentClient) DeleteRecord(profile, region string, input model.DeleteR
 	if err != nil {
 		return model.CommonDnsResponse{}, err
 	}
-	record_id, err := c.getRecordIdBySubDomain(profile, region, *input.SubDomain, *input.Domain)
+	record_id, err := c.getRecordIdBySubDomain(profile, region, *input.SubDomain, *input.Domain, *input.RecordType)
 	if err != nil {
 		return model.CommonDnsResponse{}, err
 	}
@@ -735,9 +735,11 @@ func (c *tencentClient) DeleteRecord(profile, region string, input model.DeleteR
 	request.RecordId = record_id
 	request.Domain = input.Domain
 
-	_, err = client.DeleteRecord(request)
+	resp, err := client.DeleteRecord(request)
 	if err != nil {
 		return model.CommonDnsResponse{}, err
 	}
-	return model.CommonDnsResponse{}, nil
+	return model.CommonDnsResponse{
+		Meta: resp.Response,
+	}, nil
 }
