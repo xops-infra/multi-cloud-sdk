@@ -4,6 +4,7 @@ import (
 	"fmt"
 	"sync"
 
+	"github.com/alibabacloud-go/tea/tea"
 	"github.com/rogpeppe/go-internal/cache"
 	"github.com/xops-infra/multi-cloud-sdk/pkg/model"
 )
@@ -26,7 +27,7 @@ func (s *ServerService) QueryInstances(input model.InstanceQueryInput) []*model.
 	instances := make([]*model.Instance, 0)
 	var wg = sync.WaitGroup{}
 	for _, profile := range s.Profiles {
-		if input.Account != "" && input.Account != profile.Name {
+		if input.Profile != nil && *input.Profile != profile.Name {
 			// 加速，如果有指定账号，且不是当前账号，直接跳过
 			continue
 		}
@@ -63,7 +64,7 @@ func (s *ServerService) QueryInstances(input model.InstanceQueryInput) []*model.
 
 func (s *ServerService) GetInstance(instance_id string) (*model.Instance, error) {
 	instances := s.QueryInstances(model.InstanceQueryInput{
-		Name: instance_id,
+		Name: tea.String(instance_id),
 	})
 	if len(instances) == 0 {
 		return nil, fmt.Errorf("instance %s not found", instance_id)

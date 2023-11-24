@@ -36,9 +36,9 @@ type ClientIo interface {
 }
 
 type ProfileConfig struct {
-	Name    string        `mapstructure:"name" binding:"required"`
-	AK      string        `mapstructure:"ak" binding:"required"`
-	SK      string        `mapstructure:"sk" binding:"required"`
-	Regions []string      `mapstructure:"regions" binding:"required"`
-	Cloud   CloudProvider `mapstructure:"cloud" binding:"required"`
+	Name    string   `mapstructure:"name" binding:"required"`
+	AK      string   `mapstructure:"ak" binding:"required"`
+	SK      string   `mapstructure:"sk" binding:"required"`
+	Regions []string `mapstructure:"regions" binding:"required"`
+	Cloud   Cloud    `mapstructure:"cloud" binding:"required"`
 }

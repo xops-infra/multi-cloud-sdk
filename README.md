@@ -1,7 +1,7 @@
 golang开发的，多云供应商的云资源 sdk的混合，包括 aws,tencent等。
 
 ```bash
-go get github.com/xops-infra/multi-cloud-sdk
+go get -u github.com/xops-infra/multi-cloud-sdk@dev
 ```
 
 ### 支持功能

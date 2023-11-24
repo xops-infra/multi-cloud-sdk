@@ -46,7 +46,7 @@ func (c *awsClient) QueryInstances(profile, region string) ([]*model.Instance, e
 					InstanceID: instance.InstanceId,
 					Name:       tags.GetName(),
 					Region:     instance.Placement.AvailabilityZone,
-					Status:     aws.String(strings.ToUpper(*instance.State.Name)),
+					Status:     model.ToInstanceStatus(strings.ToUpper(*instance.State.Name)),
 					PublicIP:   []*string{instance.PublicIpAddress},
 					PrivateIP:  []*string{instance.PrivateIpAddress},
 					Tags:       tags,
