@@ -3,9 +3,11 @@ package main
 import (
 	"fmt"
 	"os"
+	"strings"
 	"time"
 
 	"github.com/alibabacloud-go/tea/tea"
+	"github.com/joho/godotenv"
 	"github.com/xops-infra/multi-cloud-sdk/pkg/io"
 	"github.com/xops-infra/multi-cloud-sdk/pkg/model"
 	server "github.com/xops-infra/multi-cloud-sdk/pkg/service"
@@ -14,15 +16,18 @@ import (
 var serverS *server.ServerService
 
 func init() {
+	err := godotenv.Load(".env")
+	if err != nil {
+		panic(err)
+	}
 	profiles := []model.ProfileConfig{
 		{
 			Name:  "aws",
 			Cloud: model.AWS,
 			AK:    os.Getenv("AWS_ACCESS_KEY_ID"),
 			SK:    os.Getenv("AWS_SECRET_ACCESS_KEY"),
-			Regions: []string{
-				"cn-northwest-1",
-			},
+			Regions: strings.Split(os.Getenv("AWS_REGIONS"),
+				","),
 		},
 		{
 			Name:  "tencent",
@@ -35,9 +40,6 @@ func init() {
 			},
 		},
 	}
-	if profiles[0].AK == "" {
-		panic("AWS_ACCESS_KEY_ID not found")
-	}
 	cloudIo := io.NewCloudClient(profiles)
 	serverTencent := io.NewTencentClient(cloudIo)
 	serverAws := io.NewAwsClient(cloudIo)
@@ -47,15 +49,11 @@ func init() {
 func main() {
 	startTime := time.Now()
 	instances := serverS.QueryInstances(model.InstanceQueryInput{
-		// Status: model.InstanceStatusRunning,
-		// Name: "as-tke-np-5qiueryt",
-		// Ip: "10.",
-		Ip: "10.40.40.",
-		// Owner: "zhoushoujian",
-		// Account: "aws",
+		Ip: tea.String("10.1.1.1"),
 	})
 	for _, instance := range instances {
-		fmt.Println(tea.Prettify(instance))
+		fmt.Printf("%+v", tea.Prettify(instance))
 	}
+
 	fmt.Printf("%s len: %d\n", time.Since(startTime), len(instances))
 }

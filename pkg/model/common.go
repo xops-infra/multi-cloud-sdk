@@ -3,10 +3,10 @@ package model
 import "time"
 
 type CommonQueryInput struct {
-	ID            string        `json:"id"`
-	CloudProvider CloudProvider `json:"cloud_provider"`
-	Region        string        `json:"region"`
-	Account       string        `json:"account"`
+	ID            string `json:"id"`
+	CloudProvider Cloud  `json:"cloud_provider"`
+	Region        string `json:"region"`
+	Account       string `json:"account"`
 }
 
 // 依据账号和区域过滤，完全符合条件返回true

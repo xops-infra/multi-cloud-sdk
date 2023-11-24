@@ -45,7 +45,10 @@ func (c *tencentClient) QueryInstances(profile, region string) ([]*model.Instanc
 		if pages > 0 {
 			request.Offset = common.Int64Ptr(20*pages - 1)
 		}
-		response, _ := client.DescribeInstances(request)
+		response, err := client.DescribeInstances(request)
+		if err != nil {
+			return nil, err
+		}
 		for _, instanceSet := range response.Response.InstanceSet {
 			instances = append(instances, &model.Instance{
 				Profile:    profile,
@@ -53,7 +56,7 @@ func (c *tencentClient) QueryInstances(profile, region string) ([]*model.Instanc
 				InstanceID: instanceSet.InstanceId,
 				Name:       instanceSet.InstanceName,
 				Region:     instanceSet.Placement.Zone,
-				Status:     instanceSet.InstanceState,
+				Status:     model.ToInstanceStatus(*instanceSet.InstanceState),
 				PublicIP:   instanceSet.PublicIpAddresses,
 				PrivateIP:  instanceSet.PrivateIpAddresses,
 				Tags:       model.TencentTagsToModelTags(instanceSet.Tags),

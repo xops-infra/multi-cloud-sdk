@@ -1,3 +1,4 @@
 export.sh
-config.json
 .env
+*.csv
+*.json
