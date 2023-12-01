@@ -5,7 +5,7 @@ type DnsContract interface {
 	DescribeRecordList(profile, region string, req DescribeRecordListRequest) (DescribeRecordListResponse, error)
 	DescribeRecord(profile, region string, req DescribeRecordRequest) (DescribeRecordResponse, error)
 	CreateRecord(profile, region string, req CreateRecordRequest) (CreateRecordResponse, error)
-	ModifyRecord(profile, region string, req ModifyRecordRequest) (ModifyRecordResponse, error)
+	ModifyRecord(profile, region string, ignoreType bool, req ModifyRecordRequest) (ModifyRecordResponse, error)
 	DeleteRecord(profile, region string, req DeleteRecordRequest) (CommonDnsResponse, error)
 }
 
@@ -78,6 +78,7 @@ type ModifyRecordRequest struct {
 	TTL        *uint64 `json:"ttl"`                            //记录生效时间，默认600秒（10分钟），最大值604800秒。
 	Weight     *uint64 `json:"weight"`                         //记录权重，值为1-100。
 	Status     *bool   `json:"status"`                         //AWS该参数无效。腾讯该参数为是否启用，true 启用，false 禁用。
+	Info       *string `json:"info"`                           //备注，主要描述修改原因用途（aws不支持，tencent支持）
 }
 
 type ModifyRecordResponse struct {

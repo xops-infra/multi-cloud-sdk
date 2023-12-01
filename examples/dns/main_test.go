@@ -7,6 +7,7 @@ import (
 
 	"github.com/alibabacloud-go/tea/tea"
 	"github.com/joho/godotenv"
+
 	"github.com/xops-infra/multi-cloud-sdk/pkg/io"
 	"github.com/xops-infra/multi-cloud-sdk/pkg/model"
 	server "github.com/xops-infra/multi-cloud-sdk/pkg/service"
@@ -150,7 +151,7 @@ func TestTencentCreateRecord(t *testing.T) {
 }
 
 func TestAwsUpdateRecord(t *testing.T) {
-	resp, err := dnsS.ModifyRecord("aws", "cn-northwest-1",
+	resp, err := dnsS.ModifyRecord("aws", "cn-northwest-1", true,
 		model.ModifyRecordRequest{
 			Domain:     tea.String("test.com"),
 			SubDomain:  tea.String("test123"),
@@ -164,7 +165,7 @@ func TestAwsUpdateRecord(t *testing.T) {
 }
 
 func TestTencentUpdateRecord(t *testing.T) {
-	resp, err := dnsS.ModifyRecord("tencent", "ap-shanghai",
+	resp, err := dnsS.ModifyRecord("tencent", "ap-shanghai", true,
 		model.ModifyRecordRequest{
 			Domain:     tea.String("test.com"),
 			SubDomain:  tea.String("test"),

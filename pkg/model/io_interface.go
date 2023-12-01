@@ -15,7 +15,7 @@ type CloudIo interface {
 	DescribeRecordList(profile, region string, input DescribeRecordListRequest) (DescribeRecordListResponse, error)
 	DescribeRecord(profile, region string, input DescribeRecordRequest) (DescribeRecordResponse, error)
 	CreateRecord(profile, region string, input CreateRecordRequest) (CreateRecordResponse, error)
-	ModifyRecord(profile, region string, input ModifyRecordRequest) (ModifyRecordResponse, error)
+	ModifyRecord(profile, region string, ignoreType bool, input ModifyRecordRequest) (ModifyRecordResponse, error)
 	DeleteRecord(profile, region string, input DeleteRecordRequest) (CommonDnsResponse, error)
 
 	CommonOCR(profile, region string, input OcrRequest) (OcrResponse, error)
