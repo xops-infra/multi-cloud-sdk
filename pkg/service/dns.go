@@ -5,6 +5,7 @@ import (
 	"strings"
 
 	"github.com/alibabacloud-go/tea/tea"
+
 	"github.com/xops-infra/multi-cloud-sdk/pkg/model"
 )
 
@@ -105,14 +106,14 @@ func (s *DnsService) CreateRecord(profile, region string, request model.CreateRe
 	return model.CreateRecordResponse{}, fmt.Errorf("profile not found")
 }
 
-func (s *DnsService) ModifyRecord(profile, region string, request model.ModifyRecordRequest) (model.ModifyRecordResponse, error) {
+func (s *DnsService) ModifyRecord(profile, region string, ignoreType bool, request model.ModifyRecordRequest) (model.ModifyRecordResponse, error) {
 	for _, p := range s.Profiles {
 		if p.Name == profile {
 			switch p.Cloud {
 			case model.AWS:
-				return s.Aws.ModifyRecord(profile, region, request)
+				return s.Aws.ModifyRecord(profile, region, ignoreType, request)
 			case model.TENCENT:
-				return s.Tencent.ModifyRecord(profile, region, request)
+				return s.Tencent.ModifyRecord(profile, region, ignoreType, request)
 			default:
 				return model.ModifyRecordResponse{}, nil
 			}

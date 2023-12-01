@@ -24,7 +24,6 @@ func TestFilter(t *testing.T) {
 			Profile:   "aws",
 		},
 	}
-
 	input := InstanceQueryInput{}
 
 	// test ip

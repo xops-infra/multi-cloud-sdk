@@ -9,6 +9,7 @@ import (
 	"github.com/aws/aws-sdk-go/service/ec2"
 	"github.com/aws/aws-sdk-go/service/route53"
 	"github.com/spf13/cast"
+
 	"github.com/xops-infra/multi-cloud-sdk/pkg/model"
 )
 
@@ -452,7 +453,8 @@ func (c *awsClient) getHostedZoneIdByDomain(profile, region string, domain *stri
 }
 
 // ModifyRecord
-func (c *awsClient) ModifyRecord(profile, region string, input model.ModifyRecordRequest) (model.ModifyRecordResponse, error) {
+// ignoreType 腾讯云修改需要一起提供记录类型，aws不需要，所以不处理
+func (c *awsClient) ModifyRecord(profile, region string, ignoreType bool, input model.ModifyRecordRequest) (model.ModifyRecordResponse, error) {
 	cloudClient, err := c.io.GetAwsRoute53Client(profile, region)
 	if err != nil {
 		return model.ModifyRecordResponse{}, err

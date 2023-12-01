@@ -11,6 +11,7 @@ import (
 	ocr "github.com/tencentcloud/tencentcloud-sdk-go/tencentcloud/ocr/v20181119"
 	tiia "github.com/tencentcloud/tencentcloud-sdk-go/tencentcloud/tiia/v20190529"
 	tencentVpc "github.com/tencentcloud/tencentcloud-sdk-go/tencentcloud/vpc/v20170312"
+
 	"github.com/xops-infra/multi-cloud-sdk/pkg/model"
 )
 
@@ -668,42 +669,98 @@ func (c *tencentClient) CreateRecord(profile, region string, input model.CreateR
 }
 
 // ModifyRecord
-func (c *tencentClient) ModifyRecord(profile, region string, input model.ModifyRecordRequest) (model.ModifyRecordResponse, error) {
+// ignoreType 是否开启忽略 recordType,
+// true 注意这里会删除所有相同 subDomain 的记录，然后创建新的记录
+// false 如果 recordType 不同，会报没找到记录
+func (c *tencentClient) ModifyRecord(profile, region string, ignoreType bool, input model.ModifyRecordRequest) (model.ModifyRecordResponse, error) {
 	client, err := c.io.GetTencentDnsPodClient(profile, region)
 	if err != nil {
 		return model.ModifyRecordResponse{}, err
 	}
-	recordId, err := c.getRecordIdBySubDomain(profile, region, *input.SubDomain, *input.Domain, *input.RecordType)
-	if err != nil {
-		return model.ModifyRecordResponse{}, err
-	}
-
-	request := dnspod.NewModifyRecordRequest()
-	request.RecordId = recordId
-	request.Domain = input.Domain
-	request.SubDomain = input.SubDomain
-	request.RecordType = input.RecordType
-	request.Value = input.Value
-	request.RecordLine = tea.String("默认")
-	request.TTL = input.TTL
-	request.Weight = input.Weight
-
-	if input.Status != nil {
-		if *input.Status {
-			request.Status = tea.String("ENABLE")
-		} else {
-			request.Status = tea.String("DISABLE")
+	if ignoreType {
+		resp, err := c.DescribeRecordList(profile, region, model.DescribeRecordListRequest{
+			Domain:  input.Domain,
+			Keyword: input.SubDomain,
+		})
+		if err != nil {
+			return model.ModifyRecordResponse{}, err
 		}
-	}
+		var delDomain []map[string]interface{}
+		for _, record := range resp.RecordList {
+			if *record.SubDomain == *input.SubDomain {
+				_, err := c.DeleteRecord(profile, region, model.DeleteRecordRequest{
+					Domain:     input.Domain,
+					SubDomain:  input.SubDomain,
+					RecordType: record.RecordType,
+				})
+				if err != nil {
+					return model.ModifyRecordResponse{}, fmt.Errorf("delete record error: %v", err)
+				}
+				delDomain = append(delDomain, map[string]interface{}{
+					"recordId":   record.RecordId,
+					"recordType": record.RecordType,
+					"subDomain":  record.SubDomain,
+					"ttl":        record.TTL,
+					"value":      record.Value,
+				})
+			}
+		}
 
-	response, err := client.ModifyRecord(request)
-	if err != nil {
-		return model.ModifyRecordResponse{}, err
+		createInput := model.CreateRecordRequest{
+			Domain:     input.Domain,
+			SubDomain:  input.SubDomain,
+			RecordType: input.RecordType,
+			Value:      input.Value,
+			TTL:        tea.Uint64(600),
+			Info:       input.Info,
+		}
+		if input.TTL != nil {
+			createInput.TTL = input.TTL
+		}
+		createResp, err := c.CreateRecord(profile, region, createInput)
+		if err != nil {
+			return model.ModifyRecordResponse{}, fmt.Errorf("create record error: %v", err)
+		}
+		return model.ModifyRecordResponse{
+			RecordId: createResp.RecordId,
+			Meta: map[string]interface{}{
+				"info":      "enable ignoreType",
+				"delDomain": delDomain,
+			},
+		}, nil
+	} else {
+		recordId, err := c.getRecordIdBySubDomain(profile, region, *input.SubDomain, *input.Domain, *input.RecordType)
+		if err != nil {
+			return model.ModifyRecordResponse{}, err
+		}
+
+		request := dnspod.NewModifyRecordRequest()
+		request.RecordId = recordId
+		request.Domain = input.Domain
+		request.SubDomain = input.SubDomain
+		request.RecordType = input.RecordType
+		request.Value = input.Value
+		request.RecordLine = tea.String("默认")
+		request.TTL = input.TTL
+		request.Weight = input.Weight
+
+		if input.Status != nil {
+			if *input.Status {
+				request.Status = tea.String("ENABLE")
+			} else {
+				request.Status = tea.String("DISABLE")
+			}
+		}
+
+		response, err := client.ModifyRecord(request)
+		if err != nil {
+			return model.ModifyRecordResponse{}, err
+		}
+		return model.ModifyRecordResponse{
+			RecordId: tea.String(cast.ToString(response.Response.RecordId)),
+			Meta:     response.Response,
+		}, nil
 	}
-	return model.ModifyRecordResponse{
-		RecordId: tea.String(cast.ToString(response.Response.RecordId)),
-		Meta:     response.Response,
-	}, nil
 }
 
 // getRecordIdBySubDomain
