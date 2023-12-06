@@ -706,6 +706,10 @@ func (c *tencentClient) ModifyRecord(profile, region string, ignoreType bool, in
 			}
 		}
 
+		if delDomain == nil {
+			return model.ModifyRecordResponse{}, fmt.Errorf("record not found")
+		}
+
 		createInput := model.CreateRecordRequest{
 			Domain:     input.Domain,
 			SubDomain:  input.SubDomain,
