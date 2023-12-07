@@ -42,7 +42,7 @@ func ToInstanceStatus(s string) InstanceStatus {
 	switch s {
 	case "RUNNING":
 		return InstanceStatusRunning
-	case "STOPPED":
+	case "STOPPED", "SHUTDOWN":
 		return InstanceStatusStopped
 	case "PENDING":
 		return InstanceStatusPending
