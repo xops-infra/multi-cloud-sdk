@@ -50,9 +50,9 @@ func ToInstanceStatus(s string) InstanceStatus {
 		return InstanceStatusStarting
 	case "REBOOTING":
 		return InstanceStatusRebooting
-	case "TERMINATED":
+	case "TERMINATED", "TERMINATING":
 		return InstanceStatusTerminated
-	case "STOPPING":
+	case "STOPPING", "SHUTTING-DOWN":
 		return InstanceStatusStopping
 	default:
 		fmt.Printf("unknown instance status: [%s]\n", s)
