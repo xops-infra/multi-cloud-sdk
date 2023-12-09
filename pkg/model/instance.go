@@ -108,6 +108,26 @@ func (t Tags) GetOwner() *string {
 	return nil
 }
 
+// get EnvType
+func (t Tags) GetEnvType() *string {
+	for _, tag := range t {
+		if tag.Key == "EnvType" {
+			return aws.String(tag.Value)
+		}
+	}
+	return nil
+}
+
+// get Team
+func (t Tags) GetTeam() *string {
+	for _, tag := range t {
+		if tag.Key == "Team" {
+			return aws.String(tag.Value)
+		}
+	}
+	return nil
+}
+
 type Tag struct {
 	Key   string
 	Value string
