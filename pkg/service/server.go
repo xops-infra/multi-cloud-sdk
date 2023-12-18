@@ -4,8 +4,8 @@ import (
 	"fmt"
 	"sync"
 
-	"github.com/alibabacloud-go/tea/tea"
 	"github.com/rogpeppe/go-internal/cache"
+
 	"github.com/xops-infra/multi-cloud-sdk/pkg/model"
 )
 
@@ -62,12 +62,16 @@ func (s *ServerService) QueryInstances(input model.InstanceQueryInput) []*model.
 	return instances
 }
 
-func (s *ServerService) GetInstance(instance_id string) (*model.Instance, error) {
-	instances := s.QueryInstances(model.InstanceQueryInput{
-		Name: tea.String(instance_id),
-	})
-	if len(instances) == 0 {
-		return nil, fmt.Errorf("instance %s not found", instance_id)
+func (s *ServerService) DescribeInstances(input model.DescribeInstancesInput) ([]*model.Instance, error) {
+	for _, profile := range s.Profiles {
+		if input.Profile != "" && input.Profile != profile.Name {
+			continue
+		}
+		if profile.Cloud == model.AWS {
+			return s.AWS.DescribeInstances(input.Profile, input.Region, input.InstanceIds)
+		} else if profile.Cloud == model.TENCENT {
+			return s.Tencent.DescribeInstances(input.Profile, input.Region, input.InstanceIds)
+		}
 	}
-	return instances[0], nil
+	return nil, fmt.Errorf("not found profile: %s", input.Profile)
 }

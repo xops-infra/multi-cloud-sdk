@@ -7,6 +7,8 @@ go get -u github.com/xops-infra/multi-cloud-sdk
 ### 支持功能
 - 服务器资源
     - 服务器
+        - QueryInstances
+        - DescribeInstances
 - 虚拟网络
     - VPC
     - NAT
@@ -21,6 +23,8 @@ go get -u github.com/xops-infra/multi-cloud-sdk
 
 
 ### 开发日志
+- 2023-12:
+    - 新增服务器单查询
 - 2023-11:
     - 支持创建解析时候增加info备注
     - 更新服务器过滤filter方法

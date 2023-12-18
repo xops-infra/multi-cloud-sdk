@@ -70,6 +70,36 @@ func (c *tencentClient) QueryInstances(profile, region string) ([]*model.Instanc
 	return instances, nil
 }
 
+func (c *tencentClient) DescribeInstances(profile, region string, instanceIds []*string) ([]*model.Instance, error) {
+	client, err := c.io.GetTencentCvmClient(profile, region)
+	if err != nil {
+		return nil, err
+	}
+	request := cvm.NewDescribeInstancesRequest()
+	request.InstanceIds = instanceIds
+	response, err := client.DescribeInstances(request)
+	if err != nil {
+		return nil, err
+	}
+	var instances []*model.Instance
+	for _, instanceSet := range response.Response.InstanceSet {
+		instances = append(instances, &model.Instance{
+			Profile:    profile,
+			KeyName:    instanceSet.LoginSettings.KeyIds,
+			InstanceID: instanceSet.InstanceId,
+			Name:       instanceSet.InstanceName,
+			Region:     instanceSet.Placement.Zone,
+			Status:     model.ToInstanceStatus(*instanceSet.InstanceState),
+			PublicIP:   instanceSet.PublicIpAddresses,
+			PrivateIP:  instanceSet.PrivateIpAddresses,
+			Tags:       model.TencentTagsToModelTags(instanceSet.Tags),
+			Owner:      model.TencentTagsToModelTags(instanceSet.Tags).GetOwner(),
+			Platform:   instanceSet.OsName,
+		})
+	}
+	return instances, nil
+}
+
 func (c *tencentClient) QueryVPC(profile, region string, input model.CommonQueryInput) ([]*model.VPC, error) {
 	if !input.Filter(profile, region) {
 		return nil, nil

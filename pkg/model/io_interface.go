@@ -2,6 +2,7 @@ package model
 
 type CloudIo interface {
 	QueryInstances(profile, region string) ([]*Instance, error)
+	DescribeInstances(profile, region string, instanceIds []*string) ([]*Instance, error)
 
 	QueryVPC(profile, region string, input CommonQueryInput) ([]*VPC, error)
 	QuerySubnet(profile, region string, input CommonQueryInput) ([]*Subnet, error)
