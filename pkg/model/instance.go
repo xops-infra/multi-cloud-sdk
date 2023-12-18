@@ -33,6 +33,12 @@ type InstanceQueryInput struct {
 	Owner   *string         `json:"owner"`   // 机器所有者，tags的Owner
 }
 
+type DescribeInstancesInput struct {
+	InstanceIds []*string
+	Profile     string
+	Region      string
+}
+
 // InstanceQueryInput filter
 func (i *InstanceQueryInput) Filter(instances []*Instance) []*Instance {
 	var newInstances []*Instance

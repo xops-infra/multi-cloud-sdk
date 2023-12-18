@@ -64,6 +64,40 @@ func (c *awsClient) QueryInstances(profile, region string) ([]*model.Instance, e
 	return instances, nil
 }
 
+func (c *awsClient) DescribeInstances(profile, region string, instanceIds []*string) ([]*model.Instance, error) {
+	svc, err := c.io.GetAwsEc2Client(profile, region)
+	if err != nil {
+		return nil, err
+	}
+	input := &ec2.DescribeInstancesInput{
+		InstanceIds: instanceIds,
+	}
+	out, err := svc.DescribeInstances(input)
+	if err != nil {
+		return nil, err
+	}
+	var instances []*model.Instance
+	for _, reservation := range out.Reservations {
+		for _, instance := range reservation.Instances {
+			tags := model.AwsTagsToModelTags(instance.Tags)
+			instances = append(instances, &model.Instance{
+				Profile:    profile,
+				KeyName:    []*string{instance.KeyName},
+				InstanceID: instance.InstanceId,
+				Name:       tags.GetName(),
+				Region:     instance.Placement.AvailabilityZone,
+				Status:     model.ToInstanceStatus(strings.ToUpper(*instance.State.Name)),
+				PublicIP:   []*string{instance.PublicIpAddress},
+				PrivateIP:  []*string{instance.PrivateIpAddress},
+				Tags:       tags,
+				Owner:      tags.GetOwner(),
+				Platform:   instance.PlatformDetails,
+			})
+		}
+	}
+	return instances, nil
+}
+
 // QueryVpcs
 func (c *awsClient) QueryVPC(profile, region string, input model.CommonQueryInput) ([]*model.VPC, error) {
 	if input.CloudProvider != "" && input.CloudProvider != model.AWS {
