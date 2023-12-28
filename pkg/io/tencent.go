@@ -19,39 +19,54 @@ type tencentClient struct {
 	io model.ClientIo
 }
 
-func NewTencentClient(io model.ClientIo) model.CloudIo {
+func NewTencentClient(io model.ClientIo) model.CloudIO {
 	return &tencentClient{
 		io: io,
 	}
 }
 
-func (c *tencentClient) QueryInstances(profile, region string) ([]*model.Instance, error) {
+// Instance
+func (c *tencentClient) DescribeInstances(profile, region string, input model.DescribeInstancesInput) (model.InstanceResponse, error) {
+	var instances []model.Instance
+
 	client, err := c.io.GetTencentCvmClient(profile, region)
 	if err != nil {
-		return nil, err
+		return model.InstanceResponse{}, err
 	}
 	request := cvm.NewDescribeInstancesRequest()
+
+	request.InstanceIds = input.InstanceIds
+	for _, filter := range input.Filters {
+		request.Filters = append(request.Filters, &cvm.Filter{
+			Name:   filter.Name,
+			Values: filter.Values,
+		})
+	}
+	var pageSize int64 = 20
+	if input.Size != nil {
+		pageSize = *input.Size
+		request.Limit = input.Size
+	}
+
 	response, err := client.DescribeInstances(request)
 	if err != nil {
-		return nil, err
+		return model.InstanceResponse{}, err
 	}
-	var instances []*model.Instance
 
-	// 如果返回多页，要多个页面处理
 	total_cvm := *response.Response.TotalCount
-
-	pages_all := total_cvm / 20
+	pages_all := total_cvm / pageSize
 	pages := *common.Int64Ptr(0)
 	for pages <= pages_all {
+		request.Limit = common.Int64Ptr(pageSize)
 		if pages > 0 {
-			request.Offset = common.Int64Ptr(20*pages - 1)
+			request.Offset = common.Int64Ptr(pageSize*pages - 1)
 		}
 		response, err := client.DescribeInstances(request)
 		if err != nil {
-			return nil, err
+			return model.InstanceResponse{}, err
 		}
 		for _, instanceSet := range response.Response.InstanceSet {
-			instances = append(instances, &model.Instance{
+			instances = append(instances, model.Instance{
 				Profile:    profile,
 				KeyName:    instanceSet.LoginSettings.KeyIds,
 				InstanceID: instanceSet.InstanceId,
@@ -67,40 +82,14 @@ func (c *tencentClient) QueryInstances(profile, region string) ([]*model.Instanc
 		}
 		pages = pages + 1
 	}
-	return instances, nil
+
+	return model.InstanceResponse{
+		Instances:  instances,
+		NextMarker: nil,
+	}, nil
 }
 
-func (c *tencentClient) DescribeInstances(profile, region string, instanceIds []*string) ([]*model.Instance, error) {
-	client, err := c.io.GetTencentCvmClient(profile, region)
-	if err != nil {
-		return nil, err
-	}
-	request := cvm.NewDescribeInstancesRequest()
-	request.InstanceIds = instanceIds
-	response, err := client.DescribeInstances(request)
-	if err != nil {
-		return nil, err
-	}
-	var instances []*model.Instance
-	for _, instanceSet := range response.Response.InstanceSet {
-		instances = append(instances, &model.Instance{
-			Profile:    profile,
-			KeyName:    instanceSet.LoginSettings.KeyIds,
-			InstanceID: instanceSet.InstanceId,
-			Name:       instanceSet.InstanceName,
-			Region:     instanceSet.Placement.Zone,
-			Status:     model.ToInstanceStatus(*instanceSet.InstanceState),
-			PublicIP:   instanceSet.PublicIpAddresses,
-			PrivateIP:  instanceSet.PrivateIpAddresses,
-			Tags:       model.TencentTagsToModelTags(instanceSet.Tags),
-			Owner:      model.TencentTagsToModelTags(instanceSet.Tags).GetOwner(),
-			Platform:   instanceSet.OsName,
-		})
-	}
-	return instances, nil
-}
-
-func (c *tencentClient) QueryVPC(profile, region string, input model.CommonQueryInput) ([]*model.VPC, error) {
+func (c *tencentClient) QueryVPC(profile, region string, input model.CommonQueryInput) ([]model.VPC, error) {
 	if !input.Filter(profile, region) {
 		return nil, nil
 	}
@@ -121,9 +110,9 @@ func (c *tencentClient) QueryVPC(profile, region string, input model.CommonQuery
 	if err != nil {
 		return nil, err
 	}
-	var vpcs []*model.VPC
+	var vpcs []model.VPC
 	for _, vpc := range response.Response.VpcSet {
-		vpcs = append(vpcs, &model.VPC{
+		vpcs = append(vpcs, model.VPC{
 			ID:            *vpc.VpcId,
 			Region:        region,
 			Account:       profile,
@@ -138,7 +127,7 @@ func (c *tencentClient) QueryVPC(profile, region string, input model.CommonQuery
 }
 
 // QuerySubnet
-func (c *tencentClient) QuerySubnet(profile, region string, input model.CommonQueryInput) ([]*model.Subnet, error) {
+func (c *tencentClient) QuerySubnet(profile, region string, input model.CommonQueryInput) ([]model.Subnet, error) {
 	if !input.Filter(profile, region) {
 		return nil, nil
 	}
@@ -159,10 +148,10 @@ func (c *tencentClient) QuerySubnet(profile, region string, input model.CommonQu
 	if err != nil {
 		return nil, err
 	}
-	var subnets []*model.Subnet
+	var subnets []model.Subnet
 	for _, subnet := range response.Response.SubnetSet {
 		createTime, _ := model.TimeParse(*subnet.CreatedTime)
-		subnets = append(subnets, &model.Subnet{
+		subnets = append(subnets, model.Subnet{
 			ID:                      subnet.SubnetId,
 			Region:                  region,
 			Account:                 profile,
@@ -183,7 +172,7 @@ func (c *tencentClient) QuerySubnet(profile, region string, input model.CommonQu
 }
 
 // QueryEIP
-func (c *tencentClient) QueryEIP(profile, region string, input model.CommonQueryInput) ([]*model.EIP, error) {
+func (c *tencentClient) QueryEIP(profile, region string, input model.CommonQueryInput) ([]model.EIP, error) {
 	if !input.Filter(profile, region) {
 		return nil, nil
 	}
@@ -204,10 +193,10 @@ func (c *tencentClient) QueryEIP(profile, region string, input model.CommonQuery
 	if err != nil {
 		return nil, err
 	}
-	var eips []*model.EIP
+	var eips []model.EIP
 	for _, eip := range response.Response.AddressSet {
 		createTime, _ := model.TimeParse(*eip.CreatedTime)
-		eips = append(eips, &model.EIP{
+		eips = append(eips, model.EIP{
 			ID:                 eip.AddressId,
 			Region:             region,
 			Account:            profile,
@@ -226,7 +215,7 @@ func (c *tencentClient) QueryEIP(profile, region string, input model.CommonQuery
 }
 
 // QueryNAT
-func (c *tencentClient) QueryNAT(profile, region string, input model.CommonQueryInput) ([]*model.NAT, error) {
+func (c *tencentClient) QueryNAT(profile, region string, input model.CommonQueryInput) ([]model.NAT, error) {
 	if !input.Filter(profile, region) {
 		return nil, nil
 	}
@@ -247,10 +236,10 @@ func (c *tencentClient) QueryNAT(profile, region string, input model.CommonQuery
 	if err != nil {
 		return nil, err
 	}
-	var nats []*model.NAT
+	var nats []model.NAT
 	for _, nat := range response.Response.NatGatewaySet {
 		createTime, _ := model.TimeParse(*nat.CreatedTime)
-		nats = append(nats, &model.NAT{
+		nats = append(nats, model.NAT{
 			ID:            *nat.NatGatewayId,
 			Region:        region,
 			Account:       profile,
@@ -288,9 +277,9 @@ func (c *tencentClient) CommonOCR(profile, region string, input model.OcrRequest
 	if err != nil {
 		return model.OcrResponse{}, err
 	}
-	var textDetections []*model.TextDetection
+	var textDetections []model.TextDetection
 	for _, textDetection := range response.Response.TextDetections {
-		textDetections = append(textDetections, &model.TextDetection{
+		textDetections = append(textDetections, model.TextDetection{
 			DetectedText: textDetection.DetectedText,
 			Confidence:   textDetection.Confidence,
 			Polygon: []*model.Coord{
@@ -337,9 +326,9 @@ func (c *tencentClient) CreatePicture(profile, region string, input model.Create
 	if err != nil {
 		return model.CreatePictureResponse{}, err
 	}
-	var object *model.Object
+	var object model.Object
 	if response.Response.Object != nil {
-		object = &model.Object{
+		object = model.Object{
 			Box: &model.Box{
 				Rect: &model.ImageRect{
 					X:      tea.Int64(cast.ToInt64(response.Response.Object.Box.Rect.X)),
@@ -414,9 +403,9 @@ func (c *tencentClient) GetPictureByName(profile, region string, input model.Com
 	if err != nil {
 		return model.GetPictureByNameResponse{}, err
 	}
-	var imageInfos []*model.ImageInfo
+	var imageInfos []model.ImageInfo
 	for _, imageInfo := range response.Response.ImageInfos {
-		imageInfos = append(imageInfos, &model.ImageInfo{
+		imageInfos = append(imageInfos, model.ImageInfo{
 			CustomContent: imageInfo.CustomContent,
 			EntityId:      imageInfo.EntityId,
 			PicName:       imageInfo.PicName,
@@ -446,9 +435,9 @@ func (c *tencentClient) QueryPicture(profile, region string, input model.QueryPi
 	if err != nil {
 		return model.QueryPictureResponse{}, err
 	}
-	var groupInfos []*model.Group
+	var groupInfos []model.Group
 	for _, groupInfo := range response.Response.Groups {
-		groupInfos = append(groupInfos, &model.Group{
+		groupInfos = append(groupInfos, model.Group{
 			GroupId:    groupInfo.GroupId,
 			GroupName:  groupInfo.GroupName,
 			GroupType:  tea.Int64(cast.ToInt64(groupInfo.GroupType)),
@@ -538,9 +527,9 @@ func (c *tencentClient) SearchPicture(profile, region string, input model.Search
 	if err != nil {
 		return model.SearchPictureResponse{}, err
 	}
-	var imageInfos []*model.ImageInfo
+	var imageInfos []model.ImageInfo
 	for _, imageInfo := range response.Response.ImageInfos {
-		imageInfos = append(imageInfos, &model.ImageInfo{
+		imageInfos = append(imageInfos, model.ImageInfo{
 			CustomContent: imageInfo.CustomContent,
 			EntityId:      imageInfo.EntityId,
 			PicName:       imageInfo.PicName,
@@ -548,9 +537,9 @@ func (c *tencentClient) SearchPicture(profile, region string, input model.Search
 			Tags:          imageInfo.Tags,
 		})
 	}
-	var object *model.Object
+	var object model.Object
 	if response.Response.Object != nil {
-		object = &model.Object{
+		object = model.Object{
 			Box: &model.Box{
 				Rect: &model.ImageRect{
 					X:      tea.Int64(cast.ToInt64(response.Response.Object.Box.Rect.X)),
@@ -587,9 +576,9 @@ func (c *tencentClient) DescribeDomainList(profile, region string, input model.D
 	if err != nil {
 		return model.DescribeDomainListResponse{}, err
 	}
-	var domains []*model.Domain
+	var domains []model.Domain
 	for _, domain := range response.Response.DomainList {
-		domains = append(domains, &model.Domain{
+		domains = append(domains, model.Domain{
 			DomainId: tea.String(cast.ToString(domain.DomainId)),
 			Name:     domain.Name,
 			Meta:     domain,
@@ -621,9 +610,9 @@ func (c *tencentClient) DescribeRecordList(profile, region string, input model.D
 	if err != nil {
 		return model.DescribeRecordListResponse{}, err
 	}
-	var records []*model.Record
+	var records []model.Record
 	for _, record := range response.Response.RecordList {
-		records = append(records, &model.Record{
+		records = append(records, model.Record{
 			RecordId:   record.RecordId,
 			SubDomain:  record.Name,
 			RecordType: record.Type,

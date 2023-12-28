@@ -4,10 +4,10 @@ import "github.com/xops-infra/multi-cloud-sdk/pkg/model"
 
 type OcrService struct {
 	Profiles     []model.ProfileConfig
-	Aws, Tencent model.CloudIo
+	Aws, Tencent model.CloudIO
 }
 
-func NewOcrService(profiles []model.ProfileConfig, aws, tencent model.CloudIo) model.OcrContract {
+func NewOcrService(profiles []model.ProfileConfig, aws, tencent model.CloudIO) model.OcrContract {
 	return &OcrService{
 		Profiles: profiles,
 		Aws:      aws,

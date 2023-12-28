@@ -1,13 +1,10 @@
 package main
 
 import (
-	"fmt"
 	"os"
-	"strings"
 	"testing"
 	"time"
 
-	"github.com/alibabacloud-go/tea/tea"
 	"github.com/joho/godotenv"
 
 	"github.com/xops-infra/multi-cloud-sdk/pkg/io"
@@ -15,7 +12,7 @@ import (
 	server "github.com/xops-infra/multi-cloud-sdk/pkg/service"
 )
 
-var serverS *server.ServerService
+var serverS model.InstanceContact
 
 func init() {
 	err := godotenv.Load(".env")
@@ -28,8 +25,9 @@ func init() {
 			Cloud: model.AWS,
 			AK:    os.Getenv("AWS_ACCESS_KEY_ID"),
 			SK:    os.Getenv("AWS_SECRET_ACCESS_KEY"),
-			Regions: strings.Split(os.Getenv("AWS_REGIONS"),
-				","),
+			Regions: []string{
+				"cn-northwest-1",
+			},
 		},
 		{
 			Name:  "tencent",
@@ -48,32 +46,20 @@ func init() {
 	serverS = server.NewServer(profiles, serverAws, serverTencent)
 }
 
-func TestQueryInstances(t *testing.T) {
-	startTime := time.Now()
-	instances := serverS.QueryInstances(model.InstanceQueryInput{
-		Ip: tea.String("10.1.1.1"),
-	})
-	for _, instance := range instances {
-		fmt.Printf("%+v", tea.Prettify(instance))
-	}
-
-	fmt.Printf("%s len: %d\n", time.Since(startTime), len(instances))
-}
-
 func TestDescribeServers(t *testing.T) {
-	instances, err := serverS.DescribeInstances(model.DescribeInstancesInput{
-		Profile: "tencent",
-		Region:  "ap-shanghai",
-		InstanceIds: []*string{
-			tea.String("ins-xxx"),
-		},
-	})
+	timeStart := time.Now()
+	filter := model.InstanceFilter{
+		// Profile: tea.String("aws"),
+		// Region:  tea.String("cn-northwest-1"),
+	}
+	// filter.Ip = tea.String("10.150.176.3")
+	// filter.Owner = tea.String("zhoushoujian")
+	// filter.ID = tea.String("ins-pswx6i4j")
+	filter.Status = model.InstanceStatusRunning.TString()
+	instances, err := serverS.QueryInstances(filter)
 	if err != nil {
 		t.Error(err)
 		return
 	}
-	for _, instance := range instances {
-		fmt.Printf("%+v", tea.Prettify(instance))
-	}
-	t.Log("success")
+	t.Log(time.Since(timeStart), len(instances))
 }

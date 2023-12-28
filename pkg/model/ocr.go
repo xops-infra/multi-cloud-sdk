@@ -16,7 +16,7 @@ type OcrContract interface {
 }
 
 type OcrResponse struct {
-	TextDetections []*TextDetection `json:"text_detections"`
+	TextDetections []TextDetection `json:"text_detections"`
 }
 
 type TextDetection struct {
@@ -66,10 +66,10 @@ type ImageRect struct {
 }
 
 type SearchPictureResponse struct {
-	RequestId  *string      `json:"request_id"`
-	Count      *int64       `json:"count"`
-	ImageInfos []*ImageInfo `json:"image_infos"`
-	Object     *Object      `json:"object"`
+	RequestId  *string     `json:"request_id"`
+	Count      *int64      `json:"count"`
+	ImageInfos []ImageInfo `json:"image_infos"`
+	Object     Object      `json:"object"`
 }
 
 type Object struct {
@@ -114,8 +114,8 @@ type QueryPictureRequest struct {
 }
 
 type QueryPictureResponse struct {
-	Groups    []*Group `json:"groups"`
-	RequestId *string  `json:"request_id"`
+	Groups    []Group `json:"groups"`
+	RequestId *string `json:"request_id"`
 }
 
 type Group struct {
@@ -131,7 +131,7 @@ type Group struct {
 }
 
 type CreatePictureResponse struct {
-	Object    *Object `json:"object"`
+	Object    Object  `json:"object"`
 	RequestId *string `json:"request_id"`
 }
 
@@ -142,10 +142,10 @@ type CommonPictureRequest struct {
 }
 
 type GetPictureByNameResponse struct {
-	GroupId    *string      `json:"group_id"`
-	EntityId   *string      `json:"entity_id"`
-	ImageInfos []*ImageInfo `json:"image_infos"`
-	RequestId  *string      `json:"request_id"`
+	GroupId    *string     `json:"group_id"`
+	EntityId   *string     `json:"entity_id"`
+	ImageInfos []ImageInfo `json:"image_infos"`
+	RequestId  *string     `json:"request_id"`
 }
 
 type ImageInfo struct {

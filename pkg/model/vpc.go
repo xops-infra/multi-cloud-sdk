@@ -3,11 +3,11 @@ package model
 import "time"
 
 type VpcContract interface {
-	QueryVPCs(input CommonQueryInput) ([]*VPC, error)
-	GetVPC(vpc_id string) (*VPC, error)
-	QuerySubnets(input CommonQueryInput) ([]*Subnet, error)
-	QueryEIPs(input CommonQueryInput) ([]*EIP, error)
-	QueryNATs(input CommonQueryInput) ([]*NAT, error)
+	QueryVPCs(input CommonQueryInput) ([]VPC, error)
+	GetVPC(vpc_id string) (VPC, error)
+	QuerySubnets(input CommonQueryInput) ([]Subnet, error)
+	QueryEIPs(input CommonQueryInput) ([]EIP, error)
+	QueryNATs(input CommonQueryInput) ([]NAT, error)
 }
 
 type VPC struct {

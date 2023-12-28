@@ -1,13 +1,12 @@
 package model
 
-type CloudIo interface {
-	QueryInstances(profile, region string) ([]*Instance, error)
-	DescribeInstances(profile, region string, instanceIds []*string) ([]*Instance, error)
+type CloudIO interface {
+	DescribeInstances(profile, region string, input DescribeInstancesInput) (InstanceResponse, error)
 
-	QueryVPC(profile, region string, input CommonQueryInput) ([]*VPC, error)
-	QuerySubnet(profile, region string, input CommonQueryInput) ([]*Subnet, error)
-	QueryEIP(profile, region string, input CommonQueryInput) ([]*EIP, error)
-	QueryNAT(profile, region string, input CommonQueryInput) ([]*NAT, error)
+	QueryVPC(profile, region string, input CommonQueryInput) ([]VPC, error)
+	QuerySubnet(profile, region string, input CommonQueryInput) ([]Subnet, error)
+	QueryEIP(profile, region string, input CommonQueryInput) ([]EIP, error)
+	QueryNAT(profile, region string, input CommonQueryInput) ([]NAT, error)
 
 	// domain
 	DescribeDomainList(profile, region string, input DescribeDomainListRequest) (DescribeDomainListResponse, error)

@@ -9,10 +9,10 @@ import (
 
 type VpcService struct {
 	Profiles     []model.ProfileConfig
-	Aws, Tencent model.CloudIo
+	Aws, Tencent model.CloudIO
 }
 
-func NewVpcService(profiles []model.ProfileConfig, aws, tencent model.CloudIo) model.VpcContract {
+func NewVpcService(profiles []model.ProfileConfig, aws, tencent model.CloudIO) model.VpcContract {
 	return &VpcService{
 		Profiles: profiles,
 		Aws:      aws,
@@ -20,7 +20,7 @@ func NewVpcService(profiles []model.ProfileConfig, aws, tencent model.CloudIo) m
 	}
 }
 
-func (s *VpcService) QueryVPCs(input model.CommonQueryInput) (vpcs []*model.VPC, err error) {
+func (s *VpcService) QueryVPCs(input model.CommonQueryInput) (vpcs []model.VPC, err error) {
 	var wg = sync.WaitGroup{}
 	for _, profile := range s.Profiles {
 		if profile.Cloud == model.AWS {
@@ -55,21 +55,21 @@ func (s *VpcService) QueryVPCs(input model.CommonQueryInput) (vpcs []*model.VPC,
 	return
 }
 
-func (s *VpcService) GetVPC(vpc_id string) (*model.VPC, error) {
+func (s *VpcService) GetVPC(vpc_id string) (model.VPC, error) {
 	vpcs, err := s.QueryVPCs(model.CommonQueryInput{
 		ID: vpc_id,
 	})
 	if err != nil {
-		return nil, err
+		return model.VPC{}, err
 	}
 	if len(vpcs) == 1 {
 		return vpcs[0], nil
 	}
-	return nil, fmt.Errorf("vpc not found,or multiple vpcs found")
+	return model.VPC{}, fmt.Errorf("vpc not found,or multiple vpcs found")
 }
 
-func (s *VpcService) QueryEIPs(input model.CommonQueryInput) ([]*model.EIP, error) {
-	eips := []*model.EIP{}
+func (s *VpcService) QueryEIPs(input model.CommonQueryInput) ([]model.EIP, error) {
+	eips := []model.EIP{}
 	var wg = sync.WaitGroup{}
 	var err error
 	for _, profile := range s.Profiles {
@@ -104,7 +104,7 @@ func (s *VpcService) QueryEIPs(input model.CommonQueryInput) ([]*model.EIP, erro
 	return eips, err
 }
 
-func (s *VpcService) QueryNATs(input model.CommonQueryInput) (nats []*model.NAT, err error) {
+func (s *VpcService) QueryNATs(input model.CommonQueryInput) (nats []model.NAT, err error) {
 	var wg = sync.WaitGroup{}
 	for _, profile := range s.Profiles {
 		if profile.Cloud == model.AWS {
@@ -139,7 +139,7 @@ func (s *VpcService) QueryNATs(input model.CommonQueryInput) (nats []*model.NAT,
 	return
 }
 
-func (s *VpcService) QuerySubnets(input model.CommonQueryInput) (subnets []*model.Subnet, err error) {
+func (s *VpcService) QuerySubnets(input model.CommonQueryInput) (subnets []model.Subnet, err error) {
 	var wg = sync.WaitGroup{}
 	for _, profile := range s.Profiles {
 		if profile.Cloud == model.AWS {
