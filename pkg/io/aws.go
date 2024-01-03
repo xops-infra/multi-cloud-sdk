@@ -3,10 +3,12 @@ package io
 import (
 	"fmt"
 	"strings"
+	"time"
 
 	"github.com/alibabacloud-go/tea/tea"
 	"github.com/aws/aws-sdk-go/aws"
 	"github.com/aws/aws-sdk-go/service/ec2"
+	"github.com/aws/aws-sdk-go/service/emr"
 	"github.com/aws/aws-sdk-go/service/route53"
 	"github.com/spf13/cast"
 
@@ -21,6 +23,66 @@ func NewAwsClient(io model.ClientIo) model.CloudIO {
 	return &awsClient{
 		io: io,
 	}
+}
+
+// EMR
+func (c *awsClient) QueryEmrCluster(profile, region string, filter model.EmrFilter) (model.FilterEmrResponse, error) {
+	svc, err := c.io.GetAWSEmrClient(profile, region)
+	if err != nil {
+		return model.FilterEmrResponse{}, err
+	}
+	input := &emr.ListClustersInput{}
+	if filter.ClusterStates != nil {
+		for _, state := range filter.ClusterStates {
+			input.ClusterStates = append(input.ClusterStates, aws.String(string(state)))
+		}
+	}
+	if filter.NextMarker != nil {
+		input.Marker = filter.NextMarker
+	}
+	if filter.Period != nil {
+		input.CreatedAfter = aws.Time(time.Now().Add(-*filter.Period))
+	}
+	result, err := svc.ListClusters(input)
+	if err != nil {
+		return model.FilterEmrResponse{}, err
+	}
+	var clusters []model.EmrCluster
+	for _, cluster := range result.Clusters {
+		clusters = append(clusters, model.EmrCluster{
+			ID:     cluster.Id,
+			Name:   cluster.Name,
+			Status: model.EMRClusterStatus(*cluster.Status.State),
+		})
+	}
+	return model.FilterEmrResponse{
+		Clusters:   clusters,
+		NextMarker: result.Marker,
+	}, nil
+}
+
+func (c *awsClient) DescribeEmrCluster(profile, region string, ids []*string) ([]model.DescribeEmrCluster, error) {
+	svc, err := c.io.GetAWSEmrClient(profile, region)
+	if err != nil {
+		return nil, err
+	}
+	var clusters []model.DescribeEmrCluster
+	for _, id := range ids {
+		out, err := svc.DescribeCluster(&emr.DescribeClusterInput{
+			ClusterId: id,
+		})
+		if err != nil {
+			return nil, err
+		}
+		clusters = append(clusters, model.DescribeEmrCluster{
+			ID:         out.Cluster.Id,
+			Name:       out.Cluster.Name,
+			Status:     model.EMRClusterStatus(*out.Cluster.Status.State),
+			CreateTime: out.Cluster.Status.Timeline.CreationDateTime,
+			Meta:       out.Cluster,
+		})
+	}
+	return clusters, nil
 }
 
 func (c *awsClient) DescribeInstances(profile, region string, input model.DescribeInstancesInput) (model.InstanceResponse, error) {
@@ -81,16 +143,7 @@ func (c *awsClient) DescribeInstances(profile, region string, input model.Descri
 }
 
 // QueryVpcs
-func (c *awsClient) QueryVPC(profile, region string, input model.CommonQueryInput) ([]model.VPC, error) {
-	if input.CloudProvider != "" && input.CloudProvider != model.AWS {
-		return nil, nil
-	}
-	if input.Account != "" && input.Account != profile {
-		return nil, nil
-	}
-	if input.Region != "" && input.Region != region {
-		return nil, nil
-	}
+func (c *awsClient) QueryVPC(profile, region string, input model.CommonFilter) ([]model.VPC, error) {
 	svc, err := c.io.GetAwsEc2Client(profile, region)
 	if err != nil {
 		return nil, err
@@ -125,10 +178,7 @@ func (c *awsClient) QueryVPC(profile, region string, input model.CommonQueryInpu
 }
 
 // QuerySubnet
-func (c *awsClient) QuerySubnet(profile, region string, input model.CommonQueryInput) ([]model.Subnet, error) {
-	if !input.Filter(profile, region) {
-		return nil, nil
-	}
+func (c *awsClient) QuerySubnet(profile, region string, input model.CommonFilter) ([]model.Subnet, error) {
 	svc, err := c.io.GetAwsEc2Client(profile, region)
 	if err != nil {
 		return nil, err
@@ -171,10 +221,7 @@ func (c *awsClient) QuerySubnet(profile, region string, input model.CommonQueryI
 }
 
 // QueryEIP
-func (c *awsClient) QueryEIP(profile, region string, input model.CommonQueryInput) ([]model.EIP, error) {
-	if !input.Filter(profile, region) {
-		return nil, nil
-	}
+func (c *awsClient) QueryEIP(profile, region string, input model.CommonFilter) ([]model.EIP, error) {
 	svc, err := c.io.GetAwsEc2Client(profile, region)
 	if err != nil {
 		return nil, err
@@ -210,10 +257,7 @@ func (c *awsClient) QueryEIP(profile, region string, input model.CommonQueryInpu
 }
 
 // QueryNAT
-func (c *awsClient) QueryNAT(profile, region string, input model.CommonQueryInput) ([]model.NAT, error) {
-	if !input.Filter(profile, region) {
-		return nil, nil
-	}
+func (c *awsClient) QueryNAT(profile, region string, input model.CommonFilter) ([]model.NAT, error) {
 	svc, err := c.io.GetAwsEc2Client(profile, region)
 	if err != nil {
 		return nil, err

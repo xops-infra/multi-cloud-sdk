@@ -20,7 +20,7 @@ func NewVpcService(profiles []model.ProfileConfig, aws, tencent model.CloudIO) m
 	}
 }
 
-func (s *VpcService) QueryVPCs(input model.CommonQueryInput) (vpcs []model.VPC, err error) {
+func (s *VpcService) QueryVPCs(input model.CommonFilter) (vpcs []model.VPC, err error) {
 	var wg = sync.WaitGroup{}
 	for _, profile := range s.Profiles {
 		if profile.Cloud == model.AWS {
@@ -56,7 +56,7 @@ func (s *VpcService) QueryVPCs(input model.CommonQueryInput) (vpcs []model.VPC, 
 }
 
 func (s *VpcService) GetVPC(vpc_id string) (model.VPC, error) {
-	vpcs, err := s.QueryVPCs(model.CommonQueryInput{
+	vpcs, err := s.QueryVPCs(model.CommonFilter{
 		ID: vpc_id,
 	})
 	if err != nil {
@@ -68,7 +68,7 @@ func (s *VpcService) GetVPC(vpc_id string) (model.VPC, error) {
 	return model.VPC{}, fmt.Errorf("vpc not found,or multiple vpcs found")
 }
 
-func (s *VpcService) QueryEIPs(input model.CommonQueryInput) ([]model.EIP, error) {
+func (s *VpcService) QueryEIPs(input model.CommonFilter) ([]model.EIP, error) {
 	eips := []model.EIP{}
 	var wg = sync.WaitGroup{}
 	var err error
@@ -104,7 +104,7 @@ func (s *VpcService) QueryEIPs(input model.CommonQueryInput) ([]model.EIP, error
 	return eips, err
 }
 
-func (s *VpcService) QueryNATs(input model.CommonQueryInput) (nats []model.NAT, err error) {
+func (s *VpcService) QueryNATs(input model.CommonFilter) (nats []model.NAT, err error) {
 	var wg = sync.WaitGroup{}
 	for _, profile := range s.Profiles {
 		if profile.Cloud == model.AWS {
@@ -139,7 +139,7 @@ func (s *VpcService) QueryNATs(input model.CommonQueryInput) (nats []model.NAT, 
 	return
 }
 
-func (s *VpcService) QuerySubnets(input model.CommonQueryInput) (subnets []model.Subnet, err error) {
+func (s *VpcService) QuerySubnets(input model.CommonFilter) (subnets []model.Subnet, err error) {
 	var wg = sync.WaitGroup{}
 	for _, profile := range s.Profiles {
 		if profile.Cloud == model.AWS {

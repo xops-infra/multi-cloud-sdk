@@ -1,6 +1,7 @@
 package io_test
 
 import (
+	"fmt"
 	"os"
 	"testing"
 	"time"
@@ -27,11 +28,40 @@ func init() {
 			SK:    os.Getenv("TENCENT_SECRET_KEY"),
 			Regions: []string{
 				"ap-shanghai",
+				"na-ashburn",
 			},
 		},
 	}
 	clientIo := io.NewCloudClient(profiles)
 	TencentIo = io.NewTencentClient(clientIo)
+}
+
+func TestQueryTencentEmrCluster(t *testing.T) {
+	timeStart := time.Now()
+	filter := model.EmrFilter{}
+	instances, err := TencentIo.QueryEmrCluster("tencent", "na-ashburn", filter)
+	if err != nil {
+		t.Error(err)
+		return
+	}
+	for _, instance := range instances.Clusters {
+		fmt.Println(tea.Prettify(instance))
+	}
+	t.Log("Success.", time.Since(timeStart), len(instances.Clusters))
+}
+
+func TestDescribeTencentEmrCluster(t *testing.T) {
+	timeStart := time.Now()
+	instances, err := TencentIo.DescribeEmrCluster("tencent", "na-ashburn",
+		[]*string{tea.String("emr-kthwjob1"), tea.String("emr-bxss1pm3")})
+	if err != nil {
+		t.Error(err)
+		return
+	}
+	for _, instance := range instances {
+		fmt.Println(tea.Prettify(instance))
+	}
+	t.Log("Success.", time.Since(timeStart), len(instances))
 }
 
 func TestDescribeInstances(t *testing.T) {

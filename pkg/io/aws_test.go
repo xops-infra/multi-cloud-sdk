@@ -1,6 +1,7 @@
 package io_test
 
 import (
+	"fmt"
 	"os"
 	"testing"
 	"time"
@@ -27,11 +28,59 @@ func init() {
 			SK:    os.Getenv("AWS_SECRET_ACCESS_KEY"),
 			Regions: []string{
 				"cn-northwest-1",
+				"us-east-1",
+			},
+		}, {
+			Name:  "aws-us",
+			Cloud: model.AWS,
+			AK:    os.Getenv("AWS_US_ACCESS_KEY_ID"),
+			SK:    os.Getenv("AWS_US_SECRET_ACCESS_KEY"),
+			Regions: []string{
+				"us-east-1",
 			},
 		},
 	}
 	clientIo := io.NewCloudClient(profiles)
 	AwsIo = io.NewAwsClient(clientIo)
+}
+
+func TestQueryEmrCluster(t *testing.T) {
+	timeStart := time.Now()
+	period := 24 * time.Hour
+	filter := model.EmrFilter{
+		Period: &period,
+		ClusterStates: []model.EMRClusterStatus{
+			model.EMRClusterRunning,
+			model.EMRClusterWaiting,
+			// model.EMRClusterTerminated,
+		},
+		// NextMarker: tea.String("xxx"),
+	}
+	// filter.ClusterStates = []model.EMRClusterStatus{model.EMRClusterRunning}
+	resp, err := AwsIo.QueryEmrCluster("aws-us", "us-east-1", filter)
+	if err != nil {
+		t.Error(err)
+		return
+	}
+	for _, cluster := range resp.Clusters {
+		fmt.Println(tea.Prettify(cluster))
+	}
+	if resp.NextMarker != nil {
+		t.Log("NextMarker:", *resp.NextMarker)
+	}
+	t.Log("Success.", time.Since(timeStart), len(resp.Clusters))
+}
+
+func TestDescribeEmrCluster(t *testing.T) {
+	timeStart := time.Now()
+	ids := []*string{tea.String("j-xxxx")}
+	clusters, err := AwsIo.DescribeEmrCluster("aws-us", "us-east-1", ids)
+	if err != nil {
+		t.Error(err)
+		return
+	}
+	fmt.Println(tea.Prettify(clusters))
+	t.Log("Success.", time.Since(timeStart), len(clusters))
 }
 
 func TestAwsDescribeInstances(t *testing.T) {
