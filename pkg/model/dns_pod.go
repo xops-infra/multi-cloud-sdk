@@ -15,7 +15,7 @@ type DescribeDomainListRequest struct {
 
 type DescribeDomainListResponse struct {
 	RequestId       *string          `json:"request_id"`
-	DomainList      []*Domain        `json:"domain_list"`
+	DomainList      []Domain         `json:"domain_list"`
 	DomainCountInfo *DomainCountInfo `json:"domain_count_info"`
 }
 
@@ -37,7 +37,7 @@ type DescribeRecordListRequest struct {
 
 type DescribeRecordListResponse struct {
 	RequestId       *string          `json:"request_id"`
-	RecordList      []*Record        `json:"record_list"`
+	RecordList      []Record         `json:"record_list"`
 	RecordCountInfo *RecordCountInfo `json:"record_count_info"`
 }
 
@@ -52,7 +52,7 @@ type DescribeRecordRequest struct {
 }
 
 type DescribeRecordResponse struct {
-	Record *Record `json:"record"`
+	Record Record `json:"record"`
 }
 
 type CreateRecordRequest struct {

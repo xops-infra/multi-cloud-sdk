@@ -2,12 +2,14 @@ package io
 
 import (
 	"fmt"
+	"time"
 
 	"github.com/alibabacloud-go/tea/tea"
 	"github.com/spf13/cast"
 	"github.com/tencentcloud/tencentcloud-sdk-go/tencentcloud/common"
 	cvm "github.com/tencentcloud/tencentcloud-sdk-go/tencentcloud/cvm/v20170312"
 	dnspod "github.com/tencentcloud/tencentcloud-sdk-go/tencentcloud/dnspod/v20210323"
+	emr "github.com/tencentcloud/tencentcloud-sdk-go/tencentcloud/emr/v20190103"
 	ocr "github.com/tencentcloud/tencentcloud-sdk-go/tencentcloud/ocr/v20181119"
 	tiia "github.com/tencentcloud/tencentcloud-sdk-go/tencentcloud/tiia/v20190529"
 	tencentVpc "github.com/tencentcloud/tencentcloud-sdk-go/tencentcloud/vpc/v20170312"
@@ -19,39 +21,112 @@ type tencentClient struct {
 	io model.ClientIo
 }
 
-func NewTencentClient(io model.ClientIo) model.CloudIo {
+func NewTencentClient(io model.ClientIo) model.CloudIO {
 	return &tencentClient{
 		io: io,
 	}
 }
 
-func (c *tencentClient) QueryInstances(profile, region string) ([]*model.Instance, error) {
-	client, err := c.io.GetTencentCvmClient(profile, region)
+// EMR 腾讯云因为数据量少所以递归查询所有结果返回
+func (c *tencentClient) QueryEmrCluster(profile, region string, input model.EmrFilter) (model.FilterEmrResponse, error) {
+	client, err := c.io.GetTencentEmrClient(profile, region)
+	if err != nil {
+		return model.FilterEmrResponse{}, err
+	}
+	request := emr.NewDescribeInstancesListRequest()
+	request.DisplayStrategy = tea.String("clusterList")
+	var clusters []model.EmrCluster
+	for {
+		response, err := client.DescribeInstancesList(request)
+		if err != nil {
+			return model.FilterEmrResponse{}, err
+		}
+		for _, cluster := range response.Response.InstancesList {
+			clusters = append(clusters, model.EmrCluster{
+				ID:     cluster.ClusterId,
+				Name:   cluster.ClusterName,
+				Status: model.FmtTencentState(tea.Int64(cast.ToInt64(cluster.Status))),
+			})
+		}
+		if len(clusters) == cast.ToInt(response.Response.TotalCnt) {
+			break
+		}
+	}
+	return model.FilterEmrResponse{
+		Clusters:   clusters,
+		NextMarker: nil,
+	}, nil
+}
+
+func (c *tencentClient) DescribeEmrCluster(profile, region string, ids []*string) ([]model.DescribeEmrCluster, error) {
+	client, err := c.io.GetTencentEmrClient(profile, region)
 	if err != nil {
 		return nil, err
 	}
-	request := cvm.NewDescribeInstancesRequest()
+	request := emr.NewDescribeInstancesRequest()
+	request.DisplayStrategy = tea.String("clusterList")
+	request.InstanceIds = ids
 	response, err := client.DescribeInstances(request)
 	if err != nil {
 		return nil, err
 	}
-	var instances []*model.Instance
+	var clusters []model.DescribeEmrCluster
+	for _, cluster := range response.Response.ClusterList {
+		layout := "2006-01-02 15:04:05"
+		createTime, _ := time.Parse(layout, *cluster.AddTime)
+		clusters = append(clusters, model.DescribeEmrCluster{
+			ID:         cluster.ClusterId,
+			Name:       cluster.ClusterName,
+			Status:     model.FmtTencentState(cluster.Status),
+			CreateTime: &createTime,
+			Meta:       cluster,
+		})
+	}
+	return clusters, nil
+}
 
-	// 如果返回多页，要多个页面处理
+// Instance
+func (c *tencentClient) DescribeInstances(profile, region string, input model.DescribeInstancesInput) (model.InstanceResponse, error) {
+	var instances []model.Instance
+
+	client, err := c.io.GetTencentCvmClient(profile, region)
+	if err != nil {
+		return model.InstanceResponse{}, err
+	}
+	request := cvm.NewDescribeInstancesRequest()
+
+	request.InstanceIds = input.InstanceIds
+	for _, filter := range input.Filters {
+		request.Filters = append(request.Filters, &cvm.Filter{
+			Name:   filter.Name,
+			Values: filter.Values,
+		})
+	}
+	var pageSize int64 = 20
+	if input.Size != nil {
+		pageSize = *input.Size
+		request.Limit = input.Size
+	}
+
+	response, err := client.DescribeInstances(request)
+	if err != nil {
+		return model.InstanceResponse{}, err
+	}
+
 	total_cvm := *response.Response.TotalCount
-
-	pages_all := total_cvm / 20
+	pages_all := total_cvm / pageSize
 	pages := *common.Int64Ptr(0)
 	for pages <= pages_all {
+		request.Limit = common.Int64Ptr(pageSize)
 		if pages > 0 {
-			request.Offset = common.Int64Ptr(20*pages - 1)
+			request.Offset = common.Int64Ptr(pageSize*pages - 1)
 		}
 		response, err := client.DescribeInstances(request)
 		if err != nil {
-			return nil, err
+			return model.InstanceResponse{}, err
 		}
 		for _, instanceSet := range response.Response.InstanceSet {
-			instances = append(instances, &model.Instance{
+			instances = append(instances, model.Instance{
 				Profile:    profile,
 				KeyName:    instanceSet.LoginSettings.KeyIds,
 				InstanceID: instanceSet.InstanceId,
@@ -67,43 +142,14 @@ func (c *tencentClient) QueryInstances(profile, region string) ([]*model.Instanc
 		}
 		pages = pages + 1
 	}
-	return instances, nil
+
+	return model.InstanceResponse{
+		Instances:  instances,
+		NextMarker: nil,
+	}, nil
 }
 
-func (c *tencentClient) DescribeInstances(profile, region string, instanceIds []*string) ([]*model.Instance, error) {
-	client, err := c.io.GetTencentCvmClient(profile, region)
-	if err != nil {
-		return nil, err
-	}
-	request := cvm.NewDescribeInstancesRequest()
-	request.InstanceIds = instanceIds
-	response, err := client.DescribeInstances(request)
-	if err != nil {
-		return nil, err
-	}
-	var instances []*model.Instance
-	for _, instanceSet := range response.Response.InstanceSet {
-		instances = append(instances, &model.Instance{
-			Profile:    profile,
-			KeyName:    instanceSet.LoginSettings.KeyIds,
-			InstanceID: instanceSet.InstanceId,
-			Name:       instanceSet.InstanceName,
-			Region:     instanceSet.Placement.Zone,
-			Status:     model.ToInstanceStatus(*instanceSet.InstanceState),
-			PublicIP:   instanceSet.PublicIpAddresses,
-			PrivateIP:  instanceSet.PrivateIpAddresses,
-			Tags:       model.TencentTagsToModelTags(instanceSet.Tags),
-			Owner:      model.TencentTagsToModelTags(instanceSet.Tags).GetOwner(),
-			Platform:   instanceSet.OsName,
-		})
-	}
-	return instances, nil
-}
-
-func (c *tencentClient) QueryVPC(profile, region string, input model.CommonQueryInput) ([]*model.VPC, error) {
-	if !input.Filter(profile, region) {
-		return nil, nil
-	}
+func (c *tencentClient) QueryVPC(profile, region string, input model.CommonFilter) ([]model.VPC, error) {
 	client, err := c.io.GetTencentVpcClient(profile, region)
 	if err != nil {
 		return nil, err
@@ -121,9 +167,9 @@ func (c *tencentClient) QueryVPC(profile, region string, input model.CommonQuery
 	if err != nil {
 		return nil, err
 	}
-	var vpcs []*model.VPC
+	var vpcs []model.VPC
 	for _, vpc := range response.Response.VpcSet {
-		vpcs = append(vpcs, &model.VPC{
+		vpcs = append(vpcs, model.VPC{
 			ID:            *vpc.VpcId,
 			Region:        region,
 			Account:       profile,
@@ -138,10 +184,7 @@ func (c *tencentClient) QueryVPC(profile, region string, input model.CommonQuery
 }
 
 // QuerySubnet
-func (c *tencentClient) QuerySubnet(profile, region string, input model.CommonQueryInput) ([]*model.Subnet, error) {
-	if !input.Filter(profile, region) {
-		return nil, nil
-	}
+func (c *tencentClient) QuerySubnet(profile, region string, input model.CommonFilter) ([]model.Subnet, error) {
 	client, err := c.io.GetTencentVpcClient(profile, region)
 	if err != nil {
 		return nil, err
@@ -159,10 +202,10 @@ func (c *tencentClient) QuerySubnet(profile, region string, input model.CommonQu
 	if err != nil {
 		return nil, err
 	}
-	var subnets []*model.Subnet
+	var subnets []model.Subnet
 	for _, subnet := range response.Response.SubnetSet {
 		createTime, _ := model.TimeParse(*subnet.CreatedTime)
-		subnets = append(subnets, &model.Subnet{
+		subnets = append(subnets, model.Subnet{
 			ID:                      subnet.SubnetId,
 			Region:                  region,
 			Account:                 profile,
@@ -183,10 +226,7 @@ func (c *tencentClient) QuerySubnet(profile, region string, input model.CommonQu
 }
 
 // QueryEIP
-func (c *tencentClient) QueryEIP(profile, region string, input model.CommonQueryInput) ([]*model.EIP, error) {
-	if !input.Filter(profile, region) {
-		return nil, nil
-	}
+func (c *tencentClient) QueryEIP(profile, region string, input model.CommonFilter) ([]model.EIP, error) {
 	client, err := c.io.GetTencentVpcClient(profile, region)
 	if err != nil {
 		return nil, err
@@ -204,10 +244,10 @@ func (c *tencentClient) QueryEIP(profile, region string, input model.CommonQuery
 	if err != nil {
 		return nil, err
 	}
-	var eips []*model.EIP
+	var eips []model.EIP
 	for _, eip := range response.Response.AddressSet {
 		createTime, _ := model.TimeParse(*eip.CreatedTime)
-		eips = append(eips, &model.EIP{
+		eips = append(eips, model.EIP{
 			ID:                 eip.AddressId,
 			Region:             region,
 			Account:            profile,
@@ -226,10 +266,7 @@ func (c *tencentClient) QueryEIP(profile, region string, input model.CommonQuery
 }
 
 // QueryNAT
-func (c *tencentClient) QueryNAT(profile, region string, input model.CommonQueryInput) ([]*model.NAT, error) {
-	if !input.Filter(profile, region) {
-		return nil, nil
-	}
+func (c *tencentClient) QueryNAT(profile, region string, input model.CommonFilter) ([]model.NAT, error) {
 	client, err := c.io.GetTencentVpcClient(profile, region)
 	if err != nil {
 		return nil, err
@@ -247,10 +284,10 @@ func (c *tencentClient) QueryNAT(profile, region string, input model.CommonQuery
 	if err != nil {
 		return nil, err
 	}
-	var nats []*model.NAT
+	var nats []model.NAT
 	for _, nat := range response.Response.NatGatewaySet {
 		createTime, _ := model.TimeParse(*nat.CreatedTime)
-		nats = append(nats, &model.NAT{
+		nats = append(nats, model.NAT{
 			ID:            *nat.NatGatewayId,
 			Region:        region,
 			Account:       profile,
@@ -288,9 +325,9 @@ func (c *tencentClient) CommonOCR(profile, region string, input model.OcrRequest
 	if err != nil {
 		return model.OcrResponse{}, err
 	}
-	var textDetections []*model.TextDetection
+	var textDetections []model.TextDetection
 	for _, textDetection := range response.Response.TextDetections {
-		textDetections = append(textDetections, &model.TextDetection{
+		textDetections = append(textDetections, model.TextDetection{
 			DetectedText: textDetection.DetectedText,
 			Confidence:   textDetection.Confidence,
 			Polygon: []*model.Coord{
@@ -337,9 +374,9 @@ func (c *tencentClient) CreatePicture(profile, region string, input model.Create
 	if err != nil {
 		return model.CreatePictureResponse{}, err
 	}
-	var object *model.Object
+	var object model.Object
 	if response.Response.Object != nil {
-		object = &model.Object{
+		object = model.Object{
 			Box: &model.Box{
 				Rect: &model.ImageRect{
 					X:      tea.Int64(cast.ToInt64(response.Response.Object.Box.Rect.X)),
@@ -414,9 +451,9 @@ func (c *tencentClient) GetPictureByName(profile, region string, input model.Com
 	if err != nil {
 		return model.GetPictureByNameResponse{}, err
 	}
-	var imageInfos []*model.ImageInfo
+	var imageInfos []model.ImageInfo
 	for _, imageInfo := range response.Response.ImageInfos {
-		imageInfos = append(imageInfos, &model.ImageInfo{
+		imageInfos = append(imageInfos, model.ImageInfo{
 			CustomContent: imageInfo.CustomContent,
 			EntityId:      imageInfo.EntityId,
 			PicName:       imageInfo.PicName,
@@ -446,9 +483,9 @@ func (c *tencentClient) QueryPicture(profile, region string, input model.QueryPi
 	if err != nil {
 		return model.QueryPictureResponse{}, err
 	}
-	var groupInfos []*model.Group
+	var groupInfos []model.Group
 	for _, groupInfo := range response.Response.Groups {
-		groupInfos = append(groupInfos, &model.Group{
+		groupInfos = append(groupInfos, model.Group{
 			GroupId:    groupInfo.GroupId,
 			GroupName:  groupInfo.GroupName,
 			GroupType:  tea.Int64(cast.ToInt64(groupInfo.GroupType)),
@@ -538,9 +575,9 @@ func (c *tencentClient) SearchPicture(profile, region string, input model.Search
 	if err != nil {
 		return model.SearchPictureResponse{}, err
 	}
-	var imageInfos []*model.ImageInfo
+	var imageInfos []model.ImageInfo
 	for _, imageInfo := range response.Response.ImageInfos {
-		imageInfos = append(imageInfos, &model.ImageInfo{
+		imageInfos = append(imageInfos, model.ImageInfo{
 			CustomContent: imageInfo.CustomContent,
 			EntityId:      imageInfo.EntityId,
 			PicName:       imageInfo.PicName,
@@ -548,9 +585,9 @@ func (c *tencentClient) SearchPicture(profile, region string, input model.Search
 			Tags:          imageInfo.Tags,
 		})
 	}
-	var object *model.Object
+	var object model.Object
 	if response.Response.Object != nil {
-		object = &model.Object{
+		object = model.Object{
 			Box: &model.Box{
 				Rect: &model.ImageRect{
 					X:      tea.Int64(cast.ToInt64(response.Response.Object.Box.Rect.X)),
@@ -587,9 +624,9 @@ func (c *tencentClient) DescribeDomainList(profile, region string, input model.D
 	if err != nil {
 		return model.DescribeDomainListResponse{}, err
 	}
-	var domains []*model.Domain
+	var domains []model.Domain
 	for _, domain := range response.Response.DomainList {
-		domains = append(domains, &model.Domain{
+		domains = append(domains, model.Domain{
 			DomainId: tea.String(cast.ToString(domain.DomainId)),
 			Name:     domain.Name,
 			Meta:     domain,
@@ -621,9 +658,9 @@ func (c *tencentClient) DescribeRecordList(profile, region string, input model.D
 	if err != nil {
 		return model.DescribeRecordListResponse{}, err
 	}
-	var records []*model.Record
+	var records []model.Record
 	for _, record := range response.Response.RecordList {
-		records = append(records, &model.Record{
+		records = append(records, model.Record{
 			RecordId:   record.RecordId,
 			SubDomain:  record.Name,
 			RecordType: record.Type,

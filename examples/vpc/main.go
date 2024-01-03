@@ -6,6 +6,7 @@ import (
 	"time"
 
 	"github.com/alibabacloud-go/tea/tea"
+
 	"github.com/xops-infra/multi-cloud-sdk/pkg/io"
 	"github.com/xops-infra/multi-cloud-sdk/pkg/model"
 	server "github.com/xops-infra/multi-cloud-sdk/pkg/service"
@@ -47,24 +48,22 @@ func init() {
 func main() {
 	startTime := time.Now()
 	fmt.Println("vpcs...")
-	vpcs, _ := vpcS.QueryVPCs(model.CommonQueryInput{
-		CloudProvider: model.TENCENT,
-	})
+	vpcs, _ := vpcS.QueryVPCs(model.CommonFilter{})
 	for _, vpc := range vpcs {
 		fmt.Println(tea.Prettify(vpc))
 	}
 	fmt.Println("eips...")
-	eips, _ := vpcS.QueryEIPs(model.CommonQueryInput{})
+	eips, _ := vpcS.QueryEIPs(model.CommonFilter{})
 	for _, eip := range eips {
 		fmt.Println(tea.Prettify(eip))
 	}
 	fmt.Println("nats...")
-	nats, _ := vpcS.QueryNATs(model.CommonQueryInput{})
+	nats, _ := vpcS.QueryNATs(model.CommonFilter{})
 	for _, nat := range nats {
 		fmt.Println(tea.Prettify(nat))
 	}
 	fmt.Println("subnets...")
-	subnets, _ := vpcS.QuerySubnets(model.CommonQueryInput{})
+	subnets, _ := vpcS.QuerySubnets(model.CommonFilter{})
 	for _, subnet := range subnets {
 		fmt.Println(tea.Prettify(subnet))
 	}

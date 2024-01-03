@@ -11,10 +11,10 @@ import (
 
 type DnsService struct {
 	Profiles     []model.ProfileConfig
-	Aws, Tencent model.CloudIo
+	Aws, Tencent model.CloudIO
 }
 
-func NewDnsService(profiles []model.ProfileConfig, aws, tencent model.CloudIo) model.DnsContract {
+func NewDnsService(profiles []model.ProfileConfig, aws, tencent model.CloudIO) model.DnsContract {
 	return &DnsService{
 		Profiles: profiles,
 		Aws:      aws,

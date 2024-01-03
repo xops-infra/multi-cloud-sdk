@@ -3,10 +3,12 @@ package io
 import (
 	"fmt"
 	"strings"
+	"time"
 
 	"github.com/alibabacloud-go/tea/tea"
 	"github.com/aws/aws-sdk-go/aws"
 	"github.com/aws/aws-sdk-go/service/ec2"
+	"github.com/aws/aws-sdk-go/service/emr"
 	"github.com/aws/aws-sdk-go/service/route53"
 	"github.com/spf13/cast"
 
@@ -17,70 +19,109 @@ type awsClient struct {
 	io model.ClientIo
 }
 
-func NewAwsClient(io model.ClientIo) model.CloudIo {
+func NewAwsClient(io model.ClientIo) model.CloudIO {
 	return &awsClient{
 		io: io,
 	}
 }
 
-func (c *awsClient) QueryInstances(profile, region string) ([]*model.Instance, error) {
-	svc, err := c.io.GetAwsEc2Client(profile, region)
+// EMR
+func (c *awsClient) QueryEmrCluster(profile, region string, filter model.EmrFilter) (model.FilterEmrResponse, error) {
+	svc, err := c.io.GetAWSEmrClient(profile, region)
+	if err != nil {
+		return model.FilterEmrResponse{}, err
+	}
+	input := &emr.ListClustersInput{}
+	if filter.ClusterStates != nil {
+		for _, state := range filter.ClusterStates {
+			input.ClusterStates = append(input.ClusterStates, aws.String(string(state)))
+		}
+	}
+	if filter.NextMarker != nil {
+		input.Marker = filter.NextMarker
+	}
+	if filter.Period != nil {
+		input.CreatedAfter = aws.Time(time.Now().Add(-*filter.Period))
+	}
+	result, err := svc.ListClusters(input)
+	if err != nil {
+		return model.FilterEmrResponse{}, err
+	}
+	var clusters []model.EmrCluster
+	for _, cluster := range result.Clusters {
+		clusters = append(clusters, model.EmrCluster{
+			ID:     cluster.Id,
+			Name:   cluster.Name,
+			Status: model.EMRClusterStatus(*cluster.Status.State),
+		})
+	}
+	return model.FilterEmrResponse{
+		Clusters:   clusters,
+		NextMarker: result.Marker,
+	}, nil
+}
+
+func (c *awsClient) DescribeEmrCluster(profile, region string, ids []*string) ([]model.DescribeEmrCluster, error) {
+	svc, err := c.io.GetAWSEmrClient(profile, region)
 	if err != nil {
 		return nil, err
 	}
-	input := &ec2.DescribeInstancesInput{
-		MaxResults: aws.Int64(10),
-	}
-	var instances []*model.Instance
-	for {
-		out, err := svc.DescribeInstances(input)
+	var clusters []model.DescribeEmrCluster
+	for _, id := range ids {
+		out, err := svc.DescribeCluster(&emr.DescribeClusterInput{
+			ClusterId: id,
+		})
 		if err != nil {
 			return nil, err
 		}
-
-		for _, reservation := range out.Reservations {
-			for _, instance := range reservation.Instances {
-				tags := model.AwsTagsToModelTags(instance.Tags)
-				instances = append(instances, &model.Instance{
-					Profile:    profile,
-					KeyName:    []*string{instance.KeyName},
-					InstanceID: instance.InstanceId,
-					Name:       tags.GetName(),
-					Region:     instance.Placement.AvailabilityZone,
-					Status:     model.ToInstanceStatus(strings.ToUpper(*instance.State.Name)),
-					PublicIP:   []*string{instance.PublicIpAddress},
-					PrivateIP:  []*string{instance.PrivateIpAddress},
-					Tags:       tags,
-					Owner:      tags.GetOwner(),
-					Platform:   instance.PlatformDetails,
-				})
-			}
-		}
-		if out.NextToken == nil {
-			break
-		}
-		input.NextToken = out.NextToken
+		clusters = append(clusters, model.DescribeEmrCluster{
+			ID:         out.Cluster.Id,
+			Name:       out.Cluster.Name,
+			Status:     model.EMRClusterStatus(*out.Cluster.Status.State),
+			CreateTime: out.Cluster.Status.Timeline.CreationDateTime,
+			Meta:       out.Cluster,
+		})
 	}
-	return instances, nil
+	return clusters, nil
 }
 
-func (c *awsClient) DescribeInstances(profile, region string, instanceIds []*string) ([]*model.Instance, error) {
+func (c *awsClient) DescribeInstances(profile, region string, input model.DescribeInstancesInput) (model.InstanceResponse, error) {
 	svc, err := c.io.GetAwsEc2Client(profile, region)
 	if err != nil {
-		return nil, err
+		return model.InstanceResponse{}, err
 	}
-	input := &ec2.DescribeInstancesInput{
-		InstanceIds: instanceIds,
+	req := &ec2.DescribeInstancesInput{}
+	if input.InstanceIds != nil {
+		req.InstanceIds = input.InstanceIds
 	}
-	out, err := svc.DescribeInstances(input)
+	if input.Filters != nil {
+		for _, filter := range input.Filters {
+			req.Filters = append(req.Filters, &ec2.Filter{
+				Name:   filter.Name,
+				Values: filter.Values,
+			})
+		}
+	}
+
+	if input.NextMarker != nil {
+		req.NextToken = input.NextMarker.(*string)
+	}
+
+	if input.Size != nil {
+		req.MaxResults = input.Size
+	} else {
+		req.MaxResults = tea.Int64(20)
+	}
+
+	out, err := svc.DescribeInstances(req)
 	if err != nil {
-		return nil, err
+		return model.InstanceResponse{}, err
 	}
-	var instances []*model.Instance
+	var instances []model.Instance
 	for _, reservation := range out.Reservations {
 		for _, instance := range reservation.Instances {
 			tags := model.AwsTagsToModelTags(instance.Tags)
-			instances = append(instances, &model.Instance{
+			instances = append(instances, model.Instance{
 				Profile:    profile,
 				KeyName:    []*string{instance.KeyName},
 				InstanceID: instance.InstanceId,
@@ -95,25 +136,19 @@ func (c *awsClient) DescribeInstances(profile, region string, instanceIds []*str
 			})
 		}
 	}
-	return instances, nil
+	return model.InstanceResponse{
+		Instances:  instances,
+		NextMarker: out.NextToken,
+	}, nil
 }
 
 // QueryVpcs
-func (c *awsClient) QueryVPC(profile, region string, input model.CommonQueryInput) ([]*model.VPC, error) {
-	if input.CloudProvider != "" && input.CloudProvider != model.AWS {
-		return nil, nil
-	}
-	if input.Account != "" && input.Account != profile {
-		return nil, nil
-	}
-	if input.Region != "" && input.Region != region {
-		return nil, nil
-	}
+func (c *awsClient) QueryVPC(profile, region string, input model.CommonFilter) ([]model.VPC, error) {
 	svc, err := c.io.GetAwsEc2Client(profile, region)
 	if err != nil {
 		return nil, err
 	}
-	var vpcs []*model.VPC
+	var vpcs []model.VPC
 	_input := &ec2.DescribeVpcsInput{}
 	if input.ID != "" {
 		_input.VpcIds = []*string{aws.String(input.ID)}
@@ -124,7 +159,7 @@ func (c *awsClient) QueryVPC(profile, region string, input model.CommonQueryInpu
 			return nil, err
 		}
 		for _, vpc := range out.Vpcs {
-			vpcs = append(vpcs, &model.VPC{
+			vpcs = append(vpcs, model.VPC{
 				ID:            aws.StringValue(vpc.VpcId),
 				Tags:          model.AwsTagsToModelTags(vpc.Tags),
 				Region:        region,
@@ -143,15 +178,12 @@ func (c *awsClient) QueryVPC(profile, region string, input model.CommonQueryInpu
 }
 
 // QuerySubnet
-func (c *awsClient) QuerySubnet(profile, region string, input model.CommonQueryInput) ([]*model.Subnet, error) {
-	if !input.Filter(profile, region) {
-		return nil, nil
-	}
+func (c *awsClient) QuerySubnet(profile, region string, input model.CommonFilter) ([]model.Subnet, error) {
 	svc, err := c.io.GetAwsEc2Client(profile, region)
 	if err != nil {
 		return nil, err
 	}
-	var subnets []*model.Subnet
+	var subnets []model.Subnet
 	_input := &ec2.DescribeSubnetsInput{}
 	if input.ID != "" {
 		_input.SubnetIds = []*string{aws.String(input.ID)}
@@ -163,7 +195,7 @@ func (c *awsClient) QuerySubnet(profile, region string, input model.CommonQueryI
 		}
 		for _, subnet := range out.Subnets {
 			tags := model.AwsTagsToModelTags(subnet.Tags)
-			subnets = append(subnets, &model.Subnet{
+			subnets = append(subnets, model.Subnet{
 				ID:            subnet.SubnetId,
 				Tags:          tags,
 				Name:          tags.GetName(),
@@ -189,15 +221,12 @@ func (c *awsClient) QuerySubnet(profile, region string, input model.CommonQueryI
 }
 
 // QueryEIP
-func (c *awsClient) QueryEIP(profile, region string, input model.CommonQueryInput) ([]*model.EIP, error) {
-	if !input.Filter(profile, region) {
-		return nil, nil
-	}
+func (c *awsClient) QueryEIP(profile, region string, input model.CommonFilter) ([]model.EIP, error) {
 	svc, err := c.io.GetAwsEc2Client(profile, region)
 	if err != nil {
 		return nil, err
 	}
-	var eips []*model.EIP
+	var eips []model.EIP
 	_input := &ec2.DescribeAddressesInput{}
 	if input.ID != "" {
 		_input.AllocationIds = []*string{aws.String(input.ID)}
@@ -208,7 +237,7 @@ func (c *awsClient) QueryEIP(profile, region string, input model.CommonQueryInpu
 	}
 	for _, address := range out.Addresses {
 		tags := model.AwsTagsToModelTags(address.Tags)
-		eips = append(eips, &model.EIP{
+		eips = append(eips, model.EIP{
 			ID:            address.AllocationId,
 			Tags:          tags,
 			Name:          tags.GetName(),
@@ -228,15 +257,12 @@ func (c *awsClient) QueryEIP(profile, region string, input model.CommonQueryInpu
 }
 
 // QueryNAT
-func (c *awsClient) QueryNAT(profile, region string, input model.CommonQueryInput) ([]*model.NAT, error) {
-	if !input.Filter(profile, region) {
-		return nil, nil
-	}
+func (c *awsClient) QueryNAT(profile, region string, input model.CommonFilter) ([]model.NAT, error) {
 	svc, err := c.io.GetAwsEc2Client(profile, region)
 	if err != nil {
 		return nil, err
 	}
-	var nats []*model.NAT
+	var nats []model.NAT
 	_input := &ec2.DescribeNatGatewaysInput{}
 	if input.ID != "" {
 		_input.NatGatewayIds = []*string{aws.String(input.ID)}
@@ -247,7 +273,7 @@ func (c *awsClient) QueryNAT(profile, region string, input model.CommonQueryInpu
 	}
 	for _, nat := range out.NatGateways {
 		tags := model.AwsTagsToModelTags(nat.Tags)
-		nats = append(nats, &model.NAT{
+		nats = append(nats, model.NAT{
 			ID:            aws.StringValue(nat.NatGatewayId),
 			Tags:          tags,
 			Name:          *tags.GetName(),
@@ -307,7 +333,7 @@ func (c *awsClient) DescribeDomainList(profile, region string, input model.Descr
 	}
 
 	params := &route53.ListHostedZonesInput{}
-	var domains []*model.Domain
+	var domains []model.Domain
 
 	for {
 		resp, err := client.ListHostedZones(params)
@@ -320,7 +346,7 @@ func (c *awsClient) DescribeDomainList(profile, region string, input model.Descr
 					continue
 				}
 			}
-			domains = append(domains, &model.Domain{
+			domains = append(domains, model.Domain{
 				DomainId: domain.Id,
 				Name:     domain.Name,
 				Meta:     domain,
@@ -356,7 +382,7 @@ func (c *awsClient) DescribeRecordList(profile, region string, input model.Descr
 		HostedZoneId: hostedZoneId,
 	}
 
-	var records []*model.Record
+	var records []model.Record
 	for {
 		resp, err := client.ListResourceRecordSets(param)
 		if err != nil {
@@ -376,7 +402,7 @@ func (c *awsClient) DescribeRecordList(profile, region string, input model.Descr
 				}
 			}
 			subDomain := strings.TrimSuffix(*record.Name, fmt.Sprintf(".%s.", *input.Domain))
-			records = append(records, &model.Record{
+			records = append(records, model.Record{
 				SubDomain:  tea.String(subDomain),
 				TTL:        tea.Uint64(cast.ToUint64(record.TTL)),
 				Weight:     tea.Uint64(cast.ToUint64(record.Weight)),

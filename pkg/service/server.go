@@ -1,7 +1,6 @@
 package service
 
 import (
-	"fmt"
 	"sync"
 
 	"github.com/rogpeppe/go-internal/cache"
@@ -9,13 +8,14 @@ import (
 	"github.com/xops-infra/multi-cloud-sdk/pkg/model"
 )
 
+// 汇总所有账号的机器信息
 type ServerService struct {
 	Profiles     []model.ProfileConfig
-	AWS, Tencent model.CloudIo
+	AWS, Tencent model.CloudIO
 	Cache        *cache.Cache
 }
 
-func NewServer(profiles []model.ProfileConfig, aws, tencent model.CloudIo) *ServerService {
+func NewServer(profiles []model.ProfileConfig, aws, tencent model.CloudIO) model.InstanceContact {
 	return &ServerService{
 		Profiles: profiles,
 		AWS:      aws,
@@ -23,9 +23,9 @@ func NewServer(profiles []model.ProfileConfig, aws, tencent model.CloudIo) *Serv
 	}
 }
 
-func (s *ServerService) QueryInstances(input model.InstanceQueryInput) []*model.Instance {
-	instances := make([]*model.Instance, 0)
-	var wg = sync.WaitGroup{}
+func (s *ServerService) QueryInstances(input model.InstanceFilter) ([]model.Instance, error) {
+	instances := make([]model.Instance, 0)
+	wg := sync.WaitGroup{}
 	for _, profile := range s.Profiles {
 		if input.Profile != nil && *input.Profile != profile.Name {
 			// 加速，如果有指定账号，且不是当前账号，直接跳过
@@ -36,42 +36,36 @@ func (s *ServerService) QueryInstances(input model.InstanceQueryInput) []*model.
 				wg.Add(1)
 				go func(profile model.ProfileConfig, region string) {
 					defer wg.Done()
-					_instances, err := s.AWS.QueryInstances(profile.Name, region)
-					if err != nil {
-						return
+					req := input.ToAwsDescribeInstancesInput()
+					for {
+						_instances, err := s.AWS.DescribeInstances(profile.Name, region, req)
+						if err != nil {
+							return
+						}
+						instances = append(instances, _instances.Instances...)
+						if _instances.NextMarker.(*string) == nil {
+							break
+						} else {
+							req.NextMarker = _instances.NextMarker
+						}
 					}
-					instances = append(instances, input.Filter(_instances)...)
 				}(profile, region)
-
 			}
 		} else if profile.Cloud == model.TENCENT {
 			for _, region := range profile.Regions {
 				wg.Add(1)
 				go func(profile model.ProfileConfig, region string) {
+					// 腾讯因为分页使用偏移量，所以不需要循环，直接获取所有数据即可
 					defer wg.Done()
-					_instances, err := s.Tencent.QueryInstances(profile.Name, region)
+					_instances, err := s.Tencent.DescribeInstances(profile.Name, region, input.ToTxDescribeInstancesInput())
 					if err != nil {
 						return
 					}
-					instances = append(instances, input.Filter(_instances)...)
+					instances = append(instances, _instances.Instances...)
 				}(profile, region)
 			}
 		}
+		wg.Wait()
 	}
-	wg.Wait()
-	return instances
-}
-
-func (s *ServerService) DescribeInstances(input model.DescribeInstancesInput) ([]*model.Instance, error) {
-	for _, profile := range s.Profiles {
-		if input.Profile != "" && input.Profile != profile.Name {
-			continue
-		}
-		if profile.Cloud == model.AWS {
-			return s.AWS.DescribeInstances(input.Profile, input.Region, input.InstanceIds)
-		} else if profile.Cloud == model.TENCENT {
-			return s.Tencent.DescribeInstances(input.Profile, input.Region, input.InstanceIds)
-		}
-	}
-	return nil, fmt.Errorf("not found profile: %s", input.Profile)
+	return instances, nil
 }

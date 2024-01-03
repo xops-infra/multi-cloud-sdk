@@ -4,6 +4,7 @@ golang开发的，多云供应商的云资源 sdk的混合，包括 aws,tencent�
 go get -u github.com/xops-infra/multi-cloud-sdk
 ```
 
+
 ### 支持功能
 - 服务器资源
     - 服务器
@@ -14,6 +15,9 @@ go get -u github.com/xops-infra/multi-cloud-sdk
     - NAT
     - EIP
     - SUBNET
+- EMR
+    - ListClusters
+    - DescribeCluster
 - 对象存储
 - EMR
 - 消息队列
@@ -23,6 +27,8 @@ go get -u github.com/xops-infra/multi-cloud-sdk
 
 
 ### 开发日志
+- 2024-01:
+    - feat: 支持 emr list&describe
 - 2023-12:
     - 新增服务器单查询
 - 2023-11:

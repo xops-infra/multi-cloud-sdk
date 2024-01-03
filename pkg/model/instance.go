@@ -4,10 +4,11 @@ import (
 	"strings"
 
 	"github.com/aws/aws-sdk-go/aws"
-	"github.com/aws/aws-sdk-go/service/ec2"
-	cvm "github.com/tencentcloud/tencentcloud-sdk-go/tencentcloud/cvm/v20170312"
-	tencentVpc "github.com/tencentcloud/tencentcloud-sdk-go/tencentcloud/vpc/v20170312"
 )
+
+type InstanceContact interface {
+	QueryInstances(input InstanceFilter) ([]Instance, error)
+}
 
 type Instance struct {
 	Name       *string        `json:"name"`
@@ -23,153 +24,115 @@ type Instance struct {
 	Tags       *Tags          `json:"tags" gorm:"serializer:json"`
 }
 
-type InstanceQueryInput struct {
-	Name    *string         `json:"name"`    // 机器名称，使用字符串包含匹配方式
-	ID      *string         `json:"id"`      // 机器ID，使用字符串包含匹配方式
-	Region  *string         `json:"region"`  // 区域
-	Profile *string         `json:"profile"` // 账号
-	Ip      *string         `json:"ip"`      // 机器IP，支持公网IP和内网IP，也是包含匹配方式
-	Status  *InstanceStatus `json:"status"`  // 机器状态
-	Owner   *string         `json:"owner"`   // 机器所有者，tags的Owner
+type InstanceFilter struct {
+	Name      *string         `json:"name"`       // 机器名称，使用字符串包含匹配方式
+	IDs       []*string       `json:"ids"`        // 机器ID列表，使用字符串包含匹配方式
+	Region    *string         `json:"region"`     // 区域
+	Profile   *string         `json:"profile"`    // 账号
+	PrivateIp *string         `json:"private_ip"` // 私有IP
+	PublicIp  *string         `json:"public_ip"`  // 公有IP
+	Status    *InstanceStatus `json:"status"`     // 机器状态
+	Owner     *string         `json:"owner"`      // 机器所有者，tags的Owner
 }
 
+func (q *InstanceFilter) ToTxDescribeInstancesInput() DescribeInstancesInput {
+	var instanceIds []*string
+	if q.IDs != nil {
+		instanceIds = append(instanceIds, q.IDs...)
+	}
+	var filters []*Filter
+	if q.Name != nil {
+		filters = append(filters, &Filter{
+			Name:   aws.String("instance-name"),
+			Values: []*string{q.Name},
+		})
+	}
+	if q.PrivateIp != nil {
+		filters = append(filters, &Filter{
+			Name:   aws.String("private-ip-address"),
+			Values: []*string{q.PrivateIp},
+		})
+	}
+	if q.PublicIp != nil {
+		filters = append(filters, &Filter{
+			Name:   aws.String("public-ip-address"),
+			Values: []*string{q.PublicIp},
+		})
+	}
+	if q.Status != nil {
+		filters = append(filters, &Filter{
+			Name:   aws.String("instance-state"),
+			Values: []*string{aws.String(string(*q.Status))},
+		})
+	}
+	if q.Owner != nil {
+		filters = append(filters, &Filter{
+			Name:   aws.String("tag:Owner"),
+			Values: []*string{q.Owner},
+		})
+	}
+	return DescribeInstancesInput{
+		InstanceIds: instanceIds,
+		Filters:     filters,
+	}
+}
+
+func (q *InstanceFilter) ToAwsDescribeInstancesInput() DescribeInstancesInput {
+	var instanceIds []*string
+	if q.IDs != nil {
+		instanceIds = append(instanceIds, q.IDs...)
+	}
+	var filters []*Filter
+	if q.Name != nil {
+		filters = append(filters, &Filter{
+			Name:   aws.String("tag:Name"),
+			Values: []*string{q.Name},
+		})
+	}
+	if q.PrivateIp != nil {
+		filters = append(filters, &Filter{
+			Name:   aws.String("network-interface.addresses.private-ip-address"),
+			Values: []*string{q.PrivateIp},
+		})
+	}
+	if q.PublicIp != nil {
+		filters = append(filters, &Filter{
+			Name:   aws.String("network-interface.addresses.association.public-ip"),
+			Values: []*string{q.PublicIp},
+		})
+	}
+	if q.Status != nil {
+		filters = append(filters, &Filter{
+			Name:   aws.String("instance-state-name"),
+			Values: []*string{aws.String(strings.ToLower(string(*q.Status)))},
+		})
+	}
+	if q.Owner != nil {
+		filters = append(filters, &Filter{
+			Name:   aws.String("tag:Owner"),
+			Values: []*string{q.Owner},
+		})
+	}
+	return DescribeInstancesInput{
+		InstanceIds: instanceIds,
+		Filters:     filters,
+	}
+}
+
+// 每次请求的`Filters`的上限为10，`Filter.Values`的上限为5。参数不支持同时指定`InstanceIds`和`Filters`。
 type DescribeInstancesInput struct {
 	InstanceIds []*string
-	Profile     string
-	Region      string
+	Filters     []*Filter
+	Size        *int64
+	NextMarker  interface{}
 }
 
-// InstanceQueryInput filter
-func (i *InstanceQueryInput) Filter(instances []*Instance) []*Instance {
-	var newInstances []*Instance
-
-	for _, instance := range instances {
-		if i.Name != nil && *instance.Name != *i.Name {
-			continue
-		}
-		if i.ID != nil && *instance.InstanceID != *i.ID {
-			continue
-		}
-		if i.Region != nil && *instance.Region != *i.Region {
-			continue
-		}
-		if i.Profile != nil && instance.Profile != *i.Profile {
-			continue
-		}
-		if i.Ip != nil && !contains(append(instance.PrivateIP, instance.PublicIP...), i.Ip) {
-			continue
-		}
-		if i.Status != nil && instance.Status != *i.Status {
-			continue
-		}
-		if i.Owner != nil && *instance.Owner != *i.Owner {
-			continue
-		}
-
-		newInstances = append(newInstances, instance)
-	}
-
-	return newInstances
+type Filter struct {
+	Name   *string   `type:"string"`
+	Values []*string `locationName:"Value" locationNameList:"item" type:"list"`
 }
 
-func contains(slice []*string, item *string) bool {
-	for _, a := range slice {
-		if *a == *item {
-			return true
-		}
-	}
-	return false
-}
-
-type InstanceResponse Instance
-
-type Tags []Tag
-
-// to string
-func (t Tags) ToString() string {
-	var tags string
-	for _, tag := range t {
-		tags += tag.Key + ":" + tag.Value + ","
-	}
-	strings.TrimSuffix(tags, ",")
-	return tags
-}
-
-func (t Tags) GetName() *string {
-	for _, tag := range t {
-		if tag.Key == "Name" {
-			return aws.String(tag.Value)
-		}
-	}
-	return nil
-}
-
-// get Owner
-func (t Tags) GetOwner() *string {
-	for _, tag := range t {
-		if tag.Key == "Owner" {
-			return aws.String(tag.Value)
-		}
-	}
-	return nil
-}
-
-// get EnvType
-func (t Tags) GetEnvType() *string {
-	for _, tag := range t {
-		if tag.Key == "EnvType" {
-			return aws.String(tag.Value)
-		}
-	}
-	return nil
-}
-
-// get Team
-func (t Tags) GetTeam() *string {
-	for _, tag := range t {
-		if tag.Key == "Team" {
-			return aws.String(tag.Value)
-		}
-	}
-	return nil
-}
-
-type Tag struct {
-	Key   string
-	Value string
-}
-
-// aws tags to model tags []*ec2.Tag
-func AwsTagsToModelTags(tags []*ec2.Tag) *Tags {
-	var modelTags Tags
-	for _, tag := range tags {
-		modelTags = append(modelTags, Tag{
-			Key:   *tag.Key,
-			Value: *tag.Value,
-		})
-	}
-	return &modelTags
-}
-
-// tencent tags to model tags
-func TencentTagsToModelTags(tags []*cvm.Tag) *Tags {
-	var modelTags Tags
-	for _, tag := range tags {
-		modelTags = append(modelTags, Tag{
-			Key:   *tag.Key,
-			Value: *tag.Value,
-		})
-	}
-	return &modelTags
-}
-
-func TencentVpcTagsFmt(tags []*tencentVpc.Tag) *Tags {
-	var modelTags Tags
-	for _, tag := range tags {
-		modelTags = append(modelTags, Tag{
-			Key:   *tag.Key,
-			Value: *tag.Value,
-		})
-	}
-	return &modelTags
+type InstanceResponse struct {
+	Instances  []Instance  `json:"instances"`
+	NextMarker interface{} `json:"next_marker"` // 如果没有下一页，返回nil 腾讯云直接返回所有数据，不需要分页
 }
