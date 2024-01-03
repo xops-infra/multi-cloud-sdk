@@ -25,12 +25,13 @@ type Instance struct {
 }
 
 type InstanceFilter struct {
-	Name      *string         `json:"name"`       // 机器名称，使用字符串包含匹配方式
-	IDs       []*string       `json:"ids"`        // 机器ID列表，使用字符串包含匹配方式
-	PrivateIp *string         `json:"private_ip"` // 私有IP
-	PublicIp  *string         `json:"public_ip"`  // 公有IP
-	Status    *InstanceStatus `json:"status"`     // 机器状态
-	Owner     *string         `json:"owner"`      // 机器所有者，tags的Owner
+	Name       *string         `json:"name"`        // 机器名称，使用字符串包含匹配方式
+	IDs        []*string       `json:"ids"`         // 机器ID列表，使用字符串包含匹配方式
+	PrivateIp  *string         `json:"private_ip"`  // 私有IP
+	PublicIp   *string         `json:"public_ip"`   // 公有IP
+	Status     *InstanceStatus `json:"status"`      // 机器状态
+	Owner      *string         `json:"owner"`       // 机器所有者，tags的Owner
+	NextMarker *string         `json:"next_marker"` // 如果没有下一页，返回nil 腾讯云直接返回所有数据，不需要分页
 }
 
 func (q *InstanceFilter) ToTxDescribeInstancesInput() DescribeInstancesInput {
@@ -72,6 +73,7 @@ func (q *InstanceFilter) ToTxDescribeInstancesInput() DescribeInstancesInput {
 	return DescribeInstancesInput{
 		InstanceIds: instanceIds,
 		Filters:     filters,
+		NextMarker:  q.NextMarker,
 	}
 }
 
@@ -80,6 +82,7 @@ func (q *InstanceFilter) ToAwsDescribeInstancesInput() DescribeInstancesInput {
 	if q.IDs != nil {
 		instanceIds = append(instanceIds, q.IDs...)
 	}
+
 	var filters []*Filter
 	if q.Name != nil {
 		filters = append(filters, &Filter{
@@ -114,6 +117,7 @@ func (q *InstanceFilter) ToAwsDescribeInstancesInput() DescribeInstancesInput {
 	return DescribeInstancesInput{
 		InstanceIds: instanceIds,
 		Filters:     filters,
+		NextMarker:  q.NextMarker,
 	}
 }
 
@@ -122,7 +126,7 @@ type DescribeInstancesInput struct {
 	InstanceIds []*string
 	Filters     []*Filter
 	Size        *int64
-	NextMarker  interface{}
+	NextMarker  *string
 }
 
 type Filter struct {
@@ -131,6 +135,6 @@ type Filter struct {
 }
 
 type InstanceResponse struct {
-	Instances  []Instance  `json:"instances"`
-	NextMarker interface{} `json:"next_marker"` // 如果没有下一页，返回nil 腾讯云直接返回所有数据，不需要分页
+	Instances  []Instance `json:"instances"`
+	NextMarker *string    `json:"next_marker"` // 如果没有下一页，返回nil 腾讯云直接返回所有数据，不需要分页
 }
