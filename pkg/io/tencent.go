@@ -28,8 +28,11 @@ func NewTencentClient(io model.ClientIo) model.CloudIO {
 }
 
 // EMR 腾讯云因为数据量少所以递归查询所有结果返回
-func (c *tencentClient) QueryEmrCluster(profile, region string, input model.EmrFilter) (model.FilterEmrResponse, error) {
-	client, err := c.io.GetTencentEmrClient(profile, region)
+func (c *tencentClient) QueryEmrCluster(input model.EmrFilter) (model.FilterEmrResponse, error) {
+	if input.Region == nil {
+		return model.FilterEmrResponse{}, model.ErrRegionNotConfigured
+	}
+	client, err := c.io.GetTencentEmrClient(*input.Profile, *input.Region)
 	if err != nil {
 		return model.FilterEmrResponse{}, err
 	}
@@ -58,14 +61,17 @@ func (c *tencentClient) QueryEmrCluster(profile, region string, input model.EmrF
 	}, nil
 }
 
-func (c *tencentClient) DescribeEmrCluster(profile, region string, ids []*string) ([]model.DescribeEmrCluster, error) {
-	client, err := c.io.GetTencentEmrClient(profile, region)
+func (c *tencentClient) DescribeEmrCluster(input model.DescribeInput) ([]model.DescribeEmrCluster, error) {
+	if input.Region == nil {
+		return nil, model.ErrRegionNotConfigured
+	}
+	client, err := c.io.GetTencentEmrClient(*input.Profile, *input.Region)
 	if err != nil {
 		return nil, err
 	}
 	request := emr.NewDescribeInstancesRequest()
 	request.DisplayStrategy = tea.String("clusterList")
-	request.InstanceIds = ids
+	request.InstanceIds = input.IDS
 	response, err := client.DescribeInstances(request)
 	if err != nil {
 		return nil, err

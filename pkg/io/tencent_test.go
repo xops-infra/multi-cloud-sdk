@@ -38,8 +38,11 @@ func init() {
 
 func TestQueryTencentEmrCluster(t *testing.T) {
 	timeStart := time.Now()
-	filter := model.EmrFilter{}
-	instances, err := TencentIo.QueryEmrCluster("tencent", "na-ashburn", filter)
+	filter := model.EmrFilter{
+		Profile: tea.String("tencent"),
+		Region:  tea.String("na-ashburn"),
+	}
+	instances, err := TencentIo.QueryEmrCluster(filter)
 	if err != nil {
 		t.Error(err)
 		return
@@ -52,8 +55,11 @@ func TestQueryTencentEmrCluster(t *testing.T) {
 
 func TestDescribeTencentEmrCluster(t *testing.T) {
 	timeStart := time.Now()
-	instances, err := TencentIo.DescribeEmrCluster("tencent", "na-ashburn",
-		[]*string{tea.String("emr-kthwjob1"), tea.String("emr-bxss1pm3")})
+	instances, err := TencentIo.DescribeEmrCluster(model.DescribeInput{
+		Profile: tea.String("tencent"),
+		Region:  tea.String("na-ashburn"),
+		IDS:     []*string{tea.String("emr-xxx")},
+	})
 	if err != nil {
 		t.Error(err)
 		return

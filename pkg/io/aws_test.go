@@ -48,7 +48,9 @@ func TestQueryEmrCluster(t *testing.T) {
 	timeStart := time.Now()
 	period := 24 * time.Hour
 	filter := model.EmrFilter{
-		Period: &period,
+		Profile: tea.String("aws-us"),
+		Region:  tea.String("us-east-1"),
+		Period:  &period,
 		ClusterStates: []model.EMRClusterStatus{
 			model.EMRClusterRunning,
 			model.EMRClusterWaiting,
@@ -57,7 +59,7 @@ func TestQueryEmrCluster(t *testing.T) {
 		// NextMarker: tea.String("xxx"),
 	}
 	// filter.ClusterStates = []model.EMRClusterStatus{model.EMRClusterRunning}
-	resp, err := AwsIo.QueryEmrCluster("aws-us", "us-east-1", filter)
+	resp, err := AwsIo.QueryEmrCluster(filter)
 	if err != nil {
 		t.Error(err)
 		return
@@ -73,8 +75,10 @@ func TestQueryEmrCluster(t *testing.T) {
 
 func TestDescribeEmrCluster(t *testing.T) {
 	timeStart := time.Now()
-	ids := []*string{tea.String("j-xxxx")}
-	clusters, err := AwsIo.DescribeEmrCluster("aws-us", "us-east-1", ids)
+	clusters, err := AwsIo.DescribeEmrCluster(model.DescribeInput{
+		Profile: tea.String("aws-us"),
+		Region:  tea.String("us-east-1"),
+	})
 	if err != nil {
 		t.Error(err)
 		return

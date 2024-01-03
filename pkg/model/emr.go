@@ -11,9 +11,17 @@ type EmrCluster struct {
 }
 
 type EmrFilter struct {
-	ClusterStates []EMRClusterStatus
-	Period        *time.Duration // 有效期,eg: 1h, 1d, 1w, 1m, 1y
-	NextMarker    *string        // 下一页
+	Profile       *string            `json:"profile" binding:"required"`
+	Region        *string            `json:"region"` // 为空则取默认
+	ClusterStates []EMRClusterStatus `json:"cluster_states"`
+	Period        *time.Duration     `json:"period"` // 为空则取默认
+	NextMarker    *string            `json:"next_marker"`
+}
+
+type DescribeInput struct {
+	Profile *string   `json:"profile" binding:"required"`
+	Region  *string   `json:"region"` // 为空则取默认
+	IDS     []*string `json:"ids"`
 }
 
 type FilterEmrResponse struct {
