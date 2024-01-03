@@ -104,7 +104,7 @@ func (c *awsClient) DescribeInstances(profile, region string, input model.Descri
 	}
 
 	if input.NextMarker != nil {
-		req.NextToken = input.NextMarker.(*string)
+		req.NextToken = input.NextMarker
 	}
 
 	if input.Size != nil {

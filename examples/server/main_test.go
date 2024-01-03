@@ -5,6 +5,7 @@ import (
 	"testing"
 	"time"
 
+	"github.com/alibabacloud-go/tea/tea"
 	"github.com/joho/godotenv"
 
 	"github.com/xops-infra/multi-cloud-sdk/pkg/io"
@@ -53,11 +54,13 @@ func TestDescribeServers(t *testing.T) {
 		// Region:  tea.String("cn-northwest-1"),
 	}
 	// filter.Owner = tea.String("zhoushoujian")
+	filter.NextMarker = tea.String("xxx")
 	filter.Status = model.InstanceStatusRunning.TString()
 	instances, err := serverS.DescribeInstances("aws", "cn-northwest-1", filter)
 	if err != nil {
 		t.Error(err)
 		return
 	}
+	// fmt.Println(*instances.NextMarker, *instances.Instances[0].Tags.GetName())
 	t.Log(time.Since(timeStart), len(instances.Instances))
 }
