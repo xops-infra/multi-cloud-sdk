@@ -5,6 +5,7 @@ import (
 	"testing"
 	"time"
 
+	"github.com/alibabacloud-go/tea/tea"
 	"github.com/joho/godotenv"
 
 	"github.com/xops-infra/multi-cloud-sdk/pkg/io"
@@ -49,7 +50,10 @@ func init() {
 func TestDescribeEmr(t *testing.T) {
 	{
 		startTime := time.Now()
-		resp, err := emrC.DescribeEmrCluster("aws", "cn-northwest-1", []*string{})
+		resp, err := emrC.DescribeEmrCluster(model.DescribeInput{
+			Profile: tea.String("aws"),
+			Region:  tea.String("cn-northwest-1"),
+		})
 		if err != nil {
 			t.Error(err)
 		}
@@ -58,7 +62,10 @@ func TestDescribeEmr(t *testing.T) {
 
 	{
 		startTime := time.Now()
-		resp, err := emrC.DescribeEmrCluster("tencent", "ap-shanghai", []*string{})
+		resp, err := emrC.DescribeEmrCluster(model.DescribeInput{
+			Profile: tea.String("tencent"),
+			Region:  tea.String("ap-shanghai"),
+		})
 		if err != nil {
 			t.Error(err)
 		}
@@ -66,7 +73,10 @@ func TestDescribeEmr(t *testing.T) {
 	}
 	{
 		startTime := time.Now()
-		resp, err := emrC.DescribeEmrCluster("tencent", "na-ashburn", []*string{})
+		resp, err := emrC.DescribeEmrCluster(model.DescribeInput{
+			Profile: tea.String("tencent"),
+			Region:  tea.String("na-ashburn"),
+		})
 		if err != nil {
 			t.Error(err)
 		}
@@ -77,7 +87,9 @@ func TestDescribeEmr(t *testing.T) {
 func TestQueryEmr(t *testing.T) {
 	{
 		startTime := time.Now()
-		resp, err := emrC.QueryEmrCluster("aws", "cn-northwest-1", model.EmrFilter{})
+		resp, err := emrC.QueryEmrCluster(model.EmrFilter{
+			Profile: tea.String("aws"),
+		})
 		if err != nil {
 			t.Error(err)
 		}
@@ -86,7 +98,9 @@ func TestQueryEmr(t *testing.T) {
 
 	{
 		startTime := time.Now()
-		resp, err := emrC.QueryEmrCluster("tencent", "ap-shanghai", model.EmrFilter{})
+		resp, err := emrC.QueryEmrCluster(model.EmrFilter{
+			Profile: tea.String("tencent"),
+		})
 		if err != nil {
 			t.Error(err)
 		}
@@ -94,7 +108,10 @@ func TestQueryEmr(t *testing.T) {
 	}
 	{
 		startTime := time.Now()
-		resp, err := emrC.QueryEmrCluster("tencent", "na-ashburn", model.EmrFilter{})
+		resp, err := emrC.QueryEmrCluster(model.EmrFilter{
+			Profile: tea.String("tencent"),
+			Region:  tea.String("na-ashburn"),
+		})
 		if err != nil {
 			t.Error(err)
 		}

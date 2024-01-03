@@ -9,8 +9,8 @@ type CloudIO interface {
 	QueryNAT(profile, region string, input CommonFilter) ([]NAT, error)
 
 	// EMR
-	QueryEmrCluster(profile, region string, input EmrFilter) (FilterEmrResponse, error)
-	DescribeEmrCluster(profile, region string, ids []*string) ([]DescribeEmrCluster, error)
+	QueryEmrCluster(EmrFilter) (FilterEmrResponse, error) // 方便 Post使用，将Profile和Region放入filter
+	DescribeEmrCluster(DescribeInput) ([]DescribeEmrCluster, error)
 
 	// DNSDomain
 	DescribeDomainList(profile, region string, input DescribeDomainListRequest) (DescribeDomainListResponse, error)

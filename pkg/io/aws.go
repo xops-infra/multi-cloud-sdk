@@ -26,8 +26,11 @@ func NewAwsClient(io model.ClientIo) model.CloudIO {
 }
 
 // EMR
-func (c *awsClient) QueryEmrCluster(profile, region string, filter model.EmrFilter) (model.FilterEmrResponse, error) {
-	svc, err := c.io.GetAWSEmrClient(profile, region)
+func (c *awsClient) QueryEmrCluster(filter model.EmrFilter) (model.FilterEmrResponse, error) {
+	if filter.Region == nil {
+		return model.FilterEmrResponse{}, model.ErrRegionNotConfigured
+	}
+	svc, err := c.io.GetAWSEmrClient(*filter.Profile, *filter.Region)
 	if err != nil {
 		return model.FilterEmrResponse{}, err
 	}
@@ -61,13 +64,16 @@ func (c *awsClient) QueryEmrCluster(profile, region string, filter model.EmrFilt
 	}, nil
 }
 
-func (c *awsClient) DescribeEmrCluster(profile, region string, ids []*string) ([]model.DescribeEmrCluster, error) {
-	svc, err := c.io.GetAWSEmrClient(profile, region)
+func (c *awsClient) DescribeEmrCluster(input model.DescribeInput) ([]model.DescribeEmrCluster, error) {
+	if input.Region == nil {
+		return nil, model.ErrRegionNotConfigured
+	}
+	svc, err := c.io.GetAWSEmrClient(*input.Profile, *input.Region)
 	if err != nil {
 		return nil, err
 	}
 	var clusters []model.DescribeEmrCluster
-	for _, id := range ids {
+	for _, id := range input.IDS {
 		out, err := svc.DescribeCluster(&emr.DescribeClusterInput{
 			ClusterId: id,
 		})
@@ -109,8 +115,6 @@ func (c *awsClient) DescribeInstances(profile, region string, input model.Descri
 
 	if input.Size != nil {
 		req.MaxResults = input.Size
-	} else {
-		req.MaxResults = tea.Int64(20)
 	}
 
 	out, err := svc.DescribeInstances(req)
