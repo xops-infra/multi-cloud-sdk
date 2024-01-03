@@ -7,7 +7,7 @@ import (
 )
 
 type InstanceContact interface {
-	QueryInstances(input InstanceFilter) ([]Instance, error)
+	DescribeInstances(profile, region string, input InstanceFilter) (InstanceResponse, error)
 }
 
 type Instance struct {
@@ -27,8 +27,6 @@ type Instance struct {
 type InstanceFilter struct {
 	Name      *string         `json:"name"`       // 机器名称，使用字符串包含匹配方式
 	IDs       []*string       `json:"ids"`        // 机器ID列表，使用字符串包含匹配方式
-	Region    *string         `json:"region"`     // 区域
-	Profile   *string         `json:"profile"`    // 账号
 	PrivateIp *string         `json:"private_ip"` // 私有IP
 	PublicIp  *string         `json:"public_ip"`  // 公有IP
 	Status    *InstanceStatus `json:"status"`     // 机器状态

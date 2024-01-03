@@ -1,8 +1,6 @@
 package service
 
 import (
-	"sync"
-
 	"github.com/rogpeppe/go-internal/cache"
 
 	"github.com/xops-infra/multi-cloud-sdk/pkg/model"
@@ -23,49 +21,18 @@ func NewServer(profiles []model.ProfileConfig, aws, tencent model.CloudIO) model
 	}
 }
 
-func (s *ServerService) QueryInstances(input model.InstanceFilter) ([]model.Instance, error) {
-	instances := make([]model.Instance, 0)
-	wg := sync.WaitGroup{}
-	for _, profile := range s.Profiles {
-		if input.Profile != nil && *input.Profile != profile.Name {
-			// 加速，如果有指定账号，且不是当前账号，直接跳过
-			continue
-		}
-		if profile.Cloud == model.AWS {
-			for _, region := range profile.Regions {
-				wg.Add(1)
-				go func(profile model.ProfileConfig, region string) {
-					defer wg.Done()
-					req := input.ToAwsDescribeInstancesInput()
-					for {
-						_instances, err := s.AWS.DescribeInstances(profile.Name, region, req)
-						if err != nil {
-							return
-						}
-						instances = append(instances, _instances.Instances...)
-						if _instances.NextMarker.(*string) == nil {
-							break
-						} else {
-							req.NextMarker = _instances.NextMarker
-						}
-					}
-				}(profile, region)
-			}
-		} else if profile.Cloud == model.TENCENT {
-			for _, region := range profile.Regions {
-				wg.Add(1)
-				go func(profile model.ProfileConfig, region string) {
-					// 腾讯因为分页使用偏移量，所以不需要循环，直接获取所有数据即可
-					defer wg.Done()
-					_instances, err := s.Tencent.DescribeInstances(profile.Name, region, input.ToTxDescribeInstancesInput())
-					if err != nil {
-						return
-					}
-					instances = append(instances, _instances.Instances...)
-				}(profile, region)
+func (s *ServerService) DescribeInstances(profile, region string, input model.InstanceFilter) (model.InstanceResponse, error) {
+	for _, cfgProfile := range s.Profiles {
+		if cfgProfile.Name == profile {
+			switch cfgProfile.Cloud {
+			case model.AWS:
+				return s.AWS.DescribeInstances(profile, region, input.ToAwsDescribeInstancesInput())
+			case model.TENCENT:
+				return s.Tencent.DescribeInstances(profile, region, input.ToTxDescribeInstancesInput())
+			default:
+				return model.InstanceResponse{}, model.ErrCloudNotSupported
 			}
 		}
-		wg.Wait()
 	}
-	return instances, nil
+	return model.InstanceResponse{}, model.ErrProfileNotFound
 }

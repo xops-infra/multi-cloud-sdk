@@ -52,14 +52,12 @@ func TestDescribeServers(t *testing.T) {
 		// Profile: tea.String("aws"),
 		// Region:  tea.String("cn-northwest-1"),
 	}
-	// filter.Ip = tea.String("10.150.176.3")
 	// filter.Owner = tea.String("zhoushoujian")
-	// filter.ID = tea.String("ins-pswx6i4j")
 	filter.Status = model.InstanceStatusRunning.TString()
-	instances, err := serverS.QueryInstances(filter)
+	instances, err := serverS.DescribeInstances("aws", "cn-northwest-1", filter)
 	if err != nil {
 		t.Error(err)
 		return
 	}
-	t.Log(time.Since(timeStart), len(instances))
+	t.Log(time.Since(timeStart), len(instances.Instances))
 }
