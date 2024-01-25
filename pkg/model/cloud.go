@@ -2,6 +2,9 @@ package model
 
 type CloudIO interface {
 	DescribeInstances(profile, region string, input DescribeInstancesInput) (InstanceResponse, error)
+	CreateInstance(profile, region string, input CreateInstanceInput) (CreateInstanceResponse, error)
+	ModifyInstance(profile, region string, input ModifyInstanceInput) (ModifyInstanceResponse, error)
+	DeleteInstance(profile, region string, input DeleteInstanceInput) (DeleteInstanceResponse, error)
 
 	QueryVPC(profile, region string, input CommonFilter) ([]VPC, error)
 	QuerySubnet(profile, region string, input CommonFilter) ([]Subnet, error)

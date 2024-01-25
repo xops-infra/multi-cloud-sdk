@@ -138,3 +138,34 @@ type InstanceResponse struct {
 	Instances  []Instance `json:"instances"`
 	NextMarker *string    `json:"next_marker"` // 如果没有下一页，返回nil 腾讯云直接返回所有数据，不需要分页
 }
+
+// Create
+type CreateInstanceInput struct {
+}
+
+type CreateInstanceResponse struct {
+}
+
+type ModifyInstanceInput struct {
+	Actions ModifyAction
+}
+
+type ModifyAction string
+
+const (
+	StartInstance      ModifyAction = "start_instance"
+	StopInstance       ModifyAction = "stop_instance"
+	RebootInstance     ModifyAction = "reboot_instance"
+	ResetInstance      ModifyAction = "reset_instance"
+	ChangeInstanceType ModifyAction = "change_instance_type"
+	ChangeInstanceTags ModifyAction = "change_instance_tags"
+)
+
+type ModifyInstanceResponse struct {
+}
+
+type DeleteInstanceInput struct {
+}
+
+type DeleteInstanceResponse struct {
+}
