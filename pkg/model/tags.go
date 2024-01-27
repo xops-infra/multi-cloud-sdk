@@ -11,6 +11,10 @@ import (
 
 type Tags []Tag
 
+type CreateTagsInput struct {
+	Tags Tags
+}
+
 // to string
 func (t Tags) ToString() string {
 	var tags string

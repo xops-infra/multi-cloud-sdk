@@ -1,7 +1,10 @@
 package io
 
 import (
+	"fmt"
+
 	"github.com/tencentcloud/tencentcloud-sdk-go/tencentcloud/common"
+	"github.com/tencentcloud/tencentcloud-sdk-go/tencentcloud/common/errors"
 	cvm "github.com/tencentcloud/tencentcloud-sdk-go/tencentcloud/cvm/v20170312"
 	"github.com/xops-infra/multi-cloud-sdk/pkg/model"
 )
@@ -71,7 +74,40 @@ func (c *tencentClient) DescribeInstances(profile, region string, input model.De
 }
 
 func (c *tencentClient) CreateInstance(profile, region string, input model.CreateInstanceInput) (model.CreateInstanceResponse, error) {
-	panic("implement me")
+	client, err := c.io.GetTencentCvmClient(profile, region)
+	if err != nil {
+		return model.CreateInstanceResponse{}, err
+	}
+	response, err := client.RunInstances(input.ToTencentRunInstancesRequest())
+	if _, ok := err.(*errors.TencentCloudSDKError); ok {
+		return model.CreateInstanceResponse{}, fmt.Errorf("An API error has returned: %s", err)
+	}
+	if err != nil {
+		return model.CreateInstanceResponse{}, err
+	}
+	return model.CreateInstanceResponse{
+		Meta:        response.ToJsonString(),
+		InstanceIds: response.Response.InstanceIdSet,
+	}, nil
+}
+
+// 查询可用区列表
+func (c *tencentClient) queryRegions(profile, region string) (*cvm.DescribeZonesResponse, error) {
+	svc, err := c.io.GetTencentCvmClient(profile, region)
+	if err != nil {
+		return nil, err
+	}
+	// 实例化一个请求对象,每个接口都会对应一个request对象
+	request := cvm.NewDescribeZonesRequest()
+	// 返回的resp是一个DescribeZonesResponse的实例，与请求对象对应
+	response, err := svc.DescribeZones(request)
+	if _, ok := err.(*errors.TencentCloudSDKError); ok {
+		return nil, fmt.Errorf("An API error has returned: %s", err)
+	}
+	if err != nil {
+		return nil, err
+	}
+	return response, nil
 }
 
 func (c *tencentClient) ModifyInstance(profile, region string, input model.ModifyInstanceInput) (model.ModifyInstanceResponse, error) {
@@ -79,5 +115,18 @@ func (c *tencentClient) ModifyInstance(profile, region string, input model.Modif
 }
 
 func (c *tencentClient) DeleteInstance(profile, region string, input model.DeleteInstanceInput) (model.DeleteInstanceResponse, error) {
-	panic("implement me")
+	client, err := c.io.GetTencentCvmClient(profile, region)
+	if err != nil {
+		return model.DeleteInstanceResponse{}, err
+	}
+	response, err := client.TerminateInstances(input.ToTencentTerminateInstancesRequest())
+	if _, ok := err.(*errors.TencentCloudSDKError); ok {
+		return model.DeleteInstanceResponse{}, fmt.Errorf("An API error has returned: %s", err)
+	}
+	if err != nil {
+		return model.DeleteInstanceResponse{}, err
+	}
+	return model.DeleteInstanceResponse{
+		Meta: response.ToJsonString(),
+	}, nil
 }

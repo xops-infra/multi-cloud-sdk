@@ -138,3 +138,47 @@ func TestDescribeInstances(t *testing.T) {
 		t.Log("Status Success.", time.Since(timeStart), len(instances.Instances))
 	}
 }
+
+func TestCreateTags(t *testing.T) {
+	input := model.CreateTagsInput{
+		Tags: model.Tags{
+			{
+				Key:   "CreateTime",
+				Value: time.Now().Format("2006010215"),
+			},
+		},
+	}
+	err := TencentIo.CreateTags("tencent", "ap-shanghai", input)
+	if err != nil {
+		t.Error(err)
+	}
+	t.Logf("Success. %s", tea.Prettify(input))
+}
+
+func TestCreateInstance(t *testing.T) {
+	resp, err := TencentIo.CreateInstance("tencent", "ap-shanghai", model.CreateInstanceInput{
+		Name:             tea.String("multi-cloud-sdk-test"),
+		ImageID:          tea.String("img-hdt9xxkt"),
+		InstanceType:     tea.String("SA5.MEDIUM2"),
+		Zone:             tea.String("ap-shanghai-5"),
+		VpcID:            tea.String(os.Getenv("TEST_TENCENT_VPC_ID")),
+		SubnetID:         tea.String(os.Getenv("TEST_TENCENT_SUBNET_ID")),
+		SecurityGroupIDs: []*string{tea.String(os.Getenv("TEST_TENCENT_SECURITY_GROUP_ID"))},
+	})
+	if err != nil {
+		t.Error(err)
+		return
+	}
+	t.Logf("Success. %s", tea.Prettify(resp))
+
+	// clean
+	time.Sleep(5 * time.Second)
+	_, err = TencentIo.DeleteInstance("tencent", "ap-shanghai", model.DeleteInstanceInput{
+		InstanceIds: resp.InstanceIds,
+	})
+	if err != nil {
+		t.Error(err)
+		return
+	}
+	t.Logf("Success. %s", tea.Prettify(resp))
+}

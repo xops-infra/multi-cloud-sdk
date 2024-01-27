@@ -2,12 +2,14 @@ package io
 
 import (
 	"fmt"
+	"strings"
 
 	"github.com/alibabacloud-go/tea/tea"
 	"github.com/spf13/cast"
 	"github.com/tencentcloud/tencentcloud-sdk-go/tencentcloud/common"
 	dnspod "github.com/tencentcloud/tencentcloud-sdk-go/tencentcloud/dnspod/v20210323"
 	ocr "github.com/tencentcloud/tencentcloud-sdk-go/tencentcloud/ocr/v20181119"
+	tencentTag "github.com/tencentcloud/tencentcloud-sdk-go/tencentcloud/tag/v20180813"
 	tiia "github.com/tencentcloud/tencentcloud-sdk-go/tencentcloud/tiia/v20190529"
 	tencentVpc "github.com/tencentcloud/tencentcloud-sdk-go/tencentcloud/vpc/v20170312"
 
@@ -22,6 +24,26 @@ func NewTencentClient(io model.ClientIo) model.CloudIO {
 	return &tencentClient{
 		io: io,
 	}
+}
+
+func (c *tencentClient) CreateTags(profile, region string, input model.CreateTagsInput) error {
+	svc, err := c.io.GetTencentTagsClient(profile, region)
+	if err != nil {
+		return err
+	}
+	request := tencentTag.NewCreateTagRequest()
+	for _, tag := range input.Tags {
+		request.TagKey = &tag.Key
+		request.TagValue = &tag.Value
+		_, err = svc.CreateTag(request)
+		if err != nil {
+			if strings.Contains(err.Error(), "Message=tagKey-tagValue have exists.") {
+				continue
+			}
+			return err
+		}
+	}
+	return nil
 }
 
 func (c *tencentClient) QueryVPC(profile, region string, input model.CommonFilter) ([]model.VPC, error) {

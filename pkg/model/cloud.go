@@ -11,13 +11,15 @@ type CloudIO interface {
 	QueryEIP(profile, region string, input CommonFilter) ([]EIP, error)
 	QueryNAT(profile, region string, input CommonFilter) ([]NAT, error)
 
+	// Tags
+	CreateTags(profile, region string, input CreateTagsInput) error
+
 	// EMR
 	QueryEmrCluster(EmrFilter) (FilterEmrResponse, error) // 方便 Post使用，将Profile和Region放入filter
 	DescribeEmrCluster(DescribeInput) ([]DescribeEmrCluster, error)
 
 	// DNSDomain
 	DescribeDomainList(profile, region string, input DescribeDomainListRequest) (DescribeDomainListResponse, error)
-
 	// DNSRecord
 	DescribeRecordList(profile, region string, input DescribeRecordListRequest) (DescribeRecordListResponse, error)
 	DescribeRecord(profile, region string, input DescribeRecordRequest) (DescribeRecordResponse, error)

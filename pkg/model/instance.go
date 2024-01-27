@@ -3,7 +3,9 @@ package model
 import (
 	"strings"
 
-	"github.com/aws/aws-sdk-go/aws"
+	"github.com/alibabacloud-go/tea/tea"
+	"github.com/tencentcloud/tencentcloud-sdk-go/tencentcloud/common"
+	cvm "github.com/tencentcloud/tencentcloud-sdk-go/tencentcloud/cvm/v20170312"
 )
 
 type InstanceContact interface {
@@ -42,31 +44,31 @@ func (q *InstanceFilter) ToTxDescribeInstancesInput() DescribeInstancesInput {
 	var filters []*Filter
 	if q.Name != nil {
 		filters = append(filters, &Filter{
-			Name:   aws.String("instance-name"),
+			Name:   tea.String("instance-name"),
 			Values: []*string{q.Name},
 		})
 	}
 	if q.PrivateIp != nil {
 		filters = append(filters, &Filter{
-			Name:   aws.String("private-ip-address"),
+			Name:   tea.String("private-ip-address"),
 			Values: []*string{q.PrivateIp},
 		})
 	}
 	if q.PublicIp != nil {
 		filters = append(filters, &Filter{
-			Name:   aws.String("public-ip-address"),
+			Name:   tea.String("public-ip-address"),
 			Values: []*string{q.PublicIp},
 		})
 	}
 	if q.Status != nil {
 		filters = append(filters, &Filter{
-			Name:   aws.String("instance-state"),
-			Values: []*string{aws.String(string(*q.Status))},
+			Name:   tea.String("instance-state"),
+			Values: []*string{tea.String(string(*q.Status))},
 		})
 	}
 	if q.Owner != nil {
 		filters = append(filters, &Filter{
-			Name:   aws.String("tag:Owner"),
+			Name:   tea.String("tag:Owner"),
 			Values: []*string{q.Owner},
 		})
 	}
@@ -86,31 +88,31 @@ func (q *InstanceFilter) ToAwsDescribeInstancesInput() DescribeInstancesInput {
 	var filters []*Filter
 	if q.Name != nil {
 		filters = append(filters, &Filter{
-			Name:   aws.String("tag:Name"),
+			Name:   tea.String("tag:Name"),
 			Values: []*string{q.Name},
 		})
 	}
 	if q.PrivateIp != nil {
 		filters = append(filters, &Filter{
-			Name:   aws.String("network-interface.addresses.private-ip-address"),
+			Name:   tea.String("network-interface.addresses.private-ip-address"),
 			Values: []*string{q.PrivateIp},
 		})
 	}
 	if q.PublicIp != nil {
 		filters = append(filters, &Filter{
-			Name:   aws.String("network-interface.addresses.association.public-ip"),
+			Name:   tea.String("network-interface.addresses.association.public-ip"),
 			Values: []*string{q.PublicIp},
 		})
 	}
 	if q.Status != nil {
 		filters = append(filters, &Filter{
-			Name:   aws.String("instance-state-name"),
-			Values: []*string{aws.String(strings.ToLower(string(*q.Status)))},
+			Name:   tea.String("instance-state-name"),
+			Values: []*string{tea.String(strings.ToLower(string(*q.Status)))},
 		})
 	}
 	if q.Owner != nil {
 		filters = append(filters, &Filter{
-			Name:   aws.String("tag:Owner"),
+			Name:   tea.String("tag:Owner"),
 			Values: []*string{q.Owner},
 		})
 	}
@@ -141,9 +143,89 @@ type InstanceResponse struct {
 
 // Create
 type CreateInstanceInput struct {
+	Name               *string   `json:"name"`
+	Count              *int64    `json:"count" default:"1"` // 默认 1 个
+	ImageID            *string   `json:"image_id" binding:"required"`
+	InstanceType       *string   `json:"instance_type" binding:"required"`
+	InstanceChargeType *string   `json:"instance_charge_type"`    // 默认按需
+	Zone               *string   `json:"zone" binding:"required"` // 这里写可用区 ID后台转换
+	SystemDisk         *Disk     `json:"system_disk"`
+	DataDisks          []Disk    `json:"data_disks"`
+	RoleName           *string   `json:"role_name"`
+	VpcID              *string   `json:"vpc_id" binding:"required"`
+	SecurityGroupIDs   []*string `json:"security_group_ids"`
+	SubnetID           *string   `json:"subnet_id" binding:"required"`
+	UserData           *string   `json:"user_data"` // base64
+	Password           *string   `json:"password"`
+	KeyIds             []*string `json:"key_ids"`
+}
+
+type Disk struct {
+	Size *int64  `json:"size"`
+	Type *string `json:"type"`
+}
+
+// set default
+func (i *CreateInstanceInput) ToTencentRunInstancesRequest() *cvm.RunInstancesRequest {
+	request := cvm.NewRunInstancesRequest()
+	request.InstanceChargeType = common.StringPtr("POSTPAID_BY_HOUR")
+	if i.InstanceChargeType != nil {
+		request.InstanceChargeType = i.InstanceChargeType
+	}
+	request.InstanceCount = common.Int64Ptr(1)
+	if i.Count != nil {
+		request.InstanceCount = i.Count
+	}
+	request.ImageId = i.ImageID
+	request.InstanceType = i.InstanceType
+	request.Placement = &cvm.Placement{}
+	if i.Zone != nil {
+		request.Placement.Zone = i.Zone
+	}
+	request.SystemDisk = &cvm.SystemDisk{
+		DiskSize: common.Int64Ptr(40),
+	}
+	if i.SystemDisk != nil {
+		request.SystemDisk.DiskSize = i.SystemDisk.Size
+		request.SystemDisk.DiskType = i.SystemDisk.Type
+	}
+	request.DataDisks = make([]*cvm.DataDisk, 0)
+	for _, disk := range i.DataDisks {
+		request.DataDisks = append(request.DataDisks, &cvm.DataDisk{
+			DiskSize: disk.Size,
+		})
+	}
+	request.CamRoleName = i.RoleName
+	request.DisableApiTermination = common.BoolPtr(false) // 默认关闭实例保护
+	request.VirtualPrivateCloud = &cvm.VirtualPrivateCloud{
+		SubnetId: i.SubnetID,
+		VpcId:    i.VpcID,
+	}
+	request.SecurityGroupIds = i.SecurityGroupIDs
+	if i.Name != nil {
+		request.InstanceName = i.Name
+	}
+	request.UserData = common.StringPtr("IyEvYmluL2Jhc2gKZWNobyAiSGVsbG8gTXVsdGlDbG91ZFNkayIK")
+	if i.UserData != nil {
+		request.UserData = i.UserData
+	}
+	request.LoginSettings = &cvm.LoginSettings{
+		KeyIds:   make([]*string, 0),
+		Password: common.StringPtr("MultiCloud@2024"),
+	}
+	if i.Password != nil {
+		request.LoginSettings.Password = i.Password
+	}
+	if i.KeyIds != nil {
+		request.LoginSettings.KeyIds = i.KeyIds
+	}
+
+	return request
 }
 
 type CreateInstanceResponse struct {
+	Meta        any       `json:"meta"`
+	InstanceIds []*string `json:"instance_ids"`
 }
 
 type ModifyInstanceInput struct {
@@ -165,7 +247,21 @@ type ModifyInstanceResponse struct {
 }
 
 type DeleteInstanceInput struct {
+	InstanceIds []*string `json:"instance_ids"`
+	ReleaseDisk *bool     `json:"release_disk"`
+}
+
+// 默认不释放
+func (i *DeleteInstanceInput) ToTencentTerminateInstancesRequest() *cvm.TerminateInstancesRequest {
+	request := cvm.NewTerminateInstancesRequest()
+	request.InstanceIds = i.InstanceIds
+	request.ReleasePrepaidDataDisks = common.BoolPtr(false)
+	if i.ReleaseDisk != nil {
+		request.ReleasePrepaidDataDisks = i.ReleaseDisk
+	}
+	return request
 }
 
 type DeleteInstanceResponse struct {
+	Meta any `json:"meta"`
 }

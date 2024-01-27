@@ -23,6 +23,10 @@ func NewAwsClient(io model.ClientIo) model.CloudIO {
 	}
 }
 
+func (c *awsClient) CreateTags(profile, region string, input model.CreateTagsInput) error {
+	return fmt.Errorf("not support for aws")
+}
+
 // QueryVpcs
 func (c *awsClient) QueryVPC(profile, region string, input model.CommonFilter) ([]model.VPC, error) {
 	svc, err := c.io.GetAwsEc2Client(profile, region)
