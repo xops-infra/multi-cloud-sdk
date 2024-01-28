@@ -6,6 +6,7 @@ import (
 	"github.com/aws/aws-sdk-go/aws"
 	"github.com/aws/aws-sdk-go/service/ec2"
 	cvm "github.com/tencentcloud/tencentcloud-sdk-go/tencentcloud/cvm/v20170312"
+	tencentTag "github.com/tencentcloud/tencentcloud-sdk-go/tencentcloud/tag/v20180813"
 	tencentVpc "github.com/tencentcloud/tencentcloud-sdk-go/tencentcloud/vpc/v20170312"
 )
 
@@ -80,6 +81,17 @@ func AwsTagsToModelTags(tags []*ec2.Tag) *Tags {
 	return &modelTags
 }
 
+func (t *Tags) ToTencentTags() []*tencentTag.Tag {
+	var tencentTags []*tencentTag.Tag
+	for _, tag := range *t {
+		tencentTags = append(tencentTags, &tencentTag.Tag{
+			TagKey:   aws.String(tag.Key),
+			TagValue: aws.String(tag.Value),
+		})
+	}
+	return tencentTags
+}
+
 // tencent tags to model tags
 func TencentTagsToModelTags(tags []*cvm.Tag) *Tags {
 	var modelTags Tags
@@ -101,4 +113,20 @@ func TencentVpcTagsFmt(tags []*tencentVpc.Tag) *Tags {
 		})
 	}
 	return &modelTags
+}
+
+type AddTagsInput struct {
+	Tags         Tags      `json:"tags"`
+	ResourceList []*string `json:"resource_list"` // 资源列表(qcs::cvm:ap-beijing:uin/1234567:instance/ins-123)
+}
+
+type RemoveTagsInput struct {
+	ResourceList []*string `json:"resource_list"` // 资源列表(qcs::cvm:ap-beijing:uin/1234567:instance/ins-123)
+	Keys         []*string `json:"keys"`
+}
+
+type ModifyTagsInput struct {
+	Resource *string `json:"resource" binding:"required"`
+	Key      *string `json:"key" binding:"required"`
+	Value    *string `json:"value" binding:"required"`
 }

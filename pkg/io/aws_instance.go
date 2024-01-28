@@ -43,7 +43,7 @@ func (c *awsClient) DescribeInstances(profile, region string, input model.Descri
 			tags := model.AwsTagsToModelTags(instance.Tags)
 			instances = append(instances, model.Instance{
 				Profile:    profile,
-				KeyName:    []*string{instance.KeyName},
+				KeyIDs:     []*string{instance.KeyName},
 				InstanceID: instance.InstanceId,
 				Name:       tags.GetName(),
 				Region:     instance.Placement.AvailabilityZone,

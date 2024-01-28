@@ -13,6 +13,9 @@ type CloudIO interface {
 
 	// Tags
 	CreateTags(profile, region string, input CreateTagsInput) error
+	AddTagsFromResource(profile, region string, input AddTagsInput) error
+	DeleteTagsFromResource(profile, region string, input RemoveTagsInput) error
+	ModifyTagsFromResource(profile, region string, input ModifyTagsInput) error
 
 	// EMR
 	QueryEmrCluster(EmrFilter) (FilterEmrResponse, error) // 方便 Post使用，将Profile和Region放入filter

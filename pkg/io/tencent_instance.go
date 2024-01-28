@@ -3,6 +3,7 @@ package io
 import (
 	"fmt"
 
+	"github.com/alibabacloud-go/tea/tea"
 	"github.com/tencentcloud/tencentcloud-sdk-go/tencentcloud/common"
 	"github.com/tencentcloud/tencentcloud-sdk-go/tencentcloud/common/errors"
 	cvm "github.com/tencentcloud/tencentcloud-sdk-go/tencentcloud/cvm/v20170312"
@@ -52,7 +53,7 @@ func (c *tencentClient) DescribeInstances(profile, region string, input model.De
 		for _, instanceSet := range response.Response.InstanceSet {
 			instances = append(instances, model.Instance{
 				Profile:    profile,
-				KeyName:    instanceSet.LoginSettings.KeyIds,
+				KeyIDs:     instanceSet.LoginSettings.KeyIds,
 				InstanceID: instanceSet.InstanceId,
 				Name:       instanceSet.InstanceName,
 				Region:     instanceSet.Placement.Zone,
@@ -92,7 +93,7 @@ func (c *tencentClient) CreateInstance(profile, region string, input model.Creat
 }
 
 // 查询可用区列表
-func (c *tencentClient) queryRegions(profile, region string) (*cvm.DescribeZonesResponse, error) {
+func (c *tencentClient) QueryRegions(profile, region string) (*cvm.DescribeZonesResponse, error) {
 	svc, err := c.io.GetTencentCvmClient(profile, region)
 	if err != nil {
 		return nil, err
@@ -111,7 +112,136 @@ func (c *tencentClient) queryRegions(profile, region string) (*cvm.DescribeZones
 }
 
 func (c *tencentClient) ModifyInstance(profile, region string, input model.ModifyInstanceInput) (model.ModifyInstanceResponse, error) {
-	panic("implement me")
+	switch input.Action {
+	case model.StartInstance:
+		return c.StartInstance(profile, region, input.InstanceIDs)
+	case model.StopInstance:
+		return c.StopInstance(profile, region, input.InstanceIDs)
+	case model.RebootInstance:
+		return c.RebootInstance(profile, region, input.InstanceIDs)
+	case model.ResetInstance:
+		return c.ResetInstance(profile, region, input.InstanceIDs)
+	case model.ChangeInstanceType:
+		if input.InstanceType == nil {
+			return model.ModifyInstanceResponse{}, fmt.Errorf("instance type is required")
+		}
+		return c.ChangeInstanceType(profile, region, input.InstanceIDs, input.InstanceType)
+	default:
+		return model.ModifyInstanceResponse{}, fmt.Errorf("unsupported action: %s", input.Action)
+	}
+}
+
+func (c *tencentClient) StartInstance(profile, region string, instances []*string) (model.ModifyInstanceResponse, error) {
+	client, err := c.io.GetTencentCvmClient(profile, region)
+	if err != nil {
+		return model.ModifyInstanceResponse{}, err
+	}
+	request := cvm.NewStartInstancesRequest()
+	request.InstanceIds = instances
+	response, err := client.StartInstances(request)
+	if _, ok := err.(*errors.TencentCloudSDKError); ok {
+		return model.ModifyInstanceResponse{}, fmt.Errorf("An API error has returned: %s", err)
+	}
+	if err != nil {
+		return model.ModifyInstanceResponse{}, err
+	}
+	return model.ModifyInstanceResponse{
+		Meta: response.ToJsonString(),
+	}, nil
+}
+
+func (c *tencentClient) StopInstance(profile, region string, instances []*string) (model.ModifyInstanceResponse, error) {
+	client, err := c.io.GetTencentCvmClient(profile, region)
+	if err != nil {
+		return model.ModifyInstanceResponse{}, err
+	}
+	request := cvm.NewStopInstancesRequest()
+	request.InstanceIds = instances
+	response, err := client.StopInstances(request)
+	if _, ok := err.(*errors.TencentCloudSDKError); ok {
+		return model.ModifyInstanceResponse{}, fmt.Errorf("An API error has returned: %s", err)
+	}
+	if err != nil {
+		return model.ModifyInstanceResponse{}, err
+	}
+	return model.ModifyInstanceResponse{
+		Meta: response.ToJsonString(),
+	}, nil
+}
+
+func (c *tencentClient) RebootInstance(profile, region string, instances []*string) (model.ModifyInstanceResponse, error) {
+	client, err := c.io.GetTencentCvmClient(profile, region)
+	if err != nil {
+		return model.ModifyInstanceResponse{}, err
+	}
+	request := cvm.NewRebootInstancesRequest()
+	request.InstanceIds = instances
+	response, err := client.RebootInstances(request)
+	if _, ok := err.(*errors.TencentCloudSDKError); ok {
+		return model.ModifyInstanceResponse{}, fmt.Errorf("An API error has returned: %s", err)
+	}
+	if err != nil {
+		return model.ModifyInstanceResponse{}, err
+	}
+	return model.ModifyInstanceResponse{
+		Meta: response.ToJsonString(),
+	}, nil
+}
+
+func (c *tencentClient) ResetInstance(profile, region string, instanceIDs []*string) (model.ModifyInstanceResponse, error) {
+	resp, err := c.DescribeInstances(profile, region, model.DescribeInstancesInput{
+		InstanceIds: instanceIDs,
+	})
+	if err != nil {
+		return model.ModifyInstanceResponse{}, err
+	}
+	if len(resp.Instances) != 1 {
+		return model.ModifyInstanceResponse{}, fmt.Errorf("only support reset one instance at a time")
+	}
+	instance := resp.Instances[0]
+	client, err := c.io.GetTencentCvmClient(profile, region)
+	if err != nil {
+		return model.ModifyInstanceResponse{}, err
+	}
+
+	request := cvm.NewResetInstanceRequest()
+	request.InstanceId = instance.InstanceID
+	request.LoginSettings = &cvm.LoginSettings{
+		KeyIds: instance.KeyIDs,
+		// KeepImageLogin: tea.String("TRUE"), // 不支持公有镜像
+	}
+	response, err := client.ResetInstance(request)
+	if _, ok := err.(*errors.TencentCloudSDKError); ok {
+		return model.ModifyInstanceResponse{}, fmt.Errorf("An API error has returned: %s", err)
+	}
+	if err != nil {
+		return model.ModifyInstanceResponse{}, err
+	}
+	return model.ModifyInstanceResponse{
+		Meta: response.ToJsonString(),
+	}, nil
+}
+
+// 默认关闭强制关机
+func (c *tencentClient) ChangeInstanceType(profile, region string, instances []*string, instanceType *string) (model.ModifyInstanceResponse, error) {
+	client, err := c.io.GetTencentCvmClient(profile, region)
+	if err != nil {
+		return model.ModifyInstanceResponse{}, err
+	}
+	request := cvm.NewResetInstancesTypeRequest()
+	request.InstanceIds = instances
+	request.InstanceType = instanceType
+	request.ForceStop = tea.Bool(false)
+	response, err := client.ResetInstancesType(request)
+	if _, ok := err.(*errors.TencentCloudSDKError); ok {
+		return model.ModifyInstanceResponse{}, fmt.Errorf("An API error has returned: %s", err)
+	}
+	if err != nil {
+		return model.ModifyInstanceResponse{}, err
+	}
+	return model.ModifyInstanceResponse{
+		Meta: response.ToJsonString(),
+	}, nil
 }
 
 func (c *tencentClient) DeleteInstance(profile, region string, input model.DeleteInstanceInput) (model.DeleteInstanceResponse, error) {

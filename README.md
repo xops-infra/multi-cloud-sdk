@@ -6,29 +6,12 @@ go get -u github.com/xops-infra/multi-cloud-sdk@main
 
 
 ### 支持功能
-- 服务器资源
-    - 服务器
-        - QueryInstances
-        - DescribeInstances
-- 虚拟网络
-    - VPC
-    - NAT
-    - EIP
-    - SUBNET
-- EMR
-    - ListClusters
-    - DescribeCluster
-- 对象存储
-- EMR
-- 消息队列
-- OCR(tencent)
-- TIIA 图搜图(tencent)
-- DnsPod 域名解析(aws,tencent)
-
+[cloud.go](pkg/model/cloud.go)
 
 ### 开发日志
 - 2024-01:
     - feat: 支持 emr list&describe
+    - feat: 支持服务器操作
 - 2023-12:
     - 新增服务器单查询
 - 2023-11:

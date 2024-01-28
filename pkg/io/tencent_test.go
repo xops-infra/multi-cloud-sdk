@@ -160,6 +160,7 @@ func TestCreateInstance(t *testing.T) {
 		Name:             tea.String("multi-cloud-sdk-test"),
 		ImageID:          tea.String("img-hdt9xxkt"),
 		InstanceType:     tea.String("SA5.MEDIUM2"),
+		KeyIds:           []*string{tea.String(os.Getenv("TEST_TENCENT_KEY_ID"))},
 		Zone:             tea.String("ap-shanghai-5"),
 		VpcID:            tea.String(os.Getenv("TEST_TENCENT_VPC_ID")),
 		SubnetID:         tea.String(os.Getenv("TEST_TENCENT_SUBNET_ID")),
@@ -170,11 +171,84 @@ func TestCreateInstance(t *testing.T) {
 		return
 	}
 	t.Logf("Success. %s", tea.Prettify(resp))
+}
 
-	// clean
-	time.Sleep(5 * time.Second)
-	_, err = TencentIo.DeleteInstance("tencent", "ap-shanghai", model.DeleteInstanceInput{
-		InstanceIds: resp.InstanceIds,
+func TestModifyInstance(t *testing.T) {
+	instancesIds := []*string{tea.String("ins-iwh5ysbx")}
+
+	// // StartInstance
+	// {
+	// 	resp, err := TencentIo.ModifyInstance("tencent", "ap-shanghai", model.ModifyInstanceInput{
+	// 		Action:      model.StartInstance,
+	// 		InstanceIDs: instancesIds,
+	// 	})
+	// 	if err != nil {
+	// 		t.Error(err)
+	// 		return
+	// 	}
+	// 	t.Logf("StartInstance Success. %s", tea.Prettify(resp))
+	// 	time.Sleep(30 * time.Second)
+	// }
+	// // RebootInstance
+	// {
+	// 	resp, err := TencentIo.ModifyInstance("tencent", "ap-shanghai", model.ModifyInstanceInput{
+	// 		Action:      model.RebootInstance,
+	// 		InstanceIDs: instancesIds,
+	// 	})
+	// 	if err != nil {
+	// 		t.Error(err)
+	// 		return
+	// 	}
+	// 	t.Logf("RebootInstance Success. %s", tea.Prettify(resp))
+	// 	time.Sleep(30 * time.Second)
+	// }
+
+	// ResetInstance
+	{
+		resp, err := TencentIo.ModifyInstance("tencent", "ap-shanghai", model.ModifyInstanceInput{
+			Action:      model.ResetInstance,
+			InstanceIDs: instancesIds,
+		})
+		if err != nil {
+			t.Error(err)
+			return
+		}
+		t.Logf("ResetInstance Success. %s", tea.Prettify(resp))
+		time.Sleep(30 * time.Second)
+	}
+
+	// StopInstance
+	// {
+	// 	resp, err := TencentIo.ModifyInstance("tencent", "ap-shanghai", model.ModifyInstanceInput{
+	// 		Action:      model.StopInstance,
+	// 		InstanceIDs: instancesIds,
+	// 	})
+	// 	if err != nil {
+	// 		t.Error(err)
+	// 		return
+	// 	}
+	// 	t.Logf("StopInstance Success. %s", tea.Prettify(resp))
+	// 	time.Sleep(30 * time.Second)
+	// }
+
+	// ChangeInstanceType
+	// {
+	// 	resp, err := TencentIo.ModifyInstance("tencent", "ap-shanghai", model.ModifyInstanceInput{
+	// 		Action:       model.ChangeInstanceType,
+	// 		InstanceIDs:  instancesIds,
+	// 		InstanceType: tea.String("SA5.MEDIUM2"),
+	// 	})
+	// 	if err != nil {
+	// 		t.Error(err)
+	// 		return
+	// 	}
+	// 	t.Logf("ChangeInstanceType Success. %s", tea.Prettify(resp))
+	// }
+}
+
+func TestDeleteInstance(t *testing.T) {
+	resp, err := TencentIo.DeleteInstance("tencent", "ap-shanghai", model.DeleteInstanceInput{
+		InstanceIds: []*string{tea.String("ins-iwh5ysbx")},
 	})
 	if err != nil {
 		t.Error(err)

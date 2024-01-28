@@ -16,7 +16,7 @@ type Instance struct {
 	Name       *string        `json:"name"`
 	InstanceID *string        `json:"instance_id" gorm:"primarykey"`
 	Profile    string         `json:"profile"`
-	KeyName    []*string      `json:"key_name" gorm:"serializer:json"`
+	KeyIDs     []*string      `json:"key_ids" gorm:"serializer:json"`
 	Region     *string        `json:"region"`
 	PrivateIP  []*string      `json:"private_ip" gorm:"serializer:json"`
 	Platform   *string        `json:"platform"`
@@ -218,6 +218,7 @@ func (i *CreateInstanceInput) ToTencentRunInstancesRequest() *cvm.RunInstancesRe
 	}
 	if i.KeyIds != nil {
 		request.LoginSettings.KeyIds = i.KeyIds
+		request.LoginSettings.Password = nil
 	}
 
 	return request
@@ -229,7 +230,9 @@ type CreateInstanceResponse struct {
 }
 
 type ModifyInstanceInput struct {
-	Actions ModifyAction
+	Action       ModifyAction
+	InstanceIDs  []*string `json:"instance_ids"`  // ["ins-r8hr2upy","ins-5d8a23rs"]
+	InstanceType *string   `json:"instance_type"` // Action="change_instance_type" 时必填
 }
 
 type ModifyAction string
@@ -244,6 +247,7 @@ const (
 )
 
 type ModifyInstanceResponse struct {
+	Meta any `json:"meta"`
 }
 
 type DeleteInstanceInput struct {
