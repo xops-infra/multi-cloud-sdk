@@ -92,6 +92,22 @@ func (t *Tags) ToTencentTags() []*tencentTag.Tag {
 	return tencentTags
 }
 
+func (t *Tags) ToRunInstanceTags() []*cvm.TagSpecification {
+	var tencentTags []*cvm.TagSpecification
+	for _, tag := range *t {
+		tencentTags = append(tencentTags, &cvm.TagSpecification{
+			ResourceType: aws.String("instance"),
+			Tags: []*cvm.Tag{
+				{
+					Key:   aws.String(tag.Key),
+					Value: aws.String(tag.Value),
+				},
+			},
+		})
+	}
+	return tencentTags
+}
+
 // tencent tags to model tags
 func TencentTagsToModelTags(tags []*cvm.Tag) *Tags {
 	var modelTags Tags

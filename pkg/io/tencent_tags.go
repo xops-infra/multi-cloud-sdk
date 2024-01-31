@@ -27,7 +27,7 @@ func (c *tencentClient) CreateTags(profile, region string, input model.CreateTag
 	return nil
 }
 
-func (c *tencentClient) AddTagsFromResource(profile, region string, input model.AddTagsInput) error {
+func (c *tencentClient) AddTagsToResource(profile, region string, input model.AddTagsInput) error {
 	svc, err := c.io.GetTencentTagsClient(profile, region)
 	if err != nil {
 		return err
@@ -39,7 +39,7 @@ func (c *tencentClient) AddTagsFromResource(profile, region string, input model.
 	return err
 }
 
-func (c *tencentClient) DeleteTagsFromResource(profile, region string, input model.RemoveTagsInput) error {
+func (c *tencentClient) RemoveTagsFromResource(profile, region string, input model.RemoveTagsInput) error {
 	svc, err := c.io.GetTencentTagsClient(profile, region)
 	if err != nil {
 		return err
@@ -51,7 +51,7 @@ func (c *tencentClient) DeleteTagsFromResource(profile, region string, input mod
 	return err
 }
 
-func (c *tencentClient) ModifyTagsFromResource(profile, region string, input model.ModifyTagsInput) error {
+func (c *tencentClient) ModifyTagsForResource(profile, region string, input model.ModifyTagsInput) error {
 	svc, err := c.io.GetTencentTagsClient(profile, region)
 	if err != nil {
 		return err
