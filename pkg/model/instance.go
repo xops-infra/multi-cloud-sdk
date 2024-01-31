@@ -10,6 +10,9 @@ import (
 
 type InstanceContact interface {
 	DescribeInstances(profile, region string, input InstanceFilter) (InstanceResponse, error)
+	CreateInstance(profile, region string, input CreateInstanceInput) (CreateInstanceResponse, error)
+	ModifyInstance(profile, region string, input ModifyInstanceInput) (ModifyInstanceResponse, error)
+	DeleteInstance(profile, region string, input DeleteInstanceInput) (DeleteInstanceResponse, error)
 }
 
 type Instance struct {

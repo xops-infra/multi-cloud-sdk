@@ -246,9 +246,35 @@ func TestModifyInstance(t *testing.T) {
 	// }
 }
 
+func TestChangeInstanceType(t *testing.T) {
+	resp, err := TencentIo.ModifyInstance("tencent", "ap-shanghai", model.ModifyInstanceInput{
+		Action:       model.ChangeInstanceType,
+		InstanceIDs:  []*string{tea.String("ins-xx")},
+		InstanceType: tea.String("SA3.2XLARGE32"),
+	})
+	if err != nil {
+		t.Error(err)
+		return
+	}
+	t.Logf("Success. %s", tea.Prettify(resp))
+}
+
+// TestResetInstance
+func TestResetInstance(t *testing.T) {
+	resp, err := TencentIo.ModifyInstance("tencent", "ap-shanghai", model.ModifyInstanceInput{
+		Action:      model.ResetInstance,
+		InstanceIDs: []*string{tea.String("ins-xx")},
+	})
+	if err != nil {
+		t.Error(err)
+		return
+	}
+	t.Logf("Success. %s", tea.Prettify(resp))
+}
+
 func TestDeleteInstance(t *testing.T) {
 	resp, err := TencentIo.DeleteInstance("tencent", "ap-shanghai", model.DeleteInstanceInput{
-		InstanceIds: []*string{tea.String("ins-iwh5ysbx")},
+		InstanceIds: []*string{tea.String("ins-xx")},
 	})
 	if err != nil {
 		t.Error(err)
