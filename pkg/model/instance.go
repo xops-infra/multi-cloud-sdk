@@ -161,6 +161,7 @@ type CreateInstanceInput struct {
 	UserData           *string   `json:"user_data"` // base64
 	Password           *string   `json:"password"`
 	KeyIds             []*string `json:"key_ids"`
+	Tags               Tags      `json:"tags"`
 }
 
 type Disk struct {
@@ -222,6 +223,9 @@ func (i *CreateInstanceInput) ToTencentRunInstancesRequest() *cvm.RunInstancesRe
 	if i.KeyIds != nil {
 		request.LoginSettings.KeyIds = i.KeyIds
 		request.LoginSettings.Password = nil
+	}
+	if i.Tags != nil {
+		request.TagSpecification = i.Tags.ToRunInstanceTags()
 	}
 
 	return request

@@ -27,15 +27,15 @@ func (c *awsClient) CreateTags(profile, region string, input model.CreateTagsInp
 	return fmt.Errorf("not support for aws")
 }
 
-func (c *awsClient) AddTagsFromResource(profile, region string, input model.AddTagsInput) error {
+func (c *awsClient) AddTagsToResource(profile, region string, input model.AddTagsInput) error {
 	return fmt.Errorf("not support for aws")
 }
 
-func (c *awsClient) DeleteTagsFromResource(profile, region string, input model.RemoveTagsInput) error {
+func (c *awsClient) RemoveTagsFromResource(profile, region string, input model.RemoveTagsInput) error {
 	return fmt.Errorf("not support for aws")
 }
 
-func (c *awsClient) ModifyTagsFromResource(profile, region string, input model.ModifyTagsInput) error {
+func (c *awsClient) ModifyTagsForResource(profile, region string, input model.ModifyTagsInput) error {
 	return fmt.Errorf("not support for aws")
 }
 
