@@ -2,11 +2,20 @@ package model
 
 type CloudIO interface {
 	DescribeInstances(profile, region string, input DescribeInstancesInput) (InstanceResponse, error)
+	CreateInstance(profile, region string, input CreateInstanceInput) (CreateInstanceResponse, error)
+	ModifyInstance(profile, region string, input ModifyInstanceInput) (ModifyInstanceResponse, error)
+	DeleteInstance(profile, region string, input DeleteInstanceInput) (DeleteInstanceResponse, error)
 
 	QueryVPC(profile, region string, input CommonFilter) ([]VPC, error)
 	QuerySubnet(profile, region string, input CommonFilter) ([]Subnet, error)
 	QueryEIP(profile, region string, input CommonFilter) ([]EIP, error)
 	QueryNAT(profile, region string, input CommonFilter) ([]NAT, error)
+
+	// Tags
+	CreateTags(profile, region string, input CreateTagsInput) error
+	AddTagsFromResource(profile, region string, input AddTagsInput) error
+	DeleteTagsFromResource(profile, region string, input RemoveTagsInput) error
+	ModifyTagsFromResource(profile, region string, input ModifyTagsInput) error
 
 	// EMR
 	QueryEmrCluster(EmrFilter) (FilterEmrResponse, error) // 方便 Post使用，将Profile和Region放入filter
@@ -14,7 +23,6 @@ type CloudIO interface {
 
 	// DNSDomain
 	DescribeDomainList(profile, region string, input DescribeDomainListRequest) (DescribeDomainListResponse, error)
-
 	// DNSRecord
 	DescribeRecordList(profile, region string, input DescribeRecordListRequest) (DescribeRecordListResponse, error)
 	DescribeRecord(profile, region string, input DescribeRecordRequest) (DescribeRecordResponse, error)

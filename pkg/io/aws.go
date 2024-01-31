@@ -3,12 +3,10 @@ package io
 import (
 	"fmt"
 	"strings"
-	"time"
 
 	"github.com/alibabacloud-go/tea/tea"
 	"github.com/aws/aws-sdk-go/aws"
 	"github.com/aws/aws-sdk-go/service/ec2"
-	"github.com/aws/aws-sdk-go/service/emr"
 	"github.com/aws/aws-sdk-go/service/route53"
 	"github.com/spf13/cast"
 
@@ -25,125 +23,20 @@ func NewAwsClient(io model.ClientIo) model.CloudIO {
 	}
 }
 
-// EMR
-func (c *awsClient) QueryEmrCluster(filter model.EmrFilter) (model.FilterEmrResponse, error) {
-	if filter.Region == nil {
-		return model.FilterEmrResponse{}, model.ErrRegionNotConfigured
-	}
-	svc, err := c.io.GetAWSEmrClient(*filter.Profile, *filter.Region)
-	if err != nil {
-		return model.FilterEmrResponse{}, err
-	}
-	input := &emr.ListClustersInput{}
-	if filter.ClusterStates != nil {
-		for _, state := range filter.ClusterStates {
-			input.ClusterStates = append(input.ClusterStates, aws.String(string(state)))
-		}
-	}
-	if filter.NextMarker != nil {
-		input.Marker = filter.NextMarker
-	}
-	if filter.Period != nil {
-		input.CreatedAfter = aws.Time(time.Now().Add(-*filter.Period))
-	}
-	result, err := svc.ListClusters(input)
-	if err != nil {
-		return model.FilterEmrResponse{}, err
-	}
-	var clusters []model.EmrCluster
-	for _, cluster := range result.Clusters {
-		clusters = append(clusters, model.EmrCluster{
-			ID:     cluster.Id,
-			Name:   cluster.Name,
-			Status: model.EMRClusterStatus(*cluster.Status.State),
-		})
-	}
-	return model.FilterEmrResponse{
-		Clusters:   clusters,
-		NextMarker: result.Marker,
-	}, nil
+func (c *awsClient) CreateTags(profile, region string, input model.CreateTagsInput) error {
+	return fmt.Errorf("not support for aws")
 }
 
-func (c *awsClient) DescribeEmrCluster(input model.DescribeInput) ([]model.DescribeEmrCluster, error) {
-	if input.Region == nil {
-		return nil, model.ErrRegionNotConfigured
-	}
-	svc, err := c.io.GetAWSEmrClient(*input.Profile, *input.Region)
-	if err != nil {
-		return nil, err
-	}
-	var clusters []model.DescribeEmrCluster
-	for _, id := range input.IDS {
-		out, err := svc.DescribeCluster(&emr.DescribeClusterInput{
-			ClusterId: id,
-		})
-		if err != nil {
-			return nil, err
-		}
-		clusters = append(clusters, model.DescribeEmrCluster{
-			ID:         out.Cluster.Id,
-			Name:       out.Cluster.Name,
-			Status:     model.EMRClusterStatus(*out.Cluster.Status.State),
-			CreateTime: out.Cluster.Status.Timeline.CreationDateTime,
-			Meta:       out.Cluster,
-		})
-	}
-	return clusters, nil
+func (c *awsClient) AddTagsFromResource(profile, region string, input model.AddTagsInput) error {
+	return fmt.Errorf("not support for aws")
 }
 
-func (c *awsClient) DescribeInstances(profile, region string, input model.DescribeInstancesInput) (model.InstanceResponse, error) {
-	svc, err := c.io.GetAwsEc2Client(profile, region)
-	if err != nil {
-		return model.InstanceResponse{}, err
-	}
-	req := &ec2.DescribeInstancesInput{}
-	if input.InstanceIds != nil {
-		req.InstanceIds = input.InstanceIds
-	}
-	if input.Filters != nil {
-		for _, filter := range input.Filters {
-			req.Filters = append(req.Filters, &ec2.Filter{
-				Name:   filter.Name,
-				Values: filter.Values,
-			})
-		}
-	}
+func (c *awsClient) DeleteTagsFromResource(profile, region string, input model.RemoveTagsInput) error {
+	return fmt.Errorf("not support for aws")
+}
 
-	if input.NextMarker != nil {
-		req.NextToken = input.NextMarker
-	}
-
-	if input.Size != nil {
-		req.MaxResults = input.Size
-	}
-
-	out, err := svc.DescribeInstances(req)
-	if err != nil {
-		return model.InstanceResponse{}, err
-	}
-	var instances []model.Instance
-	for _, reservation := range out.Reservations {
-		for _, instance := range reservation.Instances {
-			tags := model.AwsTagsToModelTags(instance.Tags)
-			instances = append(instances, model.Instance{
-				Profile:    profile,
-				KeyName:    []*string{instance.KeyName},
-				InstanceID: instance.InstanceId,
-				Name:       tags.GetName(),
-				Region:     instance.Placement.AvailabilityZone,
-				Status:     model.ToInstanceStatus(strings.ToUpper(*instance.State.Name)),
-				PublicIP:   []*string{instance.PublicIpAddress},
-				PrivateIP:  []*string{instance.PrivateIpAddress},
-				Tags:       tags,
-				Owner:      tags.GetOwner(),
-				Platform:   instance.PlatformDetails,
-			})
-		}
-	}
-	return model.InstanceResponse{
-		Instances:  instances,
-		NextMarker: out.NextToken,
-	}, nil
+func (c *awsClient) ModifyTagsFromResource(profile, region string, input model.ModifyTagsInput) error {
+	return fmt.Errorf("not support for aws")
 }
 
 // QueryVpcs
