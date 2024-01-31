@@ -148,9 +148,10 @@ func TestCreateTags(t *testing.T) {
 			},
 		},
 	}
-	err := TencentIo.CreateTags("tencent", "ap-shanghai", input)
+	err := TencentIo.CreateTags("tx", "ap-shanghai", input)
 	if err != nil {
 		t.Error(err)
+		return
 	}
 	t.Logf("Success. %s", tea.Prettify(input))
 }

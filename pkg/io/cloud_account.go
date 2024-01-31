@@ -3,6 +3,7 @@ package io
 import (
 	"fmt"
 	"net/http"
+	"strings"
 
 	"github.com/aws/aws-sdk-go/aws"
 	"github.com/aws/aws-sdk-go/aws/credentials"
@@ -149,29 +150,43 @@ func (c *cloudClient) GetAwsRoute53DomainClient(accountId, region string) (*rout
 	return client, nil
 }
 
-func (c *cloudClient) GetTencentCredential(accountId, region string) (*common.Credential, error) {
-	if _, ok := c.tencentCredential[accountId+region]; !ok {
-		return nil, fmt.Errorf("tencent credential %s-%s not found", accountId, region)
+func (c *cloudClient) getTencentCredential(accountId, region string) (*common.Credential, error) {
+	credential, ok := c.tencentCredential[accountId+region]
+	if !ok {
+		var keys string
+		for k, _ := range c.tencentCredential {
+			keys += k + ","
+		}
+		return nil, fmt.Errorf("tencent credential %s%s not found, Keys: %s", accountId, region, strings.TrimSuffix(keys, ","))
 	}
-	return c.tencentCredential[accountId+region], nil
+	return credential, nil
 }
 
 // get TencnetEmrClient
 func (c *cloudClient) GetTencentEmrClient(accountId, region string) (*tencentEmr.Client, error) {
-	credential := c.tencentCredential[accountId+region]
+	credential, err := c.getTencentCredential(accountId, region)
+	if err != nil {
+		return nil, err
+	}
 	clientProfile := profile.NewClientProfile()
 	return tencentEmr.NewClient(credential, region, clientProfile)
 }
 
 // getTencentVpcClient
 func (c *cloudClient) GetTencentVpcClient(accountId, region string) (*tencentVpc.Client, error) {
-	credential := c.tencentCredential[accountId+region]
+	credential, err := c.getTencentCredential(accountId, region)
+	if err != nil {
+		return nil, err
+	}
 	clientProfile := profile.NewClientProfile()
 	return tencentVpc.NewClient(credential, region, clientProfile)
 }
 
 func (c *cloudClient) GetTencentObjectStorageClient(accountId, region string) (*cos.Client, error) {
-	credential := c.tencentCredential[accountId+region]
+	credential, err := c.getTencentCredential(accountId, region)
+	if err != nil {
+		return nil, err
+	}
 	client := cos.NewClient(nil, &http.Client{
 		Transport: &cos.AuthorizationTransport{
 			SecretID:  credential.SecretId,
@@ -183,27 +198,39 @@ func (c *cloudClient) GetTencentObjectStorageClient(accountId, region string) (*
 
 // GetTencentTagsClient
 func (c *cloudClient) GetTencentTagsClient(accountId, region string) (*tag.Client, error) {
-	credential := c.tencentCredential[accountId+region]
+	credential, err := c.getTencentCredential(accountId, region)
+	if err != nil {
+		return nil, err
+	}
 	clientProfile := profile.NewClientProfile()
 	return tag.NewClient(credential, region, clientProfile)
 }
 
 // GetTencentOcrClient
 func (c *cloudClient) GetTencentOcrClient(accountId, region string) (*ocr.Client, error) {
-	credential := c.tencentCredential[accountId+region]
+	credential, err := c.getTencentCredential(accountId, region)
+	if err != nil {
+		return nil, err
+	}
 	clientProfile := profile.NewClientProfile()
 	return ocr.NewClient(credential, region, clientProfile)
 }
 
 // GetTencentOcrTiiaClient
 func (c *cloudClient) GetTencentOcrTiiaClient(accountId, region string) (*tiia.Client, error) {
-	credential := c.tencentCredential[accountId+region]
+	credential, err := c.getTencentCredential(accountId, region)
+	if err != nil {
+		return nil, err
+	}
 	clientProfile := profile.NewClientProfile()
 	return tiia.NewClient(credential, region, clientProfile)
 }
 
 func (c *cloudClient) GetTencentDnsPodClient(accountId, region string) (*dnspod.Client, error) {
-	credential := c.tencentCredential[accountId+region]
+	credential, err := c.getTencentCredential(accountId, region)
+	if err != nil {
+		return nil, err
+	}
 	clientProfile := profile.NewClientProfile()
 	return dnspod.NewClient(credential, region, clientProfile)
 }
