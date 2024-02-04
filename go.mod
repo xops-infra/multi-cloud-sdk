@@ -1,6 +1,6 @@
 module github.com/xops-infra/multi-cloud-sdk
 
-go 1.20
+go 1.21
 
 require (
 	github.com/alibabacloud-go/tea v1.2.1

@@ -148,7 +148,7 @@ func TestCreateTags(t *testing.T) {
 			},
 		},
 	}
-	err := TencentIo.CreateTags("tx", "ap-shanghai", input)
+	err := TencentIo.CreateTags("tencent", "ap-shanghai", input)
 	if err != nil {
 		t.Error(err)
 		return
@@ -250,8 +250,8 @@ func TestModifyInstance(t *testing.T) {
 func TestChangeInstanceType(t *testing.T) {
 	resp, err := TencentIo.ModifyInstance("tencent", "ap-shanghai", model.ModifyInstanceInput{
 		Action:       model.ChangeInstanceType,
-		InstanceIDs:  []*string{tea.String("ins-xx")},
-		InstanceType: tea.String("SA3.2XLARGE32"),
+		InstanceIDs:  []*string{tea.String("ins-k7fdkyi1")},
+		InstanceType: tea.String("SA5.2XLARGE32"),
 	})
 	if err != nil {
 		t.Error(err)
