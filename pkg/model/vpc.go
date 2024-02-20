@@ -1,6 +1,10 @@
 package model
 
-import "time"
+import (
+	"time"
+
+	tencentVpc "github.com/tencentcloud/tencentcloud-sdk-go/tencentcloud/vpc/v20170312"
+)
 
 type VpcContract interface {
 	QueryVPCs(profile, region string, input CommonFilter) ([]VPC, error)
@@ -67,4 +71,58 @@ type NAT struct {
 	VpcID         string    `json:"vpc_id"`
 	Zone          *string   `json:"zone"`
 	SubnetID      string    `json:"subnet_id"`
+}
+
+type CreateSecurityGroupWithPoliciesInput struct {
+	GroupName        *string   `json:"group_name" binding:"required"`
+	GroupDescription *string   `json:"group_description"`
+	PolicySet        PolicySet `json:"policy_set"`
+}
+
+type PolicySet struct {
+	Egress  []SecurityGroupPolicy `json:"egress"`  // 出站规则
+	Ingress []SecurityGroupPolicy `json:"ingress"` // 入站规则
+}
+
+// to *tencentVpc.SecurityGroupPolicySet
+func (p *PolicySet) ToTencentPolicySet() *tencentVpc.SecurityGroupPolicySet {
+	var egress []*tencentVpc.SecurityGroupPolicy
+	for _, policy := range p.Egress {
+		egress = append(egress, policy.ToTencentPolicy())
+	}
+	var ingress []*tencentVpc.SecurityGroupPolicy
+	for _, policy := range p.Ingress {
+		ingress = append(ingress, policy.ToTencentPolicy())
+	}
+	return &tencentVpc.SecurityGroupPolicySet{
+		Egress:  egress,
+		Ingress: ingress,
+	}
+}
+
+type SecurityGroupPolicy struct {
+	SecurityGroupId   *string `json:"security_group_id"`
+	Protocol          *string `json:"protocol"`           // 协议,取值: TCP,UDP,ICMP,ICMPv6,ALL。
+	Port              *string `json:"port"`               // 端口范围，取值:1~65535。示例值：22
+	CidrBlock         *string `json:"cidr_block"`         // 来源IP或CIDR 示例值：0.0.0.0/16
+	Action            *string `json:"action"`             // ACCEPT 或者 DROP
+	PolicyDescription *string `json:"policy_description"` // 描述
+	ModifyTime        *string `json:"modify_time"`        // 修改时间
+}
+
+// to *tencentVpc.SecurityGroupPolicy
+func (policy *SecurityGroupPolicy) ToTencentPolicy() *tencentVpc.SecurityGroupPolicy {
+	return &tencentVpc.SecurityGroupPolicy{
+		SecurityGroupId:   policy.SecurityGroupId,
+		Protocol:          policy.Protocol,
+		Port:              policy.Port,
+		CidrBlock:         policy.CidrBlock,
+		Action:            policy.Action,
+		PolicyDescription: policy.PolicyDescription,
+		ModifyTime:        policy.ModifyTime,
+	}
+}
+
+type CreateSecurityGroupWithPoliciesResponse struct {
+	Data any
 }

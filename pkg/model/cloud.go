@@ -6,10 +6,12 @@ type CloudIO interface {
 	ModifyInstance(profile, region string, input ModifyInstanceInput) (ModifyInstanceResponse, error)
 	DeleteInstance(profile, region string, input DeleteInstanceInput) (DeleteInstanceResponse, error)
 
+	// VPC
 	QueryVPC(profile, region string, input CommonFilter) ([]VPC, error)
 	QuerySubnet(profile, region string, input CommonFilter) ([]Subnet, error)
 	QueryEIP(profile, region string, input CommonFilter) ([]EIP, error)
 	QueryNAT(profile, region string, input CommonFilter) ([]NAT, error)
+	CreateSecurityGroupWithPolicies(profile, region string, input CreateSecurityGroupWithPoliciesInput) (CreateSecurityGroupWithPoliciesResponse, error)
 
 	// Tags
 	CreateTags(profile, region string, input CreateTagsInput) error

@@ -28,6 +28,7 @@ func init() {
 			SK:    os.Getenv("TENCENT_SECRET_KEY"),
 			Regions: []string{
 				"ap-shanghai",
+				"ap-beijing",
 				"na-ashburn",
 			},
 		},
@@ -276,6 +277,39 @@ func TestResetInstance(t *testing.T) {
 func TestDeleteInstance(t *testing.T) {
 	resp, err := TencentIo.DeleteInstance("tencent", "ap-shanghai", model.DeleteInstanceInput{
 		InstanceIds: []*string{tea.String("ins-xx")},
+	})
+	if err != nil {
+		t.Error(err)
+		return
+	}
+	t.Logf("Success. %s", tea.Prettify(resp))
+}
+
+// TEST CreateSecurityGroupWithPolicies
+func TestCreateSecurityGroupWithPolicies(t *testing.T) {
+	resp, err := TencentIo.CreateSecurityGroupWithPolicies("tencent", "ap-beijing", model.CreateSecurityGroupWithPoliciesInput{
+		GroupName:        tea.String("office-test"),
+		GroupDescription: tea.String("multi-cloud-sdk-test"),
+		PolicySet: model.PolicySet{
+			Egress: []model.SecurityGroupPolicy{
+				{
+					Protocol:          tea.String("ALL"),
+					Port:              tea.String("ALL"),
+					CidrBlock:         tea.String("0.0.0.0/0"),
+					PolicyDescription: tea.String("allow all"),
+					Action:            tea.String("ACCEPT"),
+				},
+			},
+			Ingress: []model.SecurityGroupPolicy{
+				{
+					Protocol:          tea.String("ALL"),
+					Port:              tea.String("ALL"),
+					CidrBlock:         tea.String("0.0.0.0/0"),
+					PolicyDescription: tea.String("allow all"),
+					Action:            tea.String("ACCEPT"),
+				},
+			},
+		},
 	})
 	if err != nil {
 		t.Error(err)
