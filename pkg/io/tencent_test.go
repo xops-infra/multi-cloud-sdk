@@ -3,6 +3,7 @@ package io_test
 import (
 	"fmt"
 	"os"
+	"strings"
 	"testing"
 	"time"
 
@@ -288,7 +289,7 @@ func TestDeleteInstance(t *testing.T) {
 // TEST CreateSecurityGroupWithPolicies
 func TestCreateSecurityGroupWithPolicies(t *testing.T) {
 	resp, err := TencentIo.CreateSecurityGroupWithPolicies("tencent", "ap-beijing", model.CreateSecurityGroupWithPoliciesInput{
-		GroupName:        tea.String("office-test"),
+		GroupName:        tea.String("-test"),
 		GroupDescription: tea.String("multi-cloud-sdk-test"),
 		PolicySet: model.PolicySet{
 			Egress: []model.SecurityGroupPolicy{
@@ -320,23 +321,25 @@ func TestCreateSecurityGroupWithPolicies(t *testing.T) {
 
 // TEST CreateSecurityGroupPolicies
 func TestCreateSecurityGroupPolicies(t *testing.T) {
+	allowAll := strings.Split(os.Getenv("TestCreateSecurityGroupPoliciesCidr"), ",")
+	ingress := []model.SecurityGroupPolicy{}
+	for _, cidr := range allowAll {
+		if cidr == "" {
+			continue
+		}
+		ingress = append(ingress, model.SecurityGroupPolicy{
+			Protocol:          tea.String("ALL"),
+			Port:              tea.String("ALL"),
+			CidrBlock:         tea.String(cidr),
+			PolicyDescription: tea.String("allow all for office" + "(mcs)"),
+			Action:            tea.String("ACCEPT"),
+		})
+	}
+	fmt.Println(tea.Prettify(ingress))
 	resp, err := TencentIo.CreateSecurityGroupPolicies("tencent", "ap-beijing", model.CreateSecurityGroupPoliciesInput{
-		SecurityGroupId: tea.String("sg-gdenzlfb"),
+		SecurityGroupId: tea.String("sg-xxx"),
 		PolicySet: model.PolicySet{
-			Ingress: []model.SecurityGroupPolicy{
-				{
-					Protocol:  tea.String("TCP"),
-					Port:      tea.String("80-8080"),
-					CidrBlock: tea.String("10.0.0.0/8"),
-					Action:    tea.String("ACCEPT"),
-				},
-				// {
-				// 	Protocol:  tea.String("TCP"),
-				// 	Port:      tea.String("22"),
-				// 	CidrBlock: tea.String("10.0.0.0/8"),
-				// 	Action:    tea.String("ACCEPT"),
-				// },
-			},
+			Ingress: ingress,
 		},
 	})
 	if err != nil {
