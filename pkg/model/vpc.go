@@ -6,6 +6,15 @@ import (
 	tencentVpc "github.com/tencentcloud/tencentcloud-sdk-go/tencentcloud/vpc/v20170312"
 )
 
+type CreateSecurityGroupPoliciesInput struct {
+	SecurityGroupId *string   `json:"security_group_id" binding:"required"`
+	PolicySet       PolicySet `json:"policy_set" binding:"required"`
+}
+
+type CreateSecurityGroupPoliciesResponse struct {
+	Result any
+}
+
 type VpcContract interface {
 	QueryVPCs(profile, region string, input CommonFilter) ([]VPC, error)
 	QuerySubnets(profile, region string, input CommonFilter) ([]Subnet, error)
@@ -102,12 +111,12 @@ func (p *PolicySet) ToTencentPolicySet() *tencentVpc.SecurityGroupPolicySet {
 
 type SecurityGroupPolicy struct {
 	SecurityGroupId   *string `json:"security_group_id"`
-	Protocol          *string `json:"protocol"`           // 协议,取值: TCP,UDP,ICMP,ICMPv6,ALL。
-	Port              *string `json:"port"`               // 端口范围，取值:1~65535。示例值：22
-	CidrBlock         *string `json:"cidr_block"`         // 来源IP或CIDR 示例值：0.0.0.0/16
-	Action            *string `json:"action"`             // ACCEPT 或者 DROP
-	PolicyDescription *string `json:"policy_description"` // 描述
-	ModifyTime        *string `json:"modify_time"`        // 修改时间
+	Protocol          *string `json:"protocol" binding:"required"`   // 协议,取值: TCP,UDP,ICMP,ICMPv6,ALL。
+	Port              *string `json:"port" binding:"required"`       // 端口范围，取值:1~65535。示例值：22
+	CidrBlock         *string `json:"cidr_block" binding:"required"` // 来源IP或CIDR 示例值：0.0.0.0/16
+	Action            *string `json:"action" binding:"required"`     // ACCEPT 或者 DROP
+	PolicyDescription *string `json:"policy_description"`            // 描述
+	ModifyTime        *string `json:"modify_time"`                   // 修改时间
 }
 
 // to *tencentVpc.SecurityGroupPolicy

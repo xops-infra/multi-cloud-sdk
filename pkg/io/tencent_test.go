@@ -317,3 +317,31 @@ func TestCreateSecurityGroupWithPolicies(t *testing.T) {
 	}
 	t.Logf("Success. %s", tea.Prettify(resp))
 }
+
+// TEST CreateSecurityGroupPolicies
+func TestCreateSecurityGroupPolicies(t *testing.T) {
+	resp, err := TencentIo.CreateSecurityGroupPolicies("tencent", "ap-beijing", model.CreateSecurityGroupPoliciesInput{
+		SecurityGroupId: tea.String("sg-gdenzlfb"),
+		PolicySet: model.PolicySet{
+			Ingress: []model.SecurityGroupPolicy{
+				{
+					Protocol:  tea.String("TCP"),
+					Port:      tea.String("80-8080"),
+					CidrBlock: tea.String("10.0.0.0/8"),
+					Action:    tea.String("ACCEPT"),
+				},
+				// {
+				// 	Protocol:  tea.String("TCP"),
+				// 	Port:      tea.String("22"),
+				// 	CidrBlock: tea.String("10.0.0.0/8"),
+				// 	Action:    tea.String("ACCEPT"),
+				// },
+			},
+		},
+	})
+	if err != nil {
+		t.Error(err)
+		return
+	}
+	t.Logf("Success. %s", tea.Prettify(resp))
+}

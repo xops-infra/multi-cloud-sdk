@@ -158,3 +158,7 @@ func (c *awsClient) QueryNAT(profile, region string, input model.CommonFilter) (
 func (c *awsClient) CreateSecurityGroupWithPolicies(profile, region string, input model.CreateSecurityGroupWithPoliciesInput) (model.CreateSecurityGroupWithPoliciesResponse, error) {
 	panic("implement me")
 }
+
+func (c *awsClient) CreateSecurityGroupPolicies(profile, region string, input model.CreateSecurityGroupPoliciesInput) (model.CreateSecurityGroupPoliciesResponse, error) {
+	panic("implement me")
+}

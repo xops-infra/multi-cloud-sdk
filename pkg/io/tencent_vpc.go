@@ -1,9 +1,12 @@
 package io
 
 import (
+	"fmt"
+
 	"github.com/alibabacloud-go/tea/tea"
 	"github.com/spf13/cast"
 	"github.com/tencentcloud/tencentcloud-sdk-go/tencentcloud/common"
+	"github.com/tencentcloud/tencentcloud-sdk-go/tencentcloud/common/errors"
 	tencentVpc "github.com/tencentcloud/tencentcloud-sdk-go/tencentcloud/vpc/v20170312"
 	"github.com/xops-infra/multi-cloud-sdk/pkg/model"
 )
@@ -163,7 +166,6 @@ func (c *tencentClient) QueryNAT(profile, region string, input model.CommonFilte
 	return nats, nil
 }
 
-// CreateSecurityGroupWithPolicies
 func (c *tencentClient) CreateSecurityGroupWithPolicies(profile, region string, input model.CreateSecurityGroupWithPoliciesInput) (model.CreateSecurityGroupWithPoliciesResponse, error) {
 	client, err := c.io.GetTencentVpcClient(profile, region)
 	if err != nil {
@@ -180,5 +182,28 @@ func (c *tencentClient) CreateSecurityGroupWithPolicies(profile, region string, 
 	}
 	return model.CreateSecurityGroupWithPoliciesResponse{
 		Data: response,
+	}, nil
+}
+
+func (c *tencentClient) CreateSecurityGroupPolicies(profile, region string, input model.CreateSecurityGroupPoliciesInput) (model.CreateSecurityGroupPoliciesResponse, error) {
+	client, err := c.io.GetTencentVpcClient(profile, region)
+	if err != nil {
+		return model.CreateSecurityGroupPoliciesResponse{}, err
+	}
+	// 实例化一个请求对象,每个接口都会对应一个request对象
+	request := tencentVpc.NewCreateSecurityGroupPoliciesRequest()
+	request.SecurityGroupPolicySet = input.PolicySet.ToTencentPolicySet()
+	request.SecurityGroupId = input.SecurityGroupId
+
+	// 返回的resp是一个CreateSecurityGroupPoliciesResponse的实例，与请求对象对应
+	response, err := client.CreateSecurityGroupPolicies(request)
+	if _, ok := err.(*errors.TencentCloudSDKError); ok {
+		return model.CreateSecurityGroupPoliciesResponse{}, fmt.Errorf("An API error has returned: %s", err)
+	}
+	if err != nil {
+		return model.CreateSecurityGroupPoliciesResponse{}, err
+	}
+	return model.CreateSecurityGroupPoliciesResponse{
+		Result: response,
 	}, nil
 }
