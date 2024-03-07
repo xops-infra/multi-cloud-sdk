@@ -72,6 +72,32 @@ func TestDescribeTencentEmrCluster(t *testing.T) {
 	t.Log("Success.", time.Since(timeStart), len(instances))
 }
 
+// TEST DescribeRecordList
+func TestDescribeRecordList(t *testing.T) {
+	timeStart := time.Now()
+	resp, err := TencentIo.DescribeRecordList("tencent", "ap-shanghai", model.DescribeRecordListRequest{
+		Limit:      tea.Int64(8),
+		Domain:     tea.String(os.Getenv("TEST_TENCENT_DOMAIN")),
+		NextMarker: tea.String("1"),
+	})
+	if err != nil {
+		t.Error(err)
+		return
+	}
+	t.Log("Success.", time.Since(timeStart), tea.Prettify(resp))
+}
+
+func TestListInstance(t *testing.T) {
+	timeStart := time.Now()
+	filter := model.InstanceFilter{}
+	instances, err := TencentIo.DescribeInstances("tencent", "ap-beijing", filter.ToTxDescribeInstancesInput())
+	if err != nil {
+		t.Error(err)
+		return
+	}
+	t.Log("Success.", time.Since(timeStart), len(instances.Instances))
+}
+
 func TestDescribeInstances(t *testing.T) {
 	{
 		timeStart := time.Now()

@@ -4,8 +4,6 @@ import (
 	"fmt"
 	"strings"
 
-	"github.com/alibabacloud-go/tea/tea"
-
 	"github.com/xops-infra/multi-cloud-sdk/pkg/model"
 )
 
@@ -51,9 +49,7 @@ func (s *DnsService) DescribeRecordList(profile, region string, req model.Descri
 				if err != nil {
 					if strings.Contains(err.Error(), "ResourceNotFound") {
 						return model.DescribeRecordListResponse{
-							RecordCountInfo: &model.RecordCountInfo{
-								Total: tea.Int64(0),
-							},
+							RecordList: []model.Record{},
 						}, nil
 					}
 				}

@@ -129,13 +129,21 @@ func (c *awsClient) DescribeRecordList(profile, region string, input model.Descr
 	param := &route53.ListResourceRecordSetsInput{
 		HostedZoneId: hostedZoneId,
 	}
+	if input.Limit != nil {
+		param.MaxItems = tea.String(cast.ToString(input.Limit))
+	}
+	if input.NextMarker != nil {
+		param.StartRecordName = tea.String(*input.NextMarker)
+	}
 
 	var records []model.Record
+	resp, err := client.ListResourceRecordSets(param)
+	if err != nil {
+		return model.DescribeRecordListResponse{}, err
+	}
+	var nextMarker string
+pageLoop:
 	for {
-		resp, err := client.ListResourceRecordSets(param)
-		if err != nil {
-			return model.DescribeRecordListResponse{}, err
-		}
 		for _, record := range resp.ResourceRecordSets {
 			var values string
 			for _, value := range record.ResourceRecords {
@@ -149,28 +157,39 @@ func (c *awsClient) DescribeRecordList(profile, region string, input model.Descr
 					continue
 				}
 			}
-			subDomain := strings.TrimSuffix(*record.Name, fmt.Sprintf(".%s.", *input.Domain))
+			// 解决httpDecode问题，比如 \\052
+			record.Name = tea.String(strings.ReplaceAll(*record.Name, "\\052", "*"))
+			subDomain := strings.TrimSuffix(*record.Name, fmt.Sprintf("%s.", *input.Domain))
 			records = append(records, model.Record{
-				SubDomain:  tea.String(subDomain),
+				SubDomain:  tea.String(strings.TrimSuffix(subDomain, ".")),
 				TTL:        tea.Uint64(cast.ToUint64(record.TTL)),
 				Weight:     tea.Uint64(cast.ToUint64(record.Weight)),
 				RecordType: record.Type,
 				Value:      tea.String(values),
 				Status:     record.SetIdentifier,
-				Meta:       record,
+				RecordId:   record.Name,
 			})
+			nextMarker = *record.Name
+			if len(records) == int(*input.Limit+1) {
+				break pageLoop
+			}
 		}
+
 		if resp.IsTruncated == nil || !*resp.IsTruncated {
 			break
 		}
 		param.StartRecordName = resp.NextRecordName
 		param.StartRecordType = resp.NextRecordType
+		param.StartRecordIdentifier = resp.NextRecordIdentifier
+		resp, err = client.ListResourceRecordSets(param)
+		if err != nil {
+			return model.DescribeRecordListResponse{}, err
+		}
+
 	}
 	return model.DescribeRecordListResponse{
-		RecordList: records,
-		RecordCountInfo: &model.RecordCountInfo{
-			Total: tea.Int64(cast.ToInt64(len(records))),
-		},
+		RecordList: records[:len(records)-1],
+		NextMarker: tea.String(nextMarker),
 	}, nil
 
 }
