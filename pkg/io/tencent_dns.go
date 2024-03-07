@@ -52,11 +52,13 @@ func (c *tencentClient) DescribeRecordList(profile, region string, input model.D
 	// request.Subdomain = input.Keyword
 	request.RecordType = input.RecordType
 	request.Keyword = input.Keyword
-	if input.NextMarker != nil {
-		request.Offset = tea.Uint64((cast.ToUint64(*input.NextMarker) - 1) * uint64(*input.Limit))
-	}
+	request.Limit = tea.Uint64(100)
 	if input.Limit != nil {
 		request.Limit = tea.Uint64(cast.ToUint64(*input.Limit))
+	}
+
+	if input.NextMarker != nil {
+		request.Offset = tea.Uint64((cast.ToUint64(*input.NextMarker) - 1) * uint64(*request.Limit))
 	}
 
 	response, err := client.DescribeRecordList(request)
@@ -81,12 +83,13 @@ func (c *tencentClient) DescribeRecordList(profile, region string, input model.D
 	var nextMaker *string
 	if input.NextMarker != nil {
 		// 如果偏移量小于总数则说明还有，nextMarker为偏移量加1
-		if *response.Response.RecordCountInfo.TotalCount < *request.Offset {
+		fmt.Println(*response.Response.RecordCountInfo.TotalCount, *request.Offset)
+		if *response.Response.RecordCountInfo.TotalCount > (*request.Offset + uint64(*input.Limit)) {
 			nextMaker = tea.String(cast.ToString(cast.ToInt(*input.NextMarker) + 1))
 		} else {
 			nextMaker = nil
 		}
-	} else {
+	} else if *response.Response.RecordCountInfo.TotalCount > uint64(*request.Limit) {
 		nextMaker = tea.String("2")
 	}
 

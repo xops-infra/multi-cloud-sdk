@@ -90,8 +90,8 @@ func TestTencentRecord(t *testing.T) {
 	resp, err := dnsS.DescribeRecordList("tencent", "ap-shanghai",
 		model.DescribeRecordListRequest{
 			Domain:     tea.String(os.Getenv("TEST_TENCENT_DOMAIN")),
-			Limit:      tea.Int64(1),
-			RecordType: tea.String("CNAME"),
+			Limit:      tea.Int64(2),
+			RecordType: tea.String("A"),
 			NextMarker: tea.String("2"),
 		})
 	if err != nil {
