@@ -76,9 +76,9 @@ func TestDescribeTencentEmrCluster(t *testing.T) {
 func TestDescribeRecordList(t *testing.T) {
 	timeStart := time.Now()
 	resp, err := TencentIo.DescribeRecordList("tencent", "ap-shanghai", model.DescribeRecordListRequest{
-		Limit:      tea.Int64(8),
+		Limit:      tea.Int64(2),
 		Domain:     tea.String(os.Getenv("TEST_TENCENT_DOMAIN")),
-		NextMarker: tea.String("1"),
+		NextMarker: tea.String("nZVKuKl06RWPl/XqgieKtV0"),
 	})
 	if err != nil {
 		t.Error(err)

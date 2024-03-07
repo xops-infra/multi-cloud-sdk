@@ -159,9 +159,9 @@ func TestAwsDescribeInstances(t *testing.T) {
 // TEST DescribeRecordList
 func TestDescribeAWSRecordList(t *testing.T) {
 	req := model.DescribeRecordListRequest{
-		Limit:  tea.Int64(5),
-		Domain: tea.String(os.Getenv("TEST_AWS_DOMAIN")),
-		// NextMarker: tea.String(""),
+		Limit:      tea.Int64(2),
+		Domain:     tea.String(os.Getenv("TEST_AWS_DOMAIN")),
+		NextMarker: tea.String("2G1oJa9j4zsA43uGIqG1HyN0ABwwYF/8nhegf29CwZQxMO4dr5Emjuzt61LZ9qpB5EB4VE0hiAIiyIz9n8fMBScrc/2P"),
 	}
 	resp, err := AwsIo.DescribeRecordList(
 		"aws",

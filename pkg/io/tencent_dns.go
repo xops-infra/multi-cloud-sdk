@@ -58,7 +58,7 @@ func (c *tencentClient) DescribeRecordList(profile, region string, input model.D
 	}
 
 	if input.NextMarker != nil {
-		request.Offset = tea.Uint64((cast.ToUint64(*input.NextMarker) - 1) * uint64(*request.Limit))
+		request.Offset = tea.Uint64((cast.ToUint64(model.DecodeTencentNextMaker(*input.NextMarker)) - 1) * uint64(*request.Limit))
 	}
 
 	response, err := client.DescribeRecordList(request)
@@ -83,14 +83,14 @@ func (c *tencentClient) DescribeRecordList(profile, region string, input model.D
 	var nextMaker *string
 	if input.NextMarker != nil {
 		// 如果偏移量小于总数则说明还有，nextMarker为偏移量加1
-		fmt.Println(*response.Response.RecordCountInfo.TotalCount, *request.Offset)
+		// fmt.Println(*response.Response.RecordCountInfo.TotalCount, *request.Offset)
 		if *response.Response.RecordCountInfo.TotalCount > (*request.Offset + uint64(*input.Limit)) {
-			nextMaker = tea.String(cast.ToString(cast.ToInt(*input.NextMarker) + 1))
+			nextMaker = model.ToTencentNextMaker(cast.ToString(cast.ToInt(model.DecodeTencentNextMaker(*input.NextMarker)) + 1))
 		} else {
 			nextMaker = nil
 		}
 	} else if *response.Response.RecordCountInfo.TotalCount > uint64(*request.Limit) {
-		nextMaker = tea.String("2")
+		nextMaker = model.ToTencentNextMaker("2")
 	}
 
 	return model.DescribeRecordListResponse{
