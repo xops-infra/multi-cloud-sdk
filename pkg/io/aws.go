@@ -133,8 +133,9 @@ func (c *awsClient) DescribeRecordList(profile, region string, input model.Descr
 		param.MaxItems = tea.String(cast.ToString(input.Limit))
 	}
 	if input.NextMarker != nil {
-		param.StartRecordName = tea.String(*input.NextMarker)
+		param.StartRecordName, param.StartRecordType = model.DecodeAwsNextMaker(*input.NextMarker)
 	}
+	// fmt.Println(tea.Prettify(param))
 
 	var records []model.Record
 	resp, err := client.ListResourceRecordSets(param)
@@ -169,7 +170,7 @@ pageLoop:
 				Status:     record.SetIdentifier,
 				RecordId:   record.Name,
 			})
-			nextMarker = *record.Name
+			nextMarker = model.ToAwsNextMaker(record.Name, record.Type)
 			if len(records) == int(*input.Limit+1) {
 				break pageLoop
 			}
@@ -191,7 +192,6 @@ pageLoop:
 		RecordList: records[:len(records)-1],
 		NextMarker: tea.String(nextMarker),
 	}, nil
-
 }
 
 // DescribeRecord
