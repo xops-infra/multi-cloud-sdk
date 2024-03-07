@@ -166,8 +166,26 @@ type CreateInstanceInput struct {
 
 type Disk struct {
 	Size *int64  `json:"size"`
-	Type *string `json:"type"`
+	Type *string `json:"type"` // 硬盘介质类型，腾讯云支持的类型如下：CLOUD_BASIC：表示普通云硬盘 CLOUD_PREMIUM：表示高性能云硬盘 CLOUD_SSD：表示SSD云硬盘 CLOUD_HSSD：表示增强型SSD云硬盘 CLOUD_TSSD：表示极速型SSD云硬盘 CLOUD_BSSD：表示通用型SSD云硬盘
 }
+
+// 硬盘介质类型。取值范围：
+// CLOUD_BASIC：表示普通云硬盘
+// CLOUD_PREMIUM：表示高性能云硬盘
+// CLOUD_BSSD：表示通用型SSD云硬盘
+// CLOUD_SSD：表示SSD云硬盘
+// CLOUD_HSSD：表示增强型SSD云硬盘
+// CLOUD_TSSD：表示极速型SSD云硬盘。
+type TencenteDiskType string
+
+const (
+	TencenteDiskTypeCLOUD_BASIC   TencenteDiskType = "CLOUD_BASIC"
+	TencenteDiskTypeCLOUD_PREMIUM TencenteDiskType = "CLOUD_PREMIUM"
+	TencenteDiskTypeCLOUD_BSSD    TencenteDiskType = "CLOUD_BSSD"
+	TencenteDiskTypeCLOUD_SSD     TencenteDiskType = "CLOUD_SSD"
+	TencenteDiskTypeCLOUD_HSSD    TencenteDiskType = "CLOUD_HSSD"
+	TencenteDiskTypeCLOUD_TSSD    TencenteDiskType = "CLOUD_TSSD"
+)
 
 // set default
 func (i *CreateInstanceInput) ToTencentRunInstancesRequest() *cvm.RunInstancesRequest {

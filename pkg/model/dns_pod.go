@@ -33,16 +33,13 @@ type DescribeRecordListRequest struct {
 	Domain     *string `json:"domain" binding:"required"`
 	RecordType *string `json:"record_type"`
 	Keyword    *string `json:"keyword"` // 当前支持搜索主机头和记录值
+	Limit      *int64  `json:"limit"`
+	NextMarker *string `json:"next_marker"`
 }
 
 type DescribeRecordListResponse struct {
-	RequestId       *string          `json:"request_id"`
-	RecordList      []Record         `json:"record_list"`
-	RecordCountInfo *RecordCountInfo `json:"record_count_info"`
-}
-
-type RecordCountInfo struct {
-	Total *int64 `json:"total"`
+	RecordList []Record `json:"record_list"`
+	NextMarker *string  `json:"next_marker"`
 }
 
 type DescribeRecordRequest struct {
@@ -87,18 +84,18 @@ type ModifyRecordResponse struct {
 }
 
 type Record struct {
-	RecordId   *uint64     `json:"record_id"`
-	Value      *string     `json:"value"` // aws []string 腾讯 string，aws取 1 个可能会有 bug.
-	SubDomain  *string     `json:"sub_domain"`
-	RecordLine *string     `json:"record_line"`
-	RecordType *string     `json:"record_type"`
-	TTL        *uint64     `json:"ttl"`
-	Status     *string     `json:"status"` // ENABLE 和 DISABLE
-	UpdatedOn  *string     `json:"updated_on"`
-	Weight     *uint64     `json:"weight"`
-	DomainId   *uint64     `json:"domain_id"`
-	Remark     *string     `json:"remark"`
-	Meta       interface{} `json:"meta"`
+	RecordId   *string `json:"record_id"`
+	Value      *string `json:"value"` // aws []string 腾讯 string，aws取 1 个可能会有 bug.
+	SubDomain  *string `json:"sub_domain"`
+	RecordLine *string `json:"record_line"`
+	RecordType *string `json:"record_type"`
+	TTL        *uint64 `json:"ttl"`
+	Status     *string `json:"status"` // ENABLE 和 DISABLE
+	UpdatedOn  *string `json:"updated_on"`
+	Weight     *uint64 `json:"weight"`
+	DomainId   *uint64 `json:"domain_id"`
+	Remark     *string `json:"remark"`
+	// Meta       interface{} `json:"meta"`
 }
 
 type DeleteRecordRequest struct {

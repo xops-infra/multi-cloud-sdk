@@ -9,6 +9,8 @@ go get -u github.com/xops-infra/multi-cloud-sdk@main
 [cloud.go](pkg/model/cloud.go)
 
 ### 开发日志
+- 2024-03:
+    - feat: 支持查询分页
 - 2024-01:
     - feat: 支持 emr list&describe
     - feat: 支持服务器操作

@@ -3,6 +3,7 @@ package io_test
 import (
 	"fmt"
 	"os"
+	"strings"
 	"testing"
 	"time"
 
@@ -28,6 +29,7 @@ func init() {
 			SK:    os.Getenv("TENCENT_SECRET_KEY"),
 			Regions: []string{
 				"ap-shanghai",
+				"ap-beijing",
 				"na-ashburn",
 			},
 		},
@@ -68,6 +70,32 @@ func TestDescribeTencentEmrCluster(t *testing.T) {
 		fmt.Println(tea.Prettify(instance))
 	}
 	t.Log("Success.", time.Since(timeStart), len(instances))
+}
+
+// TEST DescribeRecordList
+func TestDescribeRecordList(t *testing.T) {
+	timeStart := time.Now()
+	resp, err := TencentIo.DescribeRecordList("tencent", "ap-shanghai", model.DescribeRecordListRequest{
+		Limit:      tea.Int64(8),
+		Domain:     tea.String(os.Getenv("TEST_TENCENT_DOMAIN")),
+		NextMarker: tea.String("1"),
+	})
+	if err != nil {
+		t.Error(err)
+		return
+	}
+	t.Log("Success.", time.Since(timeStart), tea.Prettify(resp))
+}
+
+func TestListInstance(t *testing.T) {
+	timeStart := time.Now()
+	filter := model.InstanceFilter{}
+	instances, err := TencentIo.DescribeInstances("tencent", "ap-beijing", filter.ToTxDescribeInstancesInput())
+	if err != nil {
+		t.Error(err)
+		return
+	}
+	t.Log("Success.", time.Since(timeStart), len(instances.Instances))
 }
 
 func TestDescribeInstances(t *testing.T) {
@@ -148,7 +176,7 @@ func TestCreateTags(t *testing.T) {
 			},
 		},
 	}
-	err := TencentIo.CreateTags("tx", "ap-shanghai", input)
+	err := TencentIo.CreateTags("tencent", "ap-shanghai", input)
 	if err != nil {
 		t.Error(err)
 		return
@@ -250,8 +278,8 @@ func TestModifyInstance(t *testing.T) {
 func TestChangeInstanceType(t *testing.T) {
 	resp, err := TencentIo.ModifyInstance("tencent", "ap-shanghai", model.ModifyInstanceInput{
 		Action:       model.ChangeInstanceType,
-		InstanceIDs:  []*string{tea.String("ins-xx")},
-		InstanceType: tea.String("SA3.2XLARGE32"),
+		InstanceIDs:  []*string{tea.String("ins-k7fdkyi1")},
+		InstanceType: tea.String("SA5.2XLARGE32"),
 	})
 	if err != nil {
 		t.Error(err)
@@ -276,6 +304,69 @@ func TestResetInstance(t *testing.T) {
 func TestDeleteInstance(t *testing.T) {
 	resp, err := TencentIo.DeleteInstance("tencent", "ap-shanghai", model.DeleteInstanceInput{
 		InstanceIds: []*string{tea.String("ins-xx")},
+	})
+	if err != nil {
+		t.Error(err)
+		return
+	}
+	t.Logf("Success. %s", tea.Prettify(resp))
+}
+
+// TEST CreateSecurityGroupWithPolicies
+func TestCreateSecurityGroupWithPolicies(t *testing.T) {
+	resp, err := TencentIo.CreateSecurityGroupWithPolicies("tencent", "ap-beijing", model.CreateSecurityGroupWithPoliciesInput{
+		GroupName:        tea.String("-test"),
+		GroupDescription: tea.String("multi-cloud-sdk-test"),
+		PolicySet: model.PolicySet{
+			Egress: []model.SecurityGroupPolicy{
+				{
+					Protocol:          tea.String("ALL"),
+					Port:              tea.String("ALL"),
+					CidrBlock:         tea.String("0.0.0.0/0"),
+					PolicyDescription: tea.String("allow all"),
+					Action:            tea.String("ACCEPT"),
+				},
+			},
+			Ingress: []model.SecurityGroupPolicy{
+				{
+					Protocol:          tea.String("ALL"),
+					Port:              tea.String("ALL"),
+					CidrBlock:         tea.String("0.0.0.0/0"),
+					PolicyDescription: tea.String("allow all"),
+					Action:            tea.String("ACCEPT"),
+				},
+			},
+		},
+	})
+	if err != nil {
+		t.Error(err)
+		return
+	}
+	t.Logf("Success. %s", tea.Prettify(resp))
+}
+
+// TEST CreateSecurityGroupPolicies
+func TestCreateSecurityGroupPolicies(t *testing.T) {
+	allowAll := strings.Split(os.Getenv("TestCreateSecurityGroupPoliciesCidr"), ",")
+	ingress := []model.SecurityGroupPolicy{}
+	for _, cidr := range allowAll {
+		if cidr == "" {
+			continue
+		}
+		ingress = append(ingress, model.SecurityGroupPolicy{
+			Protocol:          tea.String("ALL"),
+			Port:              tea.String("ALL"),
+			CidrBlock:         tea.String(cidr),
+			PolicyDescription: tea.String("allow all for office" + "(mcs)"),
+			Action:            tea.String("ACCEPT"),
+		})
+	}
+	fmt.Println(tea.Prettify(ingress))
+	resp, err := TencentIo.CreateSecurityGroupPolicies("tencent", "ap-beijing", model.CreateSecurityGroupPoliciesInput{
+		SecurityGroupId: tea.String("sg-xxx"),
+		PolicySet: model.PolicySet{
+			Ingress: ingress,
+		},
 	})
 	if err != nil {
 		t.Error(err)
