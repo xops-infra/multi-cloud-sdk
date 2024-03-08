@@ -45,15 +45,7 @@ func (s *DnsService) DescribeRecordList(profile, region string, req model.Descri
 			case model.AWS:
 				return s.Aws.DescribeRecordList(profile, region, req)
 			case model.TENCENT:
-				resp, err := s.Tencent.DescribeRecordList(profile, region, req)
-				if err != nil {
-					if strings.Contains(err.Error(), "ResourceNotFound") {
-						return model.DescribeRecordListResponse{
-							RecordList: []model.Record{},
-						}, nil
-					}
-				}
-				return resp, err
+				return s.Tencent.DescribeRecordList(profile, region, req)
 			default:
 				return model.DescribeRecordListResponse{}, nil
 			}
