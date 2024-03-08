@@ -75,15 +75,15 @@ func TestTencentDomain(t *testing.T) {
 func TestAwsRecord(t *testing.T) {
 	resp, err := dnsS.DescribeRecordList("aws", "cn-northwest-1",
 		model.DescribeRecordListRequest{
-			Domain:     tea.String(os.Getenv("TEST_AWS_DOMAIN")),
-			Limit:      tea.Int64(4),
-			RecordType: tea.String("CNAME"),
-			NextMarker: tea.String(""),
+			Domain: tea.String(os.Getenv("TEST_AWS_DOMAIN")),
+			Limit:  tea.Int64(2),
+			// RecordType: tea.String("CNAME"),
+			NextMarker: tea.String("cGF0c25hcC5pbmZvLixUWFR0aGlzaXNhc2NyZWF0a2V5"),
 		})
 	if err != nil {
 		t.Error(err)
 	}
-	fmt.Println(tea.Prettify(resp))
+	fmt.Println(tea.Prettify(resp.NextMarker))
 }
 
 func TestTencentRecord(t *testing.T) {
@@ -91,8 +91,7 @@ func TestTencentRecord(t *testing.T) {
 		model.DescribeRecordListRequest{
 			Domain:     tea.String(os.Getenv("TEST_TENCENT_DOMAIN")),
 			Limit:      tea.Int64(2),
-			RecordType: tea.String("A"),
-			NextMarker: tea.String("2"),
+			NextMarker: tea.String("M3RoaXNpc2FzY3JlYXRrZXk="),
 		})
 	if err != nil {
 		t.Error(err)

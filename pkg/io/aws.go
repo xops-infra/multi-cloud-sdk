@@ -128,6 +128,7 @@ func (c *awsClient) DescribeRecordList(profile, region string, input model.Descr
 
 	param := &route53.ListResourceRecordSetsInput{
 		HostedZoneId: hostedZoneId,
+		MaxItems:     tea.String("100"),
 	}
 	if input.Limit != nil {
 		param.MaxItems = tea.String(cast.ToString(input.Limit))
@@ -171,7 +172,7 @@ pageLoop:
 				RecordId:   record.Name,
 			})
 			nextMarker = model.ToAwsNextMaker(record.Name, record.Type)
-			if len(records) == int(*input.Limit+1) {
+			if len(records) == (cast.ToInt(param.MaxItems) + 1) {
 				break pageLoop
 			}
 		}
