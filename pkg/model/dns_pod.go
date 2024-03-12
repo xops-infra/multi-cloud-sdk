@@ -1,12 +1,24 @@
 package model
 
+import (
+	"github.com/alibabacloud-go/tea/tea"
+	privatedns "github.com/tencentcloud/tencentcloud-sdk-go/tencentcloud/privatedns/v20201028"
+)
+
 type DnsContract interface {
-	DescribeDomainList(profile, region string, req DescribeDomainListRequest) (DescribeDomainListResponse, error)
-	DescribeRecordList(profile, region string, req DescribeRecordListRequest) (DescribeRecordListResponse, error)
-	DescribeRecord(profile, region string, req DescribeRecordRequest) (DescribeRecordResponse, error)
-	CreateRecord(profile, region string, req CreateRecordRequest) (CreateRecordResponse, error)
-	ModifyRecord(profile, region string, ignoreType bool, req ModifyRecordRequest) (ModifyRecordResponse, error)
-	DeleteRecord(profile, region string, req DeleteRecordRequest) (CommonDnsResponse, error)
+	PrivateDomainList(profile string, req DescribeDomainListRequest) (DescribePrivateDomainListResponse, error)
+	PrivateRecordList(profile string, req DescribeRecordListRequest) (DescribePrivateRecordListResponse, error)
+	PrivateRecord(profile string, req DescribeRecordRequest) (Record, error)
+	PrivateCreateRecord(profile string, req CreateRecordRequest) (CreateRecordResponse, error)
+	PrivateModifyRecord(profile string, ignoreType bool, req ModifyRecordRequest) error
+	PrivateDeleteRecord(profile string, req DeletePrivateRecordRequest) error
+
+	DescribeDomainList(profile string, req DescribeDomainListRequest) (DescribeDomainListResponse, error)
+	DescribeRecordList(profile string, req DescribeRecordListRequest) (DescribeRecordListResponse, error)
+	DescribeRecord(profile string, req DescribeRecordRequest) (Record, error)
+	CreateRecord(profile string, req CreateRecordRequest) (CreateRecordResponse, error)
+	ModifyRecord(profile string, ignoreType bool, req ModifyRecordRequest) error
+	DeleteRecord(profile string, req DeleteRecordRequest) (CommonDnsResponse, error)
 }
 
 type DescribeDomainListRequest struct {
@@ -20,9 +32,9 @@ type DescribeDomainListResponse struct {
 }
 
 type Domain struct {
-	DomainId *string     `json:"domain_id"`
-	Name     *string     `json:"name"`
-	Meta     interface{} `json:"meta"`
+	DomainId *string `json:"domain_id"`
+	Name     *string `json:"name"`
+	Meta     any     `json:"meta"`
 }
 
 type DomainCountInfo struct {
@@ -37,6 +49,27 @@ type DescribeRecordListRequest struct {
 	NextMarker *string `json:"next_marker"`
 }
 
+func (r DescribeRecordListRequest) ToTencentFilter() []*privatedns.Filter {
+	var filters []*privatedns.Filter
+	if r.RecordType != nil {
+		filters = append(filters, &privatedns.Filter{
+			Name: tea.String("RecordType"),
+			Values: []*string{
+				r.RecordType,
+			},
+		})
+	}
+	if r.Keyword != nil {
+		filters = append(filters, &privatedns.Filter{
+			Name: tea.String("SubDomain"),
+			Values: []*string{
+				r.Keyword,
+			},
+		})
+	}
+	return filters
+}
+
 type DescribeRecordListResponse struct {
 	RecordList []Record `json:"record_list"`
 	NextMarker *string  `json:"next_marker"`
@@ -48,17 +81,13 @@ type DescribeRecordRequest struct {
 	RecordType *string `json:"record_type"`
 }
 
-type DescribeRecordResponse struct {
-	Record Record `json:"record"`
-}
-
 type CreateRecordRequest struct {
 	Domain     *string `json:"domain" binding:"required"`
 	SubDomain  *string `json:"sub_domain" binding:"required"`  //主机记录，如 www，可选，如果不传，默认为 @。
 	RecordType *string `json:"record_type" binding:"required"` //记录类型，通过 API 记录类型获得，大写英文，比如：A 。
 	Value      *string `json:"value" binding:"required"`       //记录值，如 IP。
 	TTL        *uint64 `json:"ttl"`                            //记录生效时间，默认（aws 300）（腾讯 600），最大值604800秒。
-	Info       *string `json:"info"`                           //备注，主要描述创建原因用途（aws不支持，tencent支持）
+	Info       *string `json:"info"`                           //备注，主要描述创建原因用途（aws不支持，tencent支持，但是private dns 不支持）
 }
 
 type CreateRecordResponse struct {
@@ -76,11 +105,6 @@ type ModifyRecordRequest struct {
 	Weight     *uint64 `json:"weight"`                         //记录权重，值为1-100。
 	Status     *bool   `json:"status"`                         //AWS该参数无效。腾讯该参数为是否启用，true 启用，false 禁用。
 	Info       *string `json:"info"`                           //备注，主要描述修改原因用途（aws不支持，tencent支持）
-}
-
-type ModifyRecordResponse struct {
-	RecordId *string     `json:"record_id"`
-	Meta     interface{} `json:"meta"`
 }
 
 type Record struct {

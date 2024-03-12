@@ -28,7 +28,6 @@ func init() {
 			SK:    os.Getenv("AWS_SECRET_ACCESS_KEY"),
 			Regions: []string{
 				"cn-northwest-1",
-				"us-east-1",
 			},
 		}, {
 			Name:  "aws-us",
@@ -154,23 +153,4 @@ func TestAwsDescribeInstances(t *testing.T) {
 		}
 		t.Log("Status Success.", time.Since(timeStart), len(instances.Instances))
 	}
-}
-
-// TEST DescribeRecordList
-func TestDescribeAWSRecordList(t *testing.T) {
-	req := model.DescribeRecordListRequest{
-		// Limit:      tea.Int64(2),
-		Domain:     tea.String(os.Getenv("TEST_AWS_DOMAIN")),
-		NextMarker: tea.String("itbtZa/gGkn9H97wBqpq3fO8S4bgQitmCJirgIFR7BSR"),
-	}
-	resp, err := AwsIo.DescribeRecordList(
-		"aws",
-		"cn-northwest-1",
-		req,
-	)
-	if err != nil {
-		t.Error(err)
-		return
-	}
-	fmt.Println(tea.Prettify(resp))
 }

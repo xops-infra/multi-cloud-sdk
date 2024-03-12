@@ -22,21 +22,19 @@ func init() {
 	}
 	profiles := []model.ProfileConfig{
 		{
-			Name:  "aws",
-			Cloud: model.AWS,
-			AK:    os.Getenv("AWS_ACCESS_KEY_ID"),
-			SK:    os.Getenv("AWS_SECRET_ACCESS_KEY"),
-			Regions: []string{
-				"cn-northwest-1",
-			},
+			Name:    "aws",
+			Cloud:   model.AWS,
+			AK:      os.Getenv("AWS_ACCESS_KEY_ID"),
+			SK:      os.Getenv("AWS_SECRET_ACCESS_KEY"),
+			Regions: []string{},
 		},
 		{
-			Name:  "tencent",
-			Cloud: model.TENCENT,
-			AK:    os.Getenv("TENCENT_ACCESS_KEY"),
-			SK:    os.Getenv("TENCENT_SECRET_KEY"),
+			Name:    "tencent",
+			Cloud:   model.TENCENT,
+			AK:      os.Getenv("TENCENT_ACCESS_KEY"),
+			SK:      os.Getenv("TENCENT_SECRET_KEY"),
 			Regions: []string{
-				"ap-shanghai",
+
 				// "na-ashburn",
 			},
 		},
@@ -51,7 +49,7 @@ func init() {
 }
 
 func TestAwsDomain(t *testing.T) {
-	resp, err := dnsS.DescribeDomainList("aws", "cn-northwest-1",
+	resp, err := dnsS.DescribeDomainList("aws",
 		model.DescribeDomainListRequest{
 			DomainKeyword: tea.String(os.Getenv("TEST_AWS_DOMAIN")),
 		})
@@ -62,7 +60,7 @@ func TestAwsDomain(t *testing.T) {
 }
 
 func TestTencentDomain(t *testing.T) {
-	resp, err := dnsS.DescribeDomainList("tencent", "ap-shanghai",
+	resp, err := dnsS.DescribeDomainList("tencent",
 		model.DescribeDomainListRequest{
 			// DomainKeyword: tea.String(""),
 		})
@@ -73,7 +71,7 @@ func TestTencentDomain(t *testing.T) {
 }
 
 func TestAwsRecord(t *testing.T) {
-	resp, err := dnsS.DescribeRecordList("aws", "cn-northwest-1",
+	resp, err := dnsS.DescribeRecordList("aws",
 		model.DescribeRecordListRequest{
 			Domain: tea.String(os.Getenv("TEST_AWS_DOMAIN")),
 			Limit:  tea.Int64(2),
@@ -87,7 +85,7 @@ func TestAwsRecord(t *testing.T) {
 }
 
 func TestTencentRecord(t *testing.T) {
-	resp, err := dnsS.DescribeRecordList("tencent", "ap-shanghai",
+	resp, err := dnsS.DescribeRecordList("tencent",
 		model.DescribeRecordListRequest{
 			Domain:     tea.String(os.Getenv("TEST_TENCENT_DOMAIN")),
 			Limit:      tea.Int64(2),
@@ -100,7 +98,7 @@ func TestTencentRecord(t *testing.T) {
 }
 
 func TestAwsRecordDetail(t *testing.T) {
-	resp, err := dnsS.DescribeRecord("aws", "cn-northwest-1",
+	resp, err := dnsS.DescribeRecord("aws",
 		model.DescribeRecordRequest{
 			Domain:    tea.String(os.Getenv("TEST_AWS_DOMAIN")),
 			SubDomain: tea.String("test"),
@@ -112,7 +110,7 @@ func TestAwsRecordDetail(t *testing.T) {
 }
 
 func TestTencentRecordDetail(t *testing.T) {
-	resp, err := dnsS.DescribeRecord("tencent", "ap-shanghai",
+	resp, err := dnsS.DescribeRecord("tencent",
 		model.DescribeRecordRequest{
 			Domain:    tea.String(os.Getenv("TEST_TENCENT_DOMAIN")),
 			SubDomain: tea.String("tencent1"),
@@ -124,7 +122,7 @@ func TestTencentRecordDetail(t *testing.T) {
 }
 
 func TestAwsCreateRecord(t *testing.T) {
-	resp, err := dnsS.CreateRecord("aws", "cn-northwest-1",
+	resp, err := dnsS.CreateRecord("aws",
 		model.CreateRecordRequest{
 			Domain:     tea.String(os.Getenv("TEST_AWS_DOMAIN")),
 			SubDomain:  tea.String("test"),
@@ -139,7 +137,7 @@ func TestAwsCreateRecord(t *testing.T) {
 }
 
 func TestTencentCreateRecord(t *testing.T) {
-	resp, err := dnsS.CreateRecord("tencent", "ap-shanghai",
+	resp, err := dnsS.CreateRecord("tencent",
 		model.CreateRecordRequest{
 			Domain:     tea.String(os.Getenv("TEST_TENCENT_DOMAIN")),
 			SubDomain:  tea.String("tencent"),
@@ -154,7 +152,7 @@ func TestTencentCreateRecord(t *testing.T) {
 }
 
 func TestAwsUpdateRecord(t *testing.T) {
-	resp, err := dnsS.ModifyRecord("aws", "cn-northwest-1", true,
+	err := dnsS.ModifyRecord("aws", true,
 		model.ModifyRecordRequest{
 			Domain:     tea.String(os.Getenv("TEST_AWS_DOMAIN")),
 			SubDomain:  tea.String("test123"),
@@ -164,11 +162,10 @@ func TestAwsUpdateRecord(t *testing.T) {
 	if err != nil {
 		t.Error(err)
 	}
-	fmt.Println(tea.Prettify(resp))
 }
 
 func TestTencentUpdateRecord(t *testing.T) {
-	resp, err := dnsS.ModifyRecord("tencent", "ap-shanghai", true,
+	err := dnsS.ModifyRecord("tencent", true,
 		model.ModifyRecordRequest{
 			Domain:     tea.String(os.Getenv("TEST_TENCENT_DOMAIN")),
 			SubDomain:  tea.String("test"),
@@ -180,11 +177,10 @@ func TestTencentUpdateRecord(t *testing.T) {
 	if err != nil {
 		t.Error(err)
 	}
-	fmt.Println(tea.Prettify(resp))
 }
 
 func TestAwsDeleteRecord(t *testing.T) {
-	resp, err := dnsS.DeleteRecord("aws", "cn-northwest-1",
+	resp, err := dnsS.DeleteRecord("aws",
 		model.DeleteRecordRequest{
 			Domain:    tea.String(os.Getenv("TEST_AWS_DOMAIN")),
 			SubDomain: tea.String("test123"),
@@ -197,7 +193,7 @@ func TestAwsDeleteRecord(t *testing.T) {
 }
 
 func TestTencentDeleteRecord(t *testing.T) {
-	resp, err := dnsS.DeleteRecord("tencent", "ap-shanghai",
+	resp, err := dnsS.DeleteRecord("tencent",
 		model.DeleteRecordRequest{
 			Domain:     tea.String(os.Getenv("TEST_TENCENT_DOMAIN")),
 			SubDomain:  tea.String("tencent"),

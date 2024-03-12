@@ -11,6 +11,7 @@ go get -u github.com/xops-infra/multi-cloud-sdk@main
 ### 开发日志
 - 2024-03:
     - feat: 支持查询分页
+    - feat: add privateDNS for tencent
 - 2024-01:
     - feat: 支持 emr list&describe
     - feat: 支持服务器操作

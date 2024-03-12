@@ -25,13 +25,19 @@ type CloudIO interface {
 	DescribeEmrCluster(DescribeInput) ([]DescribeEmrCluster, error)
 
 	// DNSDomain
-	DescribeDomainList(profile, region string, input DescribeDomainListRequest) (DescribeDomainListResponse, error)
-	// DNSRecord
-	DescribeRecordList(profile, region string, input DescribeRecordListRequest) (DescribeRecordListResponse, error)
-	DescribeRecord(profile, region string, input DescribeRecordRequest) (DescribeRecordResponse, error)
-	CreateRecord(profile, region string, input CreateRecordRequest) (CreateRecordResponse, error)
-	ModifyRecord(profile, region string, ignoreType bool, input ModifyRecordRequest) (ModifyRecordResponse, error)
-	DeleteRecord(profile, region string, input DeleteRecordRequest) (CommonDnsResponse, error)
+	DescribeDomainList(profile string, input DescribeDomainListRequest) (DescribeDomainListResponse, error)
+	DescribeRecordList(profile string, input DescribeRecordListRequest) (DescribeRecordListResponse, error)
+	DescribeRecord(profile string, input DescribeRecordRequest) (Record, error)
+	CreateRecord(profile string, input CreateRecordRequest) (CreateRecordResponse, error)
+	ModifyRecord(profile string, ignoreType bool, input ModifyRecordRequest) error
+	DeleteRecord(profile string, input DeleteRecordRequest) (CommonDnsResponse, error)
+
+	// Private_Dns
+	DescribePrivateDomainList(profile string, input DescribeDomainListRequest) (DescribePrivateDomainListResponse, error)
+	CreatePrivateRecord(profile string, input CreateRecordRequest) (CreateRecordResponse, error)
+	DeletePrivateRecord(profile string, input DeletePrivateRecordRequest) error
+	ModifyPrivateRecord(profile string, input ModifyRecordRequest) error
+	DescribePrivateRecordList(profile string, input DescribeRecordListRequest) (DescribePrivateRecordListResponse, error)
 
 	// OCR
 	CommonOCR(profile, region string, input OcrRequest) (OcrResponse, error)

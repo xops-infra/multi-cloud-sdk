@@ -11,6 +11,7 @@ import (
 	dnspod "github.com/tencentcloud/tencentcloud-sdk-go/tencentcloud/dnspod/v20210323"
 	tencentEmr "github.com/tencentcloud/tencentcloud-sdk-go/tencentcloud/emr/v20190103"
 	ocr "github.com/tencentcloud/tencentcloud-sdk-go/tencentcloud/ocr/v20181119"
+	privatedns "github.com/tencentcloud/tencentcloud-sdk-go/tencentcloud/privatedns/v20201028"
 	tag "github.com/tencentcloud/tencentcloud-sdk-go/tencentcloud/tag/v20180813"
 	tiia "github.com/tencentcloud/tencentcloud-sdk-go/tencentcloud/tiia/v20190529"
 	tencentVpc "github.com/tencentcloud/tencentcloud-sdk-go/tencentcloud/vpc/v20170312"
@@ -18,21 +19,22 @@ import (
 )
 
 type ClientIo interface {
-	GetAwsEc2Client(accountId, region string) (*ec2.EC2, error)
-	GetAWSEmrClient(accountId, region string) (*emr.EMR, error)
-	GetAWSCredential(accountId, region string) (*credentials.Credentials, error)
-	GetAWSObjectStorageClient(accountId, region string) (*s3.S3, error)
-	GetAwsRoute53Client(accountId, region string) (*route53.Route53, error)
-	GetAwsRoute53DomainClient(accountId, region string) (*route53domains.Route53Domains, error)
+	GetAwsEc2Client(profile, region string) (*ec2.EC2, error)
+	GetAWSEmrClient(profile, region string) (*emr.EMR, error)
+	GetAWSCredential(profile string) (*credentials.Credentials, error)
+	GetAWSObjectStorageClient(profile, region string) (*s3.S3, error)
+	GetAwsRoute53Client(profile string) (*route53.Route53, error)
+	GetAwsRoute53DomainClient(profile string) (*route53domains.Route53Domains, error)
 
-	GetTencentCvmClient(accountId, region string) (*cvm.Client, error)
-	GetTencentEmrClient(accountId, region string) (*tencentEmr.Client, error)
-	GetTencentVpcClient(accountId, region string) (*tencentVpc.Client, error)
-	GetTencentObjectStorageClient(accountId, region string) (*cos.Client, error)
-	GetTencentTagsClient(accountId, region string) (*tag.Client, error)
-	GetTencentOcrClient(accountId, region string) (*ocr.Client, error)
-	GetTencentOcrTiiaClient(accountId, region string) (*tiia.Client, error)
-	GetTencentDnsPodClient(accountId, region string) (*dnspod.Client, error)
+	GetTencentCvmClient(profile, region string) (*cvm.Client, error)
+	GetTencentEmrClient(profile, region string) (*tencentEmr.Client, error)
+	GetTencentVpcClient(profile, region string) (*tencentVpc.Client, error)
+	GetTencentObjectStorageClient(profile, region string) (*cos.Client, error)
+	GetTencentTagsClient(profile, region string) (*tag.Client, error)
+	GetTencentOcrClient(profile, region string) (*ocr.Client, error)
+	GetTencentOcrTiiaClient(profile, region string) (*tiia.Client, error)
+	GetTencentDnsPodClient(profile string) (*dnspod.Client, error)
+	GetTencentPrivateDNSClient(profile string) (*privatedns.Client, error)
 }
 
 type ProfileConfig struct {
