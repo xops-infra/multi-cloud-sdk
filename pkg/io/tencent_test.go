@@ -32,6 +32,15 @@ func init() {
 				"ap-beijing",
 				"na-ashburn",
 			},
+		}, {
+			Name:  "tx-dev",
+			Cloud: model.TENCENT,
+			AK:    os.Getenv("TX_DEV_ID"),
+			SK:    os.Getenv("TX_DEV_KEY"),
+			Regions: []string{
+				"ap-beijing",
+				"na-ashburn",
+			},
 		},
 	}
 	clientIo := io.NewCloudClient(profiles)
@@ -70,21 +79,6 @@ func TestDescribeTencentEmrCluster(t *testing.T) {
 		fmt.Println(tea.Prettify(instance))
 	}
 	t.Log("Success.", time.Since(timeStart), len(instances))
-}
-
-// TEST DescribeRecordList
-func TestDescribeRecordList(t *testing.T) {
-	timeStart := time.Now()
-	resp, err := TencentIo.DescribeRecordList("tencent", "ap-shanghai", model.DescribeRecordListRequest{
-		Limit:      tea.Int64(2),
-		Domain:     tea.String(os.Getenv("TEST_TENCENT_DOMAIN")),
-		NextMarker: tea.String("nZVKuKl06RWPl/XqgieKtV0"),
-	})
-	if err != nil {
-		t.Error(err)
-		return
-	}
-	t.Log("Success.", time.Since(timeStart), tea.Prettify(resp))
 }
 
 func TestListInstance(t *testing.T) {
