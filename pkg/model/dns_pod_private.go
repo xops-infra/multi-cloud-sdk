@@ -22,6 +22,6 @@ type DescribePrivateRecordListResponse struct {
 
 type DeletePrivateRecordRequest struct {
 	Domain    *string   `json:"domain" binding:"required"`
-	RecordId  *string   `json:"sub_domain"`
-	RecordIds []*string `json:"record_type"`
+	RecordId  *string   `json:"record_id" `
+	RecordIds []*string `json:"record_ids"`
 }
