@@ -89,9 +89,8 @@ func (c *tencentClient) DescribePrivateRecordList(profile string, input model.De
 		request.Limit = tea.Int64(cast.ToInt64(*input.Limit))
 	}
 	if input.NextMarker != nil {
-		request.Offset = tea.Int64(cast.ToInt64(model.DecodeTencentNextMaker(*input.NextMarker)))
+		request.Offset = tea.Int64((cast.ToInt64(model.DecodeTencentNextMaker(*input.NextMarker)) - 1) * int64(*request.Limit))
 	}
-
 	log.Println(tea.Prettify(request))
 
 	// 返回的resp是一个DescribePrivateZoneRecordListResponse的实例，与请求对象对应

@@ -31,10 +31,10 @@ func TestDescribeAWSRecordList(t *testing.T) {
 // TEST DescribeRecordList
 func TestDescribeTencentRecordList(t *testing.T) {
 	req := model.DescribeRecordListRequest{
-		Limit:      tea.Int64(2),
-		Domain:     tea.String(os.Getenv("TEST_AWS_DOMAIN")),
-		Keyword:    tea.String("test"),
-		NextMarker: tea.String("Ki5wYXRzbmFwLnByb2QuZXUuYXBpLXRlc3RpbmcucGF0c25hcC5pbmZvLixDTkFNRXRoaXNpc2FzY3JlYXRrZXk="),
+		Limit:   tea.Int64(2),
+		Domain:  tea.String(os.Getenv("TEST_AWS_DOMAIN")),
+		Keyword: tea.String("pop"),
+		// NextMarker: tea.String("Ki5wYXRzbmFwLnByb2QuZXUuYXBpLXRlc3RpbmcucGF0c25hcC5pbmZvLixDTkFNRXRoaXNpc2FzY3JlYXRrZXk="),
 	}
 	fmt.Println(tea.Prettify(req))
 	resp, err := AwsIo.DescribeRecordList(

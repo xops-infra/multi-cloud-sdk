@@ -54,6 +54,9 @@ func (c *awsClient) DescribeDomainList(profile string, input model.DescribeDomai
 
 // DescribeRecordList
 func (c *awsClient) DescribeRecordList(profile string, input model.DescribeRecordListRequest) (model.DescribeRecordListResponse, error) {
+	if input.Keyword != nil && input.Limit != nil {
+		return model.DescribeRecordListResponse{}, fmt.Errorf("keyword and limit can't be used together")
+	}
 	client, err := c.io.GetAwsRoute53Client(profile)
 	if err != nil {
 		return model.DescribeRecordListResponse{}, err
@@ -74,7 +77,6 @@ func (c *awsClient) DescribeRecordList(profile string, input model.DescribeRecor
 	if input.NextMarker != nil {
 		param.StartRecordName, param.StartRecordType = model.DecodeAwsNextMaker(*input.NextMarker)
 	}
-	// fmt.Println(tea.Prettify(param))
 
 	var records []model.Record
 	resp, err := client.ListResourceRecordSets(param)
@@ -121,6 +123,7 @@ pageLoop:
 		param.StartRecordName = resp.NextRecordName
 		param.StartRecordType = resp.NextRecordType
 		param.StartRecordIdentifier = resp.NextRecordIdentifier
+		fmt.Println(tea.Prettify(param))
 		resp, err = client.ListResourceRecordSets(param)
 		if err != nil {
 			return model.DescribeRecordListResponse{}, err

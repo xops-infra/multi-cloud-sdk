@@ -62,7 +62,6 @@ func (c *tencentClient) DescribeRecordList(profile string, input model.DescribeR
 	if input.NextMarker != nil {
 		request.Offset = tea.Uint64((cast.ToUint64(model.DecodeTencentNextMaker(*input.NextMarker)) - 1) * uint64(*request.Limit))
 	}
-	fmt.Println(tea.Prettify(request))
 
 	response, err := client.DescribeRecordList(request)
 	if err != nil {
