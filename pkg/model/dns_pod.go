@@ -8,9 +8,8 @@ import (
 type DnsContract interface {
 	PrivateDomainList(profile string, req DescribeDomainListRequest) (DescribePrivateDomainListResponse, error)
 	PrivateRecordList(profile string, req DescribeRecordListRequest) (DescribePrivateRecordListResponse, error)
-	PrivateRecord(profile string, req DescribeRecordRequest) (Record, error)
 	PrivateCreateRecord(profile string, req CreateRecordRequest) (CreateRecordResponse, error)
-	PrivateModifyRecord(profile string, ignoreType bool, req ModifyRecordRequest) error
+	PrivateModifyRecord(profile string, req ModifyRecordRequest) error
 	PrivateDeleteRecord(profile string, req DeletePrivateRecordRequest) error
 
 	DescribeDomainList(profile string, req DescribeDomainListRequest) (DescribeDomainListResponse, error)

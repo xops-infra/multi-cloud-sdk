@@ -55,29 +55,14 @@ func (s *DnsService) PrivateRecordList(profile string, req model.DescribeRecordL
 	return model.DescribePrivateRecordListResponse{}, fmt.Errorf("profile not found")
 }
 
-// PrivateRecord
-func (s *DnsService) PrivateRecord(profile string, req model.DescribeRecordRequest) (model.Record, error) {
-	if p, ok := s.Profiles[profile]; ok {
-		switch p.Cloud {
-		case model.AWS:
-			return s.Aws.DescribeRecord(profile, req)
-		case model.TENCENT:
-			return s.Tencent.DescribeRecord(profile, req)
-		default:
-			return model.Record{}, nil
-		}
-	}
-	return model.Record{}, fmt.Errorf("profile not found")
-}
-
 // PrivateCreateRecord
 func (s *DnsService) PrivateCreateRecord(profile string, request model.CreateRecordRequest) (model.CreateRecordResponse, error) {
 	if p, ok := s.Profiles[profile]; ok {
 		switch p.Cloud {
 		case model.AWS:
-			return s.Aws.CreateRecord(profile, request)
+			return s.Aws.CreatePrivateRecord(profile, request)
 		case model.TENCENT:
-			return s.Tencent.CreateRecord(profile, request)
+			return s.Tencent.CreatePrivateRecord(profile, request)
 		default:
 			return model.CreateRecordResponse{}, nil
 		}
@@ -86,13 +71,13 @@ func (s *DnsService) PrivateCreateRecord(profile string, request model.CreateRec
 }
 
 // PrivateModifyRecord
-func (s *DnsService) PrivateModifyRecord(profile string, ignoreType bool, request model.ModifyRecordRequest) error {
+func (s *DnsService) PrivateModifyRecord(profile string, request model.ModifyRecordRequest) error {
 	if p, ok := s.Profiles[profile]; ok {
 		switch p.Cloud {
 		case model.AWS:
-			return s.Aws.ModifyRecord(profile, ignoreType, request)
+			return s.Aws.ModifyPrivateRecord(profile, request)
 		case model.TENCENT:
-			return s.Tencent.ModifyRecord(profile, ignoreType, request)
+			return s.Tencent.ModifyPrivateRecord(profile, request)
 		default:
 			return nil
 		}
