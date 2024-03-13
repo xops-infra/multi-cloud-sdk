@@ -24,8 +24,10 @@ func TestDescribePrivateDomainList(t *testing.T) {
 // TEST DescribePrivateRecordList
 func TestDescribePrivateRecordList(t *testing.T) {
 	timeStart := time.Now()
-	resp, err := TencentIo.DescribePrivateRecordList("tencent", model.DescribeRecordListRequest{
-		Domain: tea.String("domain.com"),
+	resp, err := TencentIo.DescribePrivateRecordList("tx-dev", model.DescribeRecordListRequest{
+		Domain:     tea.String("domain.com"),
+		Limit:      tea.Int64(6),
+		NextMarker: tea.String("M3RoaXNpc2FzY3JlYXRrZXk="),
 	})
 	if err != nil {
 		t.Error(err)
