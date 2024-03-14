@@ -3,6 +3,7 @@ package io
 import (
 	"fmt"
 	"log"
+	"strings"
 
 	"github.com/alibabacloud-go/tea/tea"
 	"github.com/spf13/cast"
@@ -56,6 +57,10 @@ func (c *tencentClient) DescribePrivateDomainList(profile string, input model.De
 
 // getDomainIdByname
 func (c *tencentClient) getDomainIdByname(profile string, domain string) (string, error) {
+	if strings.HasPrefix(domain, "zone-") {
+		// 支持直接使用zoneId
+		return domain, nil
+	}
 	resp, err := c.DescribePrivateDomainList(profile, model.DescribeDomainListRequest{
 		DomainKeyword: tea.String(domain),
 	})
