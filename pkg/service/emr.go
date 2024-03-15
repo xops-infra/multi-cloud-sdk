@@ -20,13 +20,6 @@ func NewEmrService(profiles []model.ProfileConfig, aws, tencent model.CloudIO) m
 func (s *EmrService) DescribeEmrCluster(input model.DescribeInput) ([]model.DescribeEmrCluster, error) {
 	for _, cfgProfile := range s.Profiles {
 		if cfgProfile.Name == *input.Profile {
-			if input.Region == nil {
-				if len(cfgProfile.Regions) == 0 {
-					return nil, model.ErrRegionNotConfigured
-				}
-				input.Region = &cfgProfile.Regions[0] // 默认取第一个
-			}
-
 			switch cfgProfile.Cloud {
 			case model.AWS:
 				return s.Aws.DescribeEmrCluster(model.DescribeInput{
@@ -51,12 +44,6 @@ func (s *EmrService) DescribeEmrCluster(input model.DescribeInput) ([]model.Desc
 func (s *EmrService) QueryEmrCluster(input model.EmrFilter) (model.FilterEmrResponse, error) {
 	for _, cfgProfile := range s.Profiles {
 		if cfgProfile.Name == *input.Profile {
-			if input.Region == nil {
-				if len(cfgProfile.Regions) == 0 {
-					return model.FilterEmrResponse{}, model.ErrRegionNotConfigured
-				}
-				input.Region = &cfgProfile.Regions[0] // 默认取第一个
-			}
 			switch cfgProfile.Cloud {
 			case model.AWS:
 				return s.Aws.QueryEmrCluster(input)

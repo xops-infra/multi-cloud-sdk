@@ -10,6 +10,7 @@ go get -u github.com/xops-infra/multi-cloud-sdk@main
 
 ### 开发日志
 - 2024-03:
+    - feat: remove reigon的初始配置，改为传参后 new client. 这样不需要初始化 N多 client.
     - feat: 支持查询分页
     - feat: add privateDNS for tencent
 - 2024-01:

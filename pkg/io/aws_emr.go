@@ -1,6 +1,7 @@
 package io
 
 import (
+	"fmt"
 	"time"
 
 	"github.com/aws/aws-sdk-go/aws"
@@ -10,8 +11,8 @@ import (
 
 // EMR
 func (c *awsClient) QueryEmrCluster(filter model.EmrFilter) (model.FilterEmrResponse, error) {
-	if filter.Region == nil {
-		return model.FilterEmrResponse{}, model.ErrRegionNotConfigured
+	if filter.Region == nil && filter.Profile == nil {
+		return model.FilterEmrResponse{}, fmt.Errorf("region or profile is empty")
 	}
 	svc, err := c.io.GetAWSEmrClient(*filter.Profile, *filter.Region)
 	if err != nil {
@@ -48,8 +49,8 @@ func (c *awsClient) QueryEmrCluster(filter model.EmrFilter) (model.FilterEmrResp
 }
 
 func (c *awsClient) DescribeEmrCluster(input model.DescribeInput) ([]model.DescribeEmrCluster, error) {
-	if input.Region == nil {
-		return nil, model.ErrRegionNotConfigured
+	if input.Region == nil && input.Profile == nil {
+		return nil, fmt.Errorf("region or profile is empty")
 	}
 	svc, err := c.io.GetAWSEmrClient(*input.Profile, *input.Region)
 	if err != nil {

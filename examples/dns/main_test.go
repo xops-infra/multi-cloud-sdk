@@ -22,21 +22,16 @@ func init() {
 	}
 	profiles := []model.ProfileConfig{
 		{
-			Name:    "aws",
-			Cloud:   model.AWS,
-			AK:      os.Getenv("AWS_ACCESS_KEY_ID"),
-			SK:      os.Getenv("AWS_SECRET_ACCESS_KEY"),
-			Regions: []string{},
+			Name:  "aws",
+			Cloud: model.AWS,
+			AK:    os.Getenv("AWS_ACCESS_KEY_ID"),
+			SK:    os.Getenv("AWS_SECRET_ACCESS_KEY"),
 		},
 		{
-			Name:    "tencent",
-			Cloud:   model.TENCENT,
-			AK:      os.Getenv("TENCENT_ACCESS_KEY"),
-			SK:      os.Getenv("TENCENT_SECRET_KEY"),
-			Regions: []string{
-
-				// "na-ashburn",
-			},
+			Name:  "tencent",
+			Cloud: model.TENCENT,
+			AK:    os.Getenv("TENCENT_ACCESS_KEY"),
+			SK:    os.Getenv("TENCENT_SECRET_KEY"),
 		},
 	}
 	if profiles[0].AK == "" {

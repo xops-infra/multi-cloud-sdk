@@ -27,20 +27,11 @@ func init() {
 			Cloud: model.TENCENT,
 			AK:    os.Getenv("TENCENT_ACCESS_KEY"),
 			SK:    os.Getenv("TENCENT_SECRET_KEY"),
-			Regions: []string{
-				"ap-shanghai",
-				"ap-beijing",
-				"na-ashburn",
-			},
 		}, {
 			Name:  "tx-dev",
 			Cloud: model.TENCENT,
 			AK:    os.Getenv("TX_DEV_ID"),
 			SK:    os.Getenv("TX_DEV_KEY"),
-			Regions: []string{
-				"ap-beijing",
-				"na-ashburn",
-			},
 		},
 	}
 	clientIo := io.NewCloudClient(profiles)

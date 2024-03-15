@@ -1,6 +1,7 @@
 package io
 
 import (
+	"fmt"
 	"time"
 
 	"github.com/alibabacloud-go/tea/tea"
@@ -12,8 +13,8 @@ import (
 
 // EMR 腾讯云因为数据量少所以递归查询所有结果返回
 func (c *tencentClient) QueryEmrCluster(input model.EmrFilter) (model.FilterEmrResponse, error) {
-	if input.Region == nil {
-		return model.FilterEmrResponse{}, model.ErrRegionNotConfigured
+	if input.Region == nil && input.Profile == nil {
+		return model.FilterEmrResponse{}, fmt.Errorf("region or profile is empty")
 	}
 	client, err := c.io.GetTencentEmrClient(*input.Profile, *input.Region)
 	if err != nil {
@@ -45,8 +46,8 @@ func (c *tencentClient) QueryEmrCluster(input model.EmrFilter) (model.FilterEmrR
 }
 
 func (c *tencentClient) DescribeEmrCluster(input model.DescribeInput) ([]model.DescribeEmrCluster, error) {
-	if input.Region == nil {
-		return nil, model.ErrRegionNotConfigured
+	if input.Region == nil && input.Profile == nil {
+		return nil, fmt.Errorf("region or profile is empty")
 	}
 	client, err := c.io.GetTencentEmrClient(*input.Profile, *input.Region)
 	if err != nil {
