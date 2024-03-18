@@ -27,9 +27,6 @@ func init() {
 			Cloud: model.TENCENT,
 			AK:    os.Getenv("TENCENT_ACCESS_KEY"),
 			SK:    os.Getenv("TENCENT_SECRET_KEY"),
-			Regions: []string{
-				"ap-shanghai",
-			},
 		},
 	}
 	if profiles[0].AK == "" {

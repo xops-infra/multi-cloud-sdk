@@ -25,19 +25,12 @@ func init() {
 			Cloud: model.AWS,
 			AK:    os.Getenv("AWS_ACCESS_KEY_ID"),
 			SK:    os.Getenv("AWS_SECRET_ACCESS_KEY"),
-			Regions: []string{
-				"cn-northwest-1",
-			},
 		},
 		{
 			Name:  "tencent",
 			Cloud: model.TENCENT,
 			AK:    os.Getenv("TENCENT_ACCESS_KEY"),
 			SK:    os.Getenv("TENCENT_SECRET_KEY"),
-			Regions: []string{
-				"ap-shanghai",
-				"na-ashburn",
-			},
 		},
 	}
 	cloudIo := io.NewCloudClient(profiles)

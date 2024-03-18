@@ -12,7 +12,7 @@ type EmrCluster struct {
 
 type EmrFilter struct {
 	Profile       *string            `json:"profile" binding:"required"`
-	Region        *string            `json:"region"` // 为空则取默认
+	Region        *string            `json:"region" binding:"required"` // 为空则取默认
 	ClusterStates []EMRClusterStatus `json:"cluster_states"`
 	Period        *time.Duration     `json:"period"` // 为空则取默认
 	NextMarker    *string            `json:"next_marker"`
@@ -20,7 +20,7 @@ type EmrFilter struct {
 
 type DescribeInput struct {
 	Profile *string   `json:"profile" binding:"required"`
-	Region  *string   `json:"region"` // 为空则取默认
+	Region  *string   `json:"region" binding:"required"` // 为空则取默认
 	IDS     []*string `json:"ids"`
 }
 

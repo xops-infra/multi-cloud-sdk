@@ -131,10 +131,6 @@ func (c *cloudClient) GetAwsRoute53Client(accountId string) (*route53.Route53, e
 	if err != nil {
 		return nil, err
 	}
-	if len(c.profiles[accountId].Regions) == 0 {
-		return nil, fmt.Errorf("aws profile %s has no region", accountId)
-	}
-	sess.Config.Region = aws.String(c.profiles[accountId].Regions[0]) // TODO: 选择第一个 region 会有问题
 	return route53.New(sess), nil
 }
 

@@ -26,17 +26,11 @@ func init() {
 			Cloud: model.AWS,
 			AK:    os.Getenv("AWS_ACCESS_KEY_ID"),
 			SK:    os.Getenv("AWS_SECRET_ACCESS_KEY"),
-			Regions: []string{
-				"cn-northwest-1",
-			},
 		}, {
 			Name:  "aws-us",
 			Cloud: model.AWS,
 			AK:    os.Getenv("AWS_US_ACCESS_KEY_ID"),
 			SK:    os.Getenv("AWS_US_SECRET_ACCESS_KEY"),
-			Regions: []string{
-				"us-east-1",
-			},
 		},
 	}
 	clientIo := io.NewCloudClient(profiles)
