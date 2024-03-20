@@ -12,8 +12,8 @@ import (
 )
 
 // DescribeDomainList
-func (c *awsClient) DescribeDomainList(profile string, input model.DescribeDomainListRequest) (model.DescribeDomainListResponse, error) {
-	client, err := c.io.GetAwsRoute53Client(profile)
+func (c *awsClient) DescribeDomainList(profile, region string, input model.DescribeDomainListRequest) (model.DescribeDomainListResponse, error) {
+	client, err := c.io.GetAwsRoute53Client(profile, region)
 	if err != nil {
 		return model.DescribeDomainListResponse{}, err
 	}
@@ -52,30 +52,86 @@ func (c *awsClient) DescribeDomainList(profile string, input model.DescribeDomai
 	}, nil
 }
 
-// DescribeRecordList
-func (c *awsClient) DescribeRecordList(profile string, input model.DescribeRecordListRequest) (model.DescribeRecordListResponse, error) {
-	if input.Keyword != nil && input.Limit != nil {
-		return model.DescribeRecordListResponse{}, fmt.Errorf("keyword and limit can't be used together")
+func (c *awsClient) DescribeRecordListWithPages(profile, region string, input model.DescribeRecordListWithPageRequest) (model.ListRecordsPageResponse, error) {
+	if input.Domain == nil {
+		return model.ListRecordsPageResponse{}, fmt.Errorf("domain,region is required")
 	}
-	client, err := c.io.GetAwsRoute53Client(profile)
+	client, err := c.io.GetAwsRoute53Client(profile, region)
+	if err != nil {
+		return model.ListRecordsPageResponse{}, err
+	}
+	if !strings.HasPrefix(*input.Domain, "/hostedzone/") {
+		hostedZoneId, err := c.getHostedZoneIdByDomain(profile, region, input.Domain)
+		if err != nil {
+			return model.ListRecordsPageResponse{}, err
+		}
+		input.Domain = hostedZoneId
+	}
+	params := &route53.ListResourceRecordSetsInput{
+		HostedZoneId: input.Domain,
+		MaxItems:     tea.String("100"),
+	}
+	if input.Limit != nil {
+		params.MaxItems = tea.String(cast.ToString(input.Limit))
+	}
+	var pageNum int64
+	var resp model.ListRecordsPageResponse
+
+	err = client.ListResourceRecordSetsPages(params,
+		func(page *route53.ListResourceRecordSetsOutput, lastPage bool) bool {
+			// fmt.Printf("---%d---\n %s", pageNum, tea.Prettify(page))
+			if input.Page == nil {
+				input.Page = tea.Int64(1)
+			}
+			if pageNum == *input.Page-1 {
+				for _, records := range page.ResourceRecordSets {
+					// 解决httpDecode问题，比如 \\052
+					records.Name = tea.String(strings.ReplaceAll(*records.Name, "\\052", "*"))
+					subDomain := strings.TrimSuffix(*records.Name, fmt.Sprintf("%s.", *input.Domain))
+					resp.RecordList = append(resp.RecordList, model.Record{
+						SubDomain:  tea.String(strings.TrimSuffix(subDomain, ".")),
+						TTL:        tea.Uint64(cast.ToUint64(records.TTL)),
+						Weight:     tea.Uint64(cast.ToUint64(records.Weight)),
+						RecordType: records.Type,
+						Value:      records.ResourceRecords[0].Value,
+						Status:     records.SetIdentifier,
+						RecordId:   records.Name,
+					})
+				}
+				if len(resp.RecordList) == cast.ToInt(params.MaxItems) {
+					resp.NextPage = tea.Int64(pageNum + 2)
+					resp.PrePage = tea.Int64(pageNum)
+					if pageNum == 0 {
+						resp.PrePage = nil
+					}
+				}
+				return false
+			} else {
+				pageNum++
+				return true
+			}
+		})
+	if err != nil {
+		return resp, err
+	}
+	return resp, nil
+}
+
+// DescribeRecordList
+func (c *awsClient) DescribeRecordList(profile, region string, input model.DescribeRecordListRequest) (model.DescribeRecordListResponse, error) {
+
+	client, err := c.io.GetAwsRoute53Client(profile, region)
 	if err != nil {
 		return model.DescribeRecordListResponse{}, err
 	}
 
-	hostedZoneId, err := c.getHostedZoneIdByDomain(profile, input.Domain)
+	hostedZoneId, err := c.getHostedZoneIdByDomain(profile, region, input.Domain)
 	if err != nil {
 		return model.DescribeRecordListResponse{}, err
 	}
 
 	param := &route53.ListResourceRecordSetsInput{
 		HostedZoneId: hostedZoneId,
-		MaxItems:     tea.String("100"),
-	}
-	if input.Limit != nil {
-		param.MaxItems = tea.String(cast.ToString(input.Limit))
-	}
-	if input.NextMarker != nil {
-		param.StartRecordName, param.StartRecordType = model.DecodeAwsNextMaker(*input.NextMarker)
 	}
 
 	var records []model.Record
@@ -83,8 +139,6 @@ func (c *awsClient) DescribeRecordList(profile string, input model.DescribeRecor
 	if err != nil {
 		return model.DescribeRecordListResponse{}, err
 	}
-	var nextMarker string
-pageLoop:
 	for {
 		for _, record := range resp.ResourceRecordSets {
 			var values string
@@ -111,10 +165,6 @@ pageLoop:
 				Status:     record.SetIdentifier,
 				RecordId:   record.Name,
 			})
-			if len(records) == (cast.ToInt(param.MaxItems) + 1) {
-				nextMarker = model.ToAwsNextMaker(record.Name, record.Type)
-				break pageLoop
-			}
 		}
 
 		if resp.IsTruncated == nil || !*resp.IsTruncated {
@@ -123,30 +173,21 @@ pageLoop:
 		param.StartRecordName = resp.NextRecordName
 		param.StartRecordType = resp.NextRecordType
 		param.StartRecordIdentifier = resp.NextRecordIdentifier
-		fmt.Println(tea.Prettify(param))
 		resp, err = client.ListResourceRecordSets(param)
 		if err != nil {
 			return model.DescribeRecordListResponse{}, err
 		}
-
 	}
-	if nextMarker == "" {
-		return model.DescribeRecordListResponse{
-			RecordList: records,
-			NextMarker: nil,
-		}, nil
-	} else {
-		return model.DescribeRecordListResponse{
-			RecordList: records[:len(records)-1],
-			NextMarker: tea.String(nextMarker),
-		}, nil
+	return model.DescribeRecordListResponse{
+		Total:      cast.ToInt64(len(records)),
+		RecordList: records,
+	}, nil
 
-	}
 }
 
 // DescribeRecord 完全匹配
-func (c *awsClient) DescribeRecord(profile string, input model.DescribeRecordRequest) (model.Record, error) {
-	resp, err := c.DescribeRecordList(profile, model.DescribeRecordListRequest{
+func (c *awsClient) DescribeRecord(profile, region string, input model.DescribeRecordRequest) (model.Record, error) {
+	resp, err := c.DescribeRecordList(profile, region, model.DescribeRecordListRequest{
 		Domain:     input.Domain,
 		RecordType: input.RecordType,
 		Keyword:    input.SubDomain,
@@ -166,8 +207,8 @@ func (c *awsClient) DescribeRecord(profile string, input model.DescribeRecordReq
 }
 
 // CreateRecord
-func (c *awsClient) CreateRecord(profile string, input model.CreateRecordRequest) (model.CreateRecordResponse, error) {
-	client, err := c.io.GetAwsRoute53Client(profile)
+func (c *awsClient) CreateRecord(profile, region string, input model.CreateRecordRequest) (model.CreateRecordResponse, error) {
+	client, err := c.io.GetAwsRoute53Client(profile, region)
 	if err != nil {
 		return model.CreateRecordResponse{}, err
 	}
@@ -175,7 +216,7 @@ func (c *awsClient) CreateRecord(profile string, input model.CreateRecordRequest
 	if input.TTL != nil {
 		ttl = cast.ToInt64(input.TTL)
 	}
-	hostedZoneId, err := c.getHostedZoneIdByDomain(profile, input.Domain)
+	hostedZoneId, err := c.getHostedZoneIdByDomain(profile, region, input.Domain)
 	if err != nil {
 		return model.CreateRecordResponse{}, err
 	}
@@ -211,11 +252,11 @@ func (c *awsClient) CreateRecord(profile string, input model.CreateRecordRequest
 }
 
 // getHostedZoneIdByDomain
-func (c *awsClient) getHostedZoneIdByDomain(profile string, domain *string) (*string, error) {
+func (c *awsClient) getHostedZoneIdByDomain(profile, region string, domain *string) (*string, error) {
 	if domain == nil {
 		return nil, fmt.Errorf("domain is required")
 	}
-	resp, err := c.DescribeDomainList(profile, model.DescribeDomainListRequest{
+	resp, err := c.DescribeDomainList(profile, region, model.DescribeDomainListRequest{
 		DomainKeyword: domain,
 	})
 	if err != nil {
@@ -233,12 +274,12 @@ func (c *awsClient) getHostedZoneIdByDomain(profile string, domain *string) (*st
 
 // ModifyRecord
 // ignoreType 腾讯云修改需要一起提供记录类型，aws不需要，所以不处理
-func (c *awsClient) ModifyRecord(profile string, ignoreType bool, input model.ModifyRecordRequest) error {
-	cloudClient, err := c.io.GetAwsRoute53Client(profile)
+func (c *awsClient) ModifyRecord(profile, region string, ignoreType bool, input model.ModifyRecordRequest) error {
+	cloudClient, err := c.io.GetAwsRoute53Client(profile, region)
 	if err != nil {
 		return err
 	}
-	hostedZoneId, err := c.getHostedZoneIdByDomain(profile, input.Domain)
+	hostedZoneId, err := c.getHostedZoneIdByDomain(profile, region, input.Domain)
 	if err != nil {
 		return err
 	}
@@ -275,19 +316,19 @@ func (c *awsClient) ModifyRecord(profile string, ignoreType bool, input model.Mo
 }
 
 // DeleteDns
-func (c *awsClient) DeleteRecord(profile string, input model.DeleteRecordRequest) (model.CommonDnsResponse, error) {
+func (c *awsClient) DeleteRecord(profile, region string, input model.DeleteRecordRequest) (model.CommonDnsResponse, error) {
 	if input.Domain == nil || input.SubDomain == nil || input.RecordType == nil {
 		return model.CommonDnsResponse{}, fmt.Errorf("domain, subDomain, recordType is required")
 	}
-	client, err := c.io.GetAwsRoute53Client(profile)
+	client, err := c.io.GetAwsRoute53Client(profile, region)
 	if err != nil {
 		return model.CommonDnsResponse{}, err
 	}
-	hostedZoneId, err := c.getHostedZoneIdByDomain(profile, input.Domain)
+	hostedZoneId, err := c.getHostedZoneIdByDomain(profile, region, input.Domain)
 	if err != nil {
 		return model.CommonDnsResponse{}, err
 	}
-	record, err := c.DescribeRecord(profile, model.DescribeRecordRequest{
+	record, err := c.DescribeRecord(profile, region, model.DescribeRecordRequest{
 		Domain:     input.Domain,
 		SubDomain:  input.SubDomain,
 		RecordType: input.RecordType,

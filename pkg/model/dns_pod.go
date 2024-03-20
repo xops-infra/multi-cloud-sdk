@@ -8,16 +8,18 @@ import (
 type DnsContract interface {
 	PrivateDomainList(profile string, req DescribeDomainListRequest) (DescribePrivateDomainListResponse, error)
 	PrivateRecordList(profile string, req DescribeRecordListRequest) (DescribePrivateRecordListResponse, error)
+	PrivateRecordListWithPages(profile string, req DescribeRecordListWithPageRequest) (ListRecordsPageResponse, error)
 	PrivateCreateRecord(profile string, req CreateRecordRequest) (CreateRecordResponse, error)
 	PrivateModifyRecord(profile string, req ModifyRecordRequest) error
 	PrivateDeleteRecord(profile string, req DeletePrivateRecordRequest) error
 
-	DescribeDomainList(profile string, req DescribeDomainListRequest) (DescribeDomainListResponse, error)
-	DescribeRecordList(profile string, req DescribeRecordListRequest) (DescribeRecordListResponse, error)
-	DescribeRecord(profile string, req DescribeRecordRequest) (Record, error)
-	CreateRecord(profile string, req CreateRecordRequest) (CreateRecordResponse, error)
-	ModifyRecord(profile string, ignoreType bool, req ModifyRecordRequest) error
-	DeleteRecord(profile string, req DeleteRecordRequest) (CommonDnsResponse, error)
+	DescribeDomainList(profile, region string, req DescribeDomainListRequest) (DescribeDomainListResponse, error)
+	DescribeRecordList(profile, region string, req DescribeRecordListRequest) (DescribeRecordListResponse, error)
+	DescribeRecordListWithPages(profile, region string, req DescribeRecordListWithPageRequest) (ListRecordsPageResponse, error)
+	DescribeRecord(profile, region string, req DescribeRecordRequest) (Record, error)
+	CreateRecord(profile, region string, req CreateRecordRequest) (CreateRecordResponse, error)
+	ModifyRecord(profile, region string, ignoreType bool, req ModifyRecordRequest) error
+	DeleteRecord(profile, region string, req DeleteRecordRequest) (CommonDnsResponse, error)
 }
 
 type DescribeDomainListRequest struct {
@@ -40,12 +42,16 @@ type DomainCountInfo struct {
 	Total *int64 `json:"total"`
 }
 
+type DescribeRecordListWithPageRequest struct {
+	Domain *string `json:"domain" binding:"required"`
+	Limit  *int64  `json:"limit"` // 分页 默认100
+	Page   *int64  `json:"page"`  // 页码
+}
+
 type DescribeRecordListRequest struct {
 	Domain     *string `json:"domain" binding:"required"`
 	RecordType *string `json:"record_type"`
 	Keyword    *string `json:"keyword"` // 当前支持搜索主机头和记录值
-	Limit      *int64  `json:"limit"`
-	NextMarker *string `json:"next_marker"`
 }
 
 func (r DescribeRecordListRequest) ToTencentFilter() []*privatedns.Filter {
@@ -70,8 +76,14 @@ func (r DescribeRecordListRequest) ToTencentFilter() []*privatedns.Filter {
 }
 
 type DescribeRecordListResponse struct {
+	Total      int64    `json:"total"`
 	RecordList []Record `json:"record_list"`
-	NextMarker *string  `json:"next_marker"`
+}
+
+type ListRecordsPageResponse struct {
+	PrePage    *int64   `json:"pre_page"`
+	NextPage   *int64   `json:"next_page"`
+	RecordList []Record `json:"record_list"`
 }
 
 type DescribeRecordRequest struct {

@@ -11,9 +11,7 @@ import (
 // TEST DescribePrivateDomainList
 func TestDescribePrivateDomainList(t *testing.T) {
 	timeStart := time.Now()
-	resp, err := TencentIo.DescribePrivateDomainList("tencent", model.DescribeDomainListRequest{
-		DomainKeyword: tea.String("com"),
-	})
+	resp, err := TencentIo.DescribePrivateDomainList("tencent", model.DescribeDomainListRequest{})
 	if err != nil {
 		t.Error(err)
 		return
@@ -24,10 +22,24 @@ func TestDescribePrivateDomainList(t *testing.T) {
 // TEST DescribePrivateRecordList
 func TestDescribePrivateRecordList(t *testing.T) {
 	timeStart := time.Now()
-	resp, err := TencentIo.DescribePrivateRecordList("tx-dev", model.DescribeRecordListRequest{
-		Domain:     tea.String("domain.com"),
-		Limit:      tea.Int64(6),
-		NextMarker: tea.String("M3RoaXNpc2FzY3JlYXRrZXk="),
+	resp, err := TencentIo.DescribePrivateRecordList("tencent", model.DescribeRecordListRequest{
+		Domain:     tea.String("zone-3m8hlc6o"),
+		RecordType: tea.String("CNAME"),
+	})
+	if err != nil {
+		t.Error(err)
+		return
+	}
+	t.Log("Success.", time.Since(timeStart), tea.Prettify(resp))
+}
+
+// TEST DescribePrivateRecordListWithPages
+func TestDescribePrivateRecordListWithPages(t *testing.T) {
+	timeStart := time.Now()
+	resp, err := TencentIo.DescribePrivateRecordListWithPages("tencent", model.DescribeRecordListWithPageRequest{
+		Domain: tea.String("zone-3m8hlc6o"),
+		Limit:  tea.Int64(2),
+		Page:   tea.Int64(2),
 	})
 	if err != nil {
 		t.Error(err)
@@ -40,8 +52,8 @@ func TestDescribePrivateRecordList(t *testing.T) {
 func TestCreatePrivateRecord(t *testing.T) {
 	timeStart := time.Now()
 	resp, err := TencentIo.CreatePrivateRecord("tencent", model.CreateRecordRequest{
-		Domain:     tea.String("domain.com"),
-		SubDomain:  tea.String("zsj1"),
+		Domain:     tea.String("zone-3m8hlc6o"),
+		SubDomain:  tea.String("zsj11"),
 		RecordType: tea.String("A"),
 		Value:      tea.String("192.168.1.1"),
 	})

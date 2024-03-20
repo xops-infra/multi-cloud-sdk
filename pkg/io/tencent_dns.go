@@ -2,6 +2,7 @@ package io
 
 import (
 	"fmt"
+	"strings"
 
 	"github.com/alibabacloud-go/tea/tea"
 	"github.com/spf13/cast"
@@ -10,7 +11,7 @@ import (
 )
 
 // DescribeDomainList
-func (c *tencentClient) DescribeDomainList(profile string, input model.DescribeDomainListRequest) (model.DescribeDomainListResponse, error) {
+func (c *tencentClient) DescribeDomainList(profile, region string, input model.DescribeDomainListRequest) (model.DescribeDomainListResponse, error) {
 	client, err := c.io.GetTencentDnsPodClient(profile)
 	if err != nil {
 		return model.DescribeDomainListResponse{}, err
@@ -41,34 +42,31 @@ func (c *tencentClient) DescribeDomainList(profile string, input model.DescribeD
 	}, nil
 }
 
-// DescribeRecordList
-func (c *tencentClient) DescribeRecordList(profile string, input model.DescribeRecordListRequest) (model.DescribeRecordListResponse, error) {
+func (c *tencentClient) DescribeRecordListWithPages(profile, region string, input model.DescribeRecordListWithPageRequest) (model.ListRecordsPageResponse, error) {
 	client, err := c.io.GetTencentDnsPodClient(profile)
 	if err != nil {
-		return model.DescribeRecordListResponse{}, err
+		return model.ListRecordsPageResponse{}, err
 	}
 	request := dnspod.NewDescribeRecordListRequest()
-	if input.Domain == nil {
-		return model.DescribeRecordListResponse{}, fmt.Errorf("Domain is required")
-	}
-	request.Domain = tea.String(*input.Domain)
-	request.RecordType = input.RecordType
-	request.Keyword = input.Keyword
+	request.Domain = input.Domain
 	request.Limit = tea.Uint64(100)
+	request.Offset = tea.Uint64(0)
 	if input.Limit != nil {
 		request.Limit = tea.Uint64(cast.ToUint64(*input.Limit))
 	}
-
-	if input.NextMarker != nil {
-		request.Offset = tea.Uint64((cast.ToUint64(model.DecodeTencentNextMaker(*input.NextMarker)) - 1) * uint64(*request.Limit))
+	if input.Page != nil {
+		request.Offset = tea.Uint64((cast.ToUint64(*input.Page) - 1) * cast.ToUint64(*input.Limit))
 	}
 
-	response, err := client.DescribeRecordList(request)
+	resp, err := client.DescribeRecordList(request)
 	if err != nil {
-		return model.DescribeRecordListResponse{}, err
+		if strings.Contains(err.Error(), "ResourceNotFound") {
+			return model.ListRecordsPageResponse{}, nil
+		}
+		return model.ListRecordsPageResponse{}, err
 	}
 	var records []model.Record
-	for _, record := range response.Response.RecordList {
+	for _, record := range resp.Response.RecordList {
 		records = append(records, model.Record{
 			RecordId:   tea.String(cast.ToString(record.RecordId)),
 			SubDomain:  record.Name,
@@ -82,32 +80,83 @@ func (c *tencentClient) DescribeRecordList(profile string, input model.DescribeR
 			Weight:     record.Weight,
 		})
 	}
-	var nextMaker *string
-	if input.NextMarker != nil {
-		// 如果偏移量小于总数则说明还有，nextMarker为偏移量加1
-		// fmt.Println(*response.Response.RecordCountInfo.TotalCount, *request.Offset)
-		if *response.Response.RecordCountInfo.TotalCount > (*request.Offset + uint64(*input.Limit)) {
-			nextMaker = model.ToTencentNextMaker(cast.ToString(cast.ToInt(model.DecodeTencentNextMaker(*input.NextMarker)) + 1))
+	var nextPage, prePage *int64
+	if len(records) == int(*request.Limit) {
+		if input.Page == nil {
+			nextPage = tea.Int64(2)
 		} else {
-			nextMaker = nil
+			nextPage = tea.Int64(*input.Page + 1)
 		}
-	} else if *response.Response.RecordCountInfo.TotalCount > uint64(*request.Limit) {
-		nextMaker = model.ToTencentNextMaker("2")
+	}
+	if input.Page != nil && *input.Page > 1 {
+		prePage = tea.Int64(*input.Page - 1)
+	}
+
+	return model.ListRecordsPageResponse{
+		PrePage:    prePage,
+		NextPage:   nextPage,
+		RecordList: records,
+	}, nil
+}
+
+// DescribeRecordList
+func (c *tencentClient) DescribeRecordList(profile, region string, input model.DescribeRecordListRequest) (model.DescribeRecordListResponse, error) {
+	client, err := c.io.GetTencentDnsPodClient(profile)
+	if err != nil {
+		return model.DescribeRecordListResponse{}, err
+	}
+	request := dnspod.NewDescribeRecordListRequest()
+	if input.Domain == nil {
+		return model.DescribeRecordListResponse{}, fmt.Errorf("Domain is required")
+	}
+	request.Domain = tea.String(*input.Domain)
+	request.RecordType = input.RecordType
+	request.Keyword = input.Keyword
+	request.Limit = tea.Uint64(100)
+
+	resp, err := client.DescribeRecordList(request)
+	if err != nil {
+		return model.DescribeRecordListResponse{}, err
+	}
+	var records []model.Record
+	for {
+		for _, record := range resp.Response.RecordList {
+			records = append(records, model.Record{
+				RecordId:   tea.String(cast.ToString(record.RecordId)),
+				SubDomain:  record.Name,
+				RecordType: record.Type,
+				Value:      record.Value,
+				Status:     record.Status,
+				UpdatedOn:  record.UpdatedOn,
+				TTL:        record.TTL,
+				RecordLine: record.Line,
+				Remark:     record.Remark,
+				Weight:     record.Weight,
+			})
+		}
+		if len(records) == int(*resp.Response.RecordCountInfo.TotalCount) {
+			break
+		}
+		request.Offset = tea.Uint64(cast.ToUint64(len(records)))
+		resp, err = client.DescribeRecordList(request)
+		if err != nil {
+			return model.DescribeRecordListResponse{}, err
+		}
 	}
 
 	return model.DescribeRecordListResponse{
+		Total:      cast.ToInt64(resp.Response.RecordCountInfo.TotalCount),
 		RecordList: records,
-		NextMarker: nextMaker,
 	}, nil
 }
 
 // DescribeRecord
-func (c *tencentClient) DescribeRecord(profile string, input model.DescribeRecordRequest) (model.Record, error) {
+func (c *tencentClient) DescribeRecord(profile, region string, input model.DescribeRecordRequest) (model.Record, error) {
 	if input.SubDomain == nil {
 		return model.Record{}, fmt.Errorf("SubDomain is required")
 	}
 
-	resp, err := c.DescribeRecordList(profile, model.DescribeRecordListRequest{
+	resp, err := c.DescribeRecordList(profile, region, model.DescribeRecordListRequest{
 		Domain:     input.Domain,
 		RecordType: input.RecordType,
 		Keyword:    input.SubDomain,
@@ -127,7 +176,7 @@ func (c *tencentClient) DescribeRecord(profile string, input model.DescribeRecor
 }
 
 // CreateRecord
-func (c *tencentClient) CreateRecord(profile string, input model.CreateRecordRequest) (model.CreateRecordResponse, error) {
+func (c *tencentClient) CreateRecord(profile, region string, input model.CreateRecordRequest) (model.CreateRecordResponse, error) {
 	client, err := c.io.GetTencentDnsPodClient(profile)
 	if err != nil {
 		return model.CreateRecordResponse{}, err
@@ -160,7 +209,7 @@ func (c *tencentClient) CreateRecord(profile string, input model.CreateRecordReq
 // ignoreType 是否开启忽略 recordType,
 // true 注意这里会删除所有相同 subDomain 的记录，然后创建新的记录
 // false 如果 recordType 不同，会报没找到记录
-func (c *tencentClient) ModifyRecord(profile string, ignoreType bool, input model.ModifyRecordRequest) error {
+func (c *tencentClient) ModifyRecord(profile, region string, ignoreType bool, input model.ModifyRecordRequest) error {
 	client, err := c.io.GetTencentDnsPodClient(profile)
 	if err != nil {
 		return err
@@ -172,7 +221,7 @@ func (c *tencentClient) ModifyRecord(profile string, ignoreType bool, input mode
 		return fmt.Errorf("SubDomain is required")
 	}
 	if ignoreType {
-		resp, err := c.DescribeRecordList(profile, model.DescribeRecordListRequest{
+		resp, err := c.DescribeRecordList(profile, region, model.DescribeRecordListRequest{
 			Domain:     input.Domain,
 			RecordType: input.RecordType,
 			Keyword:    input.SubDomain,
@@ -183,7 +232,7 @@ func (c *tencentClient) ModifyRecord(profile string, ignoreType bool, input mode
 		var delDomain []map[string]interface{}
 		for _, record := range resp.RecordList {
 			if *record.SubDomain == *input.SubDomain {
-				_, err := c.DeleteRecord(profile, model.DeleteRecordRequest{
+				_, err := c.DeleteRecord(profile, region, model.DeleteRecordRequest{
 					Domain:     input.Domain,
 					SubDomain:  input.SubDomain,
 					RecordType: record.RecordType,
@@ -216,13 +265,13 @@ func (c *tencentClient) ModifyRecord(profile string, ignoreType bool, input mode
 		if input.TTL != nil {
 			createInput.TTL = input.TTL
 		}
-		_, err = c.CreateRecord(profile, createInput)
+		_, err = c.CreateRecord(profile, region, createInput)
 		if err != nil {
 			return fmt.Errorf("create record error: %v", err)
 		}
 		return nil
 	} else {
-		recordId, err := c.getRecordIdBySubDomain(profile, *input.SubDomain, *input.Domain, *input.RecordType)
+		recordId, err := c.getRecordIdBySubDomain(profile, region, *input.SubDomain, *input.Domain, *input.RecordType)
 		if err != nil {
 			return err
 		}
@@ -254,8 +303,8 @@ func (c *tencentClient) ModifyRecord(profile string, ignoreType bool, input mode
 }
 
 // getRecordIdBySubDomain
-func (c *tencentClient) getRecordIdBySubDomain(profile, subDomain, domain, recordType string) (*uint64, error) {
-	resp, err := c.DescribeRecordList(profile, model.DescribeRecordListRequest{
+func (c *tencentClient) getRecordIdBySubDomain(profile, region, subDomain, domain, recordType string) (*uint64, error) {
+	resp, err := c.DescribeRecordList(profile, region, model.DescribeRecordListRequest{
 		Domain:     &domain,
 		RecordType: &recordType,
 		Keyword:    &subDomain,
@@ -272,7 +321,7 @@ func (c *tencentClient) getRecordIdBySubDomain(profile, subDomain, domain, recor
 }
 
 // DeleteRecord
-func (c *tencentClient) DeleteRecord(profile string, input model.DeleteRecordRequest) (model.CommonDnsResponse, error) {
+func (c *tencentClient) DeleteRecord(profile, region string, input model.DeleteRecordRequest) (model.CommonDnsResponse, error) {
 	if input.SubDomain == nil || input.Domain == nil || input.RecordType == nil {
 		return model.CommonDnsResponse{}, fmt.Errorf("SubDomain, Domain and RecordType are required")
 	}
@@ -280,7 +329,7 @@ func (c *tencentClient) DeleteRecord(profile string, input model.DeleteRecordReq
 	if err != nil {
 		return model.CommonDnsResponse{}, err
 	}
-	record_id, err := c.getRecordIdBySubDomain(profile, *input.SubDomain, *input.Domain, *input.RecordType)
+	record_id, err := c.getRecordIdBySubDomain(profile, region, *input.SubDomain, *input.Domain, *input.RecordType)
 	if err != nil {
 		return model.CommonDnsResponse{}, err
 	}
