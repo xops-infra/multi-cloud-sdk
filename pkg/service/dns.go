@@ -55,6 +55,22 @@ func (s *DnsService) PrivateRecordList(profile string, req model.DescribeRecordL
 	return model.DescribePrivateRecordListResponse{}, fmt.Errorf("profile not found")
 }
 
+// PrivateRecordListWithPages
+func (s *DnsService) PrivateRecordListWithPages(profile string, req model.DescribeRecordListWithPageRequest) (model.ListRecordsPageResponse, error) {
+	if p, ok := s.Profiles[profile]; ok {
+		switch p.Cloud {
+		case model.AWS:
+			return s.Aws.DescribePrivateRecordListWithPages(profile, req)
+		case model.TENCENT:
+			return s.Tencent.DescribePrivateRecordListWithPages(profile, req)
+		default:
+			return model.ListRecordsPageResponse{}, nil
+		}
+	}
+	return model.ListRecordsPageResponse{}, fmt.Errorf("profile not found")
+
+}
+
 // PrivateCreateRecord
 func (s *DnsService) PrivateCreateRecord(profile string, request model.CreateRecordRequest) (model.CreateRecordResponse, error) {
 	if p, ok := s.Profiles[profile]; ok {
@@ -101,13 +117,13 @@ func (s *DnsService) PrivateDeleteRecord(profile string, request model.DeletePri
 }
 
 // DescribeDomainList
-func (s *DnsService) DescribeDomainList(profile string, req model.DescribeDomainListRequest) (model.DescribeDomainListResponse, error) {
+func (s *DnsService) DescribeDomainList(profile, region string, req model.DescribeDomainListRequest) (model.DescribeDomainListResponse, error) {
 	if p, ok := s.Profiles[profile]; ok {
 		switch p.Cloud {
 		case model.AWS:
-			return s.Aws.DescribeDomainList(profile, req)
+			return s.Aws.DescribeDomainList(profile, region, req)
 		case model.TENCENT:
-			return s.Tencent.DescribeDomainList(profile, req)
+			return s.Tencent.DescribeDomainList(profile, region, req)
 		default:
 			return model.DescribeDomainListResponse{}, nil
 		}
@@ -116,13 +132,13 @@ func (s *DnsService) DescribeDomainList(profile string, req model.DescribeDomain
 }
 
 // DescribeRecordList
-func (s *DnsService) DescribeRecordList(profile string, req model.DescribeRecordListRequest) (model.DescribeRecordListResponse, error) {
+func (s *DnsService) DescribeRecordList(profile, region string, req model.DescribeRecordListRequest) (model.DescribeRecordListResponse, error) {
 	if p, ok := s.Profiles[profile]; ok {
 		switch p.Cloud {
 		case model.AWS:
-			return s.Aws.DescribeRecordList(profile, req)
+			return s.Aws.DescribeRecordList(profile, region, req)
 		case model.TENCENT:
-			return s.Tencent.DescribeRecordList(profile, req)
+			return s.Tencent.DescribeRecordList(profile, region, req)
 		default:
 			return model.DescribeRecordListResponse{}, nil
 		}
@@ -130,14 +146,30 @@ func (s *DnsService) DescribeRecordList(profile string, req model.DescribeRecord
 	return model.DescribeRecordListResponse{}, fmt.Errorf("profile not found")
 }
 
-// DescribeRecord
-func (s *DnsService) DescribeRecord(profile string, req model.DescribeRecordRequest) (model.Record, error) {
+// DescribeRecordListWithPages
+func (s *DnsService) DescribeRecordListWithPages(profile, region string, req model.DescribeRecordListWithPageRequest) (model.ListRecordsPageResponse, error) {
 	if p, ok := s.Profiles[profile]; ok {
 		switch p.Cloud {
 		case model.AWS:
-			return s.Aws.DescribeRecord(profile, req)
+			return s.Aws.DescribeRecordListWithPages(profile, region, req)
 		case model.TENCENT:
-			resp, err := s.Tencent.DescribeRecord(profile, req)
+			return s.Tencent.DescribeRecordListWithPages(profile, region, req)
+		default:
+			return model.ListRecordsPageResponse{}, nil
+		}
+	}
+	return model.ListRecordsPageResponse{}, fmt.Errorf("profile not found")
+
+}
+
+// DescribeRecord
+func (s *DnsService) DescribeRecord(profile, region string, req model.DescribeRecordRequest) (model.Record, error) {
+	if p, ok := s.Profiles[profile]; ok {
+		switch p.Cloud {
+		case model.AWS:
+			return s.Aws.DescribeRecord(profile, region, req)
+		case model.TENCENT:
+			resp, err := s.Tencent.DescribeRecord(profile, region, req)
 			if err != nil {
 				if strings.Contains(err.Error(), "ResourceNotFound") {
 					return model.Record{}, nil
@@ -150,13 +182,13 @@ func (s *DnsService) DescribeRecord(profile string, req model.DescribeRecordRequ
 }
 
 // CreateRecord
-func (s *DnsService) CreateRecord(profile string, request model.CreateRecordRequest) (model.CreateRecordResponse, error) {
+func (s *DnsService) CreateRecord(profile, region string, request model.CreateRecordRequest) (model.CreateRecordResponse, error) {
 	if p, ok := s.Profiles[profile]; ok {
 		switch p.Cloud {
 		case model.AWS:
-			return s.Aws.CreateRecord(profile, request)
+			return s.Aws.CreateRecord(profile, region, request)
 		case model.TENCENT:
-			return s.Tencent.CreateRecord(profile, request)
+			return s.Tencent.CreateRecord(profile, region, request)
 		default:
 			return model.CreateRecordResponse{}, nil
 		}
@@ -164,13 +196,13 @@ func (s *DnsService) CreateRecord(profile string, request model.CreateRecordRequ
 	return model.CreateRecordResponse{}, fmt.Errorf("profile not found")
 }
 
-func (s *DnsService) ModifyRecord(profile string, ignoreType bool, request model.ModifyRecordRequest) error {
+func (s *DnsService) ModifyRecord(profile, region string, ignoreType bool, request model.ModifyRecordRequest) error {
 	if p, ok := s.Profiles[profile]; ok {
 		switch p.Cloud {
 		case model.AWS:
-			return s.Aws.ModifyRecord(profile, ignoreType, request)
+			return s.Aws.ModifyRecord(profile, region, ignoreType, request)
 		case model.TENCENT:
-			return s.Tencent.ModifyRecord(profile, ignoreType, request)
+			return s.Tencent.ModifyRecord(profile, region, ignoreType, request)
 		default:
 			return nil
 		}
@@ -178,16 +210,16 @@ func (s *DnsService) ModifyRecord(profile string, ignoreType bool, request model
 	return fmt.Errorf("profile not found")
 }
 
-func (s *DnsService) DeleteRecord(profile string, request model.DeleteRecordRequest) (model.CommonDnsResponse, error) {
+func (s *DnsService) DeleteRecord(profile, region string, request model.DeleteRecordRequest) (model.CommonDnsResponse, error) {
 	if request.Domain == nil || request.SubDomain == nil || request.RecordType == nil {
 		return model.CommonDnsResponse{}, fmt.Errorf("domain, subDomain, recordType is required")
 	}
 	if p, ok := s.Profiles[profile]; ok {
 		switch p.Cloud {
 		case model.AWS:
-			return s.Aws.DeleteRecord(profile, request)
+			return s.Aws.DeleteRecord(profile, region, request)
 		case model.TENCENT:
-			return s.Tencent.DeleteRecord(profile, request)
+			return s.Tencent.DeleteRecord(profile, region, request)
 		default:
 			return model.CommonDnsResponse{}, fmt.Errorf("not support cloud %s", p.Cloud)
 		}

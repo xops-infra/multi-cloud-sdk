@@ -89,14 +89,7 @@ func (c *tencentClient) DescribePrivateRecordList(profile string, input model.De
 	}
 	request.ZoneId = tea.String(zoneId)
 	request.Filters = input.ToTencentFilter()
-	request.Limit = tea.Int64(100) // 默认100
-	if input.Limit != nil {
-		request.Limit = tea.Int64(cast.ToInt64(*input.Limit))
-	}
-	if input.NextMarker != nil {
-		request.Offset = tea.Int64((cast.ToInt64(model.DecodeTencentNextMaker(*input.NextMarker)) - 1) * int64(*request.Limit))
-	}
-	log.Println(tea.Prettify(request))
+	request.Limit = tea.Int64(2) // 默认100
 
 	// 返回的resp是一个DescribePrivateZoneRecordListResponse的实例，与请求对象对应
 	response, err := client.DescribePrivateZoneRecordList(request)
@@ -105,6 +98,67 @@ func (c *tencentClient) DescribePrivateRecordList(profile string, input model.De
 	}
 	if err != nil {
 		return model.DescribePrivateRecordListResponse{}, err
+	}
+	var records []model.Record
+	for {
+		for _, record := range response.Response.RecordSet {
+			records = append(records, model.Record{
+				RecordId:   tea.String(cast.ToString(record.RecordId)),
+				SubDomain:  record.SubDomain,
+				RecordType: record.RecordType,
+				Value:      record.RecordValue,
+				TTL:        tea.Uint64(cast.ToUint64(record.TTL)),
+				Status:     record.Status,
+				UpdatedOn:  record.UpdatedOn,
+			})
+		}
+		if cast.ToInt(response.Response.TotalCount) == len(records) {
+			break
+		}
+		request.Offset = tea.Int64(cast.ToInt64(len(records)))
+		response, err = client.DescribePrivateZoneRecordList(request)
+		if err != nil {
+			return model.DescribePrivateRecordListResponse{}, err
+		}
+	}
+
+	return model.DescribePrivateRecordListResponse{
+		RecordList: records,
+		TotalCount: response.Response.TotalCount,
+	}, nil
+
+}
+
+func (c *tencentClient) DescribePrivateRecordListWithPages(profile string, input model.DescribeRecordListWithPageRequest) (model.ListRecordsPageResponse, error) {
+	client, err := c.io.GetTencentPrivateDNSClient(profile)
+	if err != nil {
+		return model.ListRecordsPageResponse{}, err
+	}
+	// 实例化一个请求对象,每个接口都会对应一个request对象
+	request := privatedns.NewDescribePrivateZoneRecordListRequest()
+	if input.Domain == nil {
+		return model.ListRecordsPageResponse{}, fmt.Errorf("Domain is required")
+	}
+	zoneId, err := c.getDomainIdByname(profile, *input.Domain)
+	if err != nil {
+		return model.ListRecordsPageResponse{}, err
+	}
+	request.ZoneId = tea.String(zoneId)
+	request.Limit = tea.Int64(100)
+	if input.Limit != nil {
+		request.Limit = tea.Int64(cast.ToInt64(input.Limit))
+	}
+	if input.Page != nil {
+		request.Offset = tea.Int64(cast.ToInt64(input.Limit) * cast.ToInt64(tea.Int64Value(input.Page)-1))
+	}
+
+	// 返回的resp是一个DescribePrivateZoneRecordListResponse的实例，与请求对象对应
+	response, err := client.DescribePrivateZoneRecordList(request)
+	if _, ok := err.(*errors.TencentCloudSDKError); ok {
+		return model.ListRecordsPageResponse{}, fmt.Errorf("An API error has returned: %s", err.Error())
+	}
+	if err != nil {
+		return model.ListRecordsPageResponse{}, err
 	}
 	var records []model.Record
 	for _, record := range response.Response.RecordSet {
@@ -118,24 +172,22 @@ func (c *tencentClient) DescribePrivateRecordList(profile string, input model.De
 			UpdatedOn:  record.UpdatedOn,
 		})
 	}
-	var nextMaker *string
-	if input.NextMarker != nil {
-		// 如果偏移量小于总数则说明还有，nextMarker为偏移量加1
-		// fmt.Println(*response.Response.RecordCountInfo.TotalCount, *request.Offset)
-		if *response.Response.TotalCount > (*request.Offset + int64(*input.Limit)) {
-			nextMaker = model.ToTencentNextMaker(cast.ToString(cast.ToInt(model.DecodeTencentNextMaker(*input.NextMarker)) + 1))
+	var nextPage, prePage *int64
+	if *request.Limit == int64(len(records)) {
+		if input.Page == nil {
+			nextPage = tea.Int64(2)
 		} else {
-			nextMaker = nil
+			nextPage = tea.Int64(cast.ToInt64(tea.Int64Value(input.Page)) + 1)
 		}
-	} else if *response.Response.TotalCount > int64(*request.Limit) {
-		nextMaker = model.ToTencentNextMaker("2")
 	}
-	return model.DescribePrivateRecordListResponse{
-		NextMarker: nextMaker,
+	if input.Page != nil && tea.Int64Value(input.Page) > 1 {
+		prePage = tea.Int64(cast.ToInt64(tea.Int64Value(input.Page)) - 1)
+	}
+	return model.ListRecordsPageResponse{
 		RecordList: records,
-		TotalCount: response.Response.TotalCount,
+		NextPage:   nextPage,
+		PrePage:    prePage,
 	}, nil
-
 }
 
 func (c *tencentClient) CreatePrivateRecord(profile string, input model.CreateRecordRequest) (model.CreateRecordResponse, error) {

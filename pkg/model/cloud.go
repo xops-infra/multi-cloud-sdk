@@ -24,20 +24,29 @@ type CloudIO interface {
 	QueryEmrCluster(EmrFilter) (FilterEmrResponse, error) // 方便 Post使用，将Profile和Region放入filter
 	DescribeEmrCluster(DescribeInput) ([]DescribeEmrCluster, error)
 
-	// DNSDomain
-	DescribeDomainList(profile string, input DescribeDomainListRequest) (DescribeDomainListResponse, error)
-	DescribeRecordList(profile string, input DescribeRecordListRequest) (DescribeRecordListResponse, error)
-	DescribeRecord(profile string, input DescribeRecordRequest) (Record, error)
-	CreateRecord(profile string, input CreateRecordRequest) (CreateRecordResponse, error)
-	ModifyRecord(profile string, ignoreType bool, input ModifyRecordRequest) error
-	DeleteRecord(profile string, input DeleteRecordRequest) (CommonDnsResponse, error)
+	// tencent region is not required
+	DescribeDomainList(profile, region string, input DescribeDomainListRequest) (DescribeDomainListResponse, error)
+	// tencent region is not required
+	DescribeRecordList(profile, region string, input DescribeRecordListRequest) (DescribeRecordListResponse, error)
+	// tencent region is not required
+	DescribeRecordListWithPages(profile, region string, input DescribeRecordListWithPageRequest) (ListRecordsPageResponse, error)
+	// tencent region is not required
+	DescribeRecord(profile, region string, input DescribeRecordRequest) (Record, error)
+	// tencent region is not required
+	CreateRecord(profile, region string, input CreateRecordRequest) (CreateRecordResponse, error)
+	// tencent region is not required
+	ModifyRecord(profile, region string, ignoreType bool, input ModifyRecordRequest) error
+	// tencent region is not required
+	DeleteRecord(profile, region string, input DeleteRecordRequest) (CommonDnsResponse, error)
 
 	// Private_Dns
+
 	DescribePrivateDomainList(profile string, input DescribeDomainListRequest) (DescribePrivateDomainListResponse, error)
 	CreatePrivateRecord(profile string, input CreateRecordRequest) (CreateRecordResponse, error)
 	DeletePrivateRecord(profile string, input DeletePrivateRecordRequest) error
 	ModifyPrivateRecord(profile string, input ModifyRecordRequest) error
 	DescribePrivateRecordList(profile string, input DescribeRecordListRequest) (DescribePrivateRecordListResponse, error)
+	DescribePrivateRecordListWithPages(profile string, input DescribeRecordListWithPageRequest) (ListRecordsPageResponse, error)
 
 	// OCR
 	CommonOCR(profile, region string, input OcrRequest) (OcrResponse, error)

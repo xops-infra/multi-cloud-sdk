@@ -23,7 +23,7 @@ type ClientIo interface {
 	GetAWSEmrClient(profile, region string) (*emr.EMR, error)
 	GetAWSCredential(profile string) (*credentials.Credentials, error)
 	GetAWSObjectStorageClient(profile, region string) (*s3.S3, error)
-	GetAwsRoute53Client(profile string) (*route53.Route53, error)
+	GetAwsRoute53Client(profile, region string) (*route53.Route53, error)
 	GetAwsRoute53DomainClient(profile string) (*route53domains.Route53Domains, error)
 
 	GetTencentCvmClient(profile, region string) (*cvm.Client, error)

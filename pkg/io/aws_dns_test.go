@@ -9,6 +9,25 @@ import (
 	"github.com/xops-infra/multi-cloud-sdk/pkg/model"
 )
 
+// TEST DescribeRecordListWithPages
+func TestDescribeRecordListWithPages(t *testing.T) {
+	req := model.DescribeRecordListWithPageRequest{
+		Limit:  tea.Int64(100),
+		Page:   tea.Int64(10),
+		Domain: tea.String(os.Getenv("TEST_AWS_DOMAIN")),
+	}
+	fmt.Println(tea.Prettify(req))
+	resp, err := AwsIo.DescribeRecordListWithPages(
+		"aws", "cn-northwest-1",
+		req,
+	)
+	if err != nil {
+		t.Error(err)
+		return
+	}
+	fmt.Println(len(resp.RecordList), tea.Prettify(resp.NextPage))
+}
+
 // TEST DescribeRecordList
 func TestDescribeAWSRecordList(t *testing.T) {
 	req := model.DescribeRecordListRequest{
@@ -18,27 +37,25 @@ func TestDescribeAWSRecordList(t *testing.T) {
 	}
 	fmt.Println(tea.Prettify(req))
 	resp, err := AwsIo.DescribeRecordList(
-		"aws",
+		"aws", "cn-northwest-1",
 		req,
 	)
 	if err != nil {
 		t.Error(err)
 		return
 	}
-	fmt.Println(tea.Prettify(resp))
+	fmt.Println(tea.Prettify(resp.Total))
 }
 
 // TEST DescribeRecordList
 func TestDescribeTencentRecordList(t *testing.T) {
 	req := model.DescribeRecordListRequest{
-		Limit:   tea.Int64(2),
 		Domain:  tea.String(os.Getenv("TEST_AWS_DOMAIN")),
 		Keyword: tea.String("pop"),
-		// NextMarker: tea.String("Ki5wYXRzbmFwLnByb2QuZXUuYXBpLXRlc3RpbmcucGF0c25hcC5pbmZvLixDTkFNRXRoaXNpc2FzY3JlYXRrZXk="),
 	}
 	fmt.Println(tea.Prettify(req))
 	resp, err := AwsIo.DescribeRecordList(
-		"aws",
+		"aws", "cn-northwest-1",
 		req,
 	)
 	if err != nil {
@@ -57,7 +74,7 @@ func TestCreateAWSRecord(t *testing.T) {
 		Value:      tea.String("test.com"),
 	}
 	resp, err := AwsIo.CreateRecord(
-		"aws",
+		"aws", "cn-northwest-1",
 		req,
 	)
 	if err != nil {
@@ -75,7 +92,7 @@ func TestDescribeAWSRecord(t *testing.T) {
 		RecordType: tea.String("A"),
 	}
 	resp, err := AwsIo.DescribeRecord(
-		"aws",
+		"aws", "cn-northwest-1",
 		req,
 	)
 	if err != nil {
@@ -93,7 +110,7 @@ func TestModifyAWSRecord(t *testing.T) {
 		RecordType: tea.String("A"),
 		Value:      tea.String("192.168.1.1"), // 修改记录值
 	}
-	err := AwsIo.ModifyRecord("aws", false, req)
+	err := AwsIo.ModifyRecord("aws", "cn-northwest-1", false, req)
 	if err != nil {
 		t.Error(err)
 		return
@@ -107,7 +124,7 @@ func TestDeleteAWSRecord(t *testing.T) {
 		SubDomain:  tea.String("test"),
 		RecordType: tea.String("A"),
 	}
-	_, err := AwsIo.DeleteRecord("aws", req)
+	_, err := AwsIo.DeleteRecord("aws", "cn-northwest-1", req)
 	if err != nil {
 		t.Error(err)
 		return

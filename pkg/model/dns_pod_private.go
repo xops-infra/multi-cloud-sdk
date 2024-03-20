@@ -17,7 +17,6 @@ type PrivateDomain struct {
 type DescribePrivateRecordListResponse struct {
 	TotalCount *int64   `json:"total_count"`
 	RecordList []Record `json:"record_list"`
-	NextMarker *string  `json:"next_marker"`
 }
 
 type DeletePrivateRecordRequest struct {

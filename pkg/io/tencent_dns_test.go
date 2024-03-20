@@ -12,8 +12,23 @@ import (
 // TEST DescribeDomainList
 func TestDescribeDomainList(t *testing.T) {
 	timeStart := time.Now()
-	resp, err := TencentIo.DescribeDomainList("tencent", model.DescribeDomainListRequest{
+	resp, err := TencentIo.DescribeDomainList("tencent", "", model.DescribeDomainListRequest{
 		DomainKeyword: tea.String(os.Getenv("TEST_TENCENT_DOMAIN")),
+	})
+	if err != nil {
+		t.Error(err)
+		return
+	}
+	t.Log("Success.", time.Since(timeStart), tea.Prettify(resp))
+}
+
+// TEST DescribeRecordListWithPages
+func TestTencentDescribeRecordListWithPages(t *testing.T) {
+	timeStart := time.Now()
+	resp, err := TencentIo.DescribeRecordListWithPages("tencent", "", model.DescribeRecordListWithPageRequest{
+		Domain: tea.String(os.Getenv("TEST_TENCENT_DOMAIN")),
+		Limit:  tea.Int64(2),
+		Page:   tea.Int64(11),
 	})
 	if err != nil {
 		t.Error(err)
@@ -25,10 +40,8 @@ func TestDescribeDomainList(t *testing.T) {
 // TEST DescribeRecordList
 func TestDescribeRecordList(t *testing.T) {
 	timeStart := time.Now()
-	resp, err := TencentIo.DescribeRecordList("tencent", model.DescribeRecordListRequest{
-		Limit:      tea.Int64(2),
-		Domain:     tea.String(os.Getenv("TEST_TENCENT_DOMAIN")),
-		NextMarker: tea.String("MnRoaXNpc2FzY3JlYXRrZXk="),
+	resp, err := TencentIo.DescribeRecordList("tencent", "", model.DescribeRecordListRequest{
+		Domain: tea.String(os.Getenv("TEST_TENCENT_DOMAIN")),
 	})
 	if err != nil {
 		t.Error(err)
@@ -40,7 +53,7 @@ func TestDescribeRecordList(t *testing.T) {
 // TEST DescribeRecord
 func TestDescribeRecord(t *testing.T) {
 	timeStart := time.Now()
-	record, err := TencentIo.DescribeRecord("tencent", model.DescribeRecordRequest{
+	record, err := TencentIo.DescribeRecord("tencent", "", model.DescribeRecordRequest{
 		Domain: tea.String(os.Getenv("TEST_TENCENT_DOMAIN")),
 		// SubDomain: tea.String("test"),
 		// RecordType: tea.String("CNAME"),
@@ -57,7 +70,7 @@ func TestCreateRecord(t *testing.T) {
 	timeStart := time.Now()
 	subDomain := "abcde"
 	{
-		resp, err := TencentIo.CreateRecord("tencent", model.CreateRecordRequest{
+		resp, err := TencentIo.CreateRecord("tencent", "", model.CreateRecordRequest{
 			Domain:     tea.String(os.Getenv("TEST_TENCENT_DOMAIN")),
 			SubDomain:  tea.String(subDomain),
 			RecordType: tea.String("CNAME"),
@@ -71,7 +84,7 @@ func TestCreateRecord(t *testing.T) {
 	}
 	{
 		// ModifyRecord
-		err := TencentIo.ModifyRecord("tencent", false, model.ModifyRecordRequest{
+		err := TencentIo.ModifyRecord("tencent", "", false, model.ModifyRecordRequest{
 			Domain:     tea.String(os.Getenv("TEST_TENCENT_DOMAIN")),
 			SubDomain:  tea.String(subDomain),
 			RecordType: tea.String("CNAME"),
@@ -84,7 +97,7 @@ func TestCreateRecord(t *testing.T) {
 	}
 	{
 		// DeleteRecord
-		resp, err := TencentIo.DeleteRecord("tencent", model.DeleteRecordRequest{
+		resp, err := TencentIo.DeleteRecord("tencent", "", model.DeleteRecordRequest{
 			Domain:     tea.String(os.Getenv("TEST_TENCENT_DOMAIN")),
 			SubDomain:  tea.String(subDomain),
 			RecordType: tea.String("CNAME"),

@@ -21,3 +21,7 @@ func (c *awsClient) ModifyPrivateRecord(profile string, input model.ModifyRecord
 func (c *awsClient) DeletePrivateRecord(profile string, input model.DeletePrivateRecordRequest) error {
 	panic("implement me")
 }
+
+func (c *awsClient) DescribePrivateRecordListWithPages(profile string, input model.DescribeRecordListWithPageRequest) (model.ListRecordsPageResponse, error) {
+	panic("implement me")
+}

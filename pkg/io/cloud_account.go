@@ -126,11 +126,15 @@ func (c *cloudClient) GetAWSObjectStorageClient(accountId, region string) (*s3.S
 	return s3.New(sess), nil
 }
 
-func (c *cloudClient) GetAwsRoute53Client(accountId string) (*route53.Route53, error) {
+func (c *cloudClient) GetAwsRoute53Client(accountId, region string) (*route53.Route53, error) {
+	if region == "" {
+		return nil, fmt.Errorf("region is empty")
+	}
 	sess, err := c.getAWSSession(accountId)
 	if err != nil {
 		return nil, err
 	}
+	sess.Config.Region = tea.String(region) // must has region
 	return route53.New(sess), nil
 }
 
