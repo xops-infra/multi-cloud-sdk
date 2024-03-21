@@ -22,9 +22,9 @@ func TestDescribePrivateDomainList(t *testing.T) {
 // TEST DescribePrivateRecordList
 func TestDescribePrivateRecordList(t *testing.T) {
 	timeStart := time.Now()
-	resp, err := TencentIo.DescribePrivateRecordList("tencent", model.DescribeRecordListRequest{
-		Domain:     tea.String("zone-3m8hlc6o"),
-		RecordType: tea.String("CNAME"),
+	resp, err := TencentIo.DescribePrivateRecordList("tencent", model.DescribePrivateRecordListRequest{
+		Domain:  tea.String("zone-3m8hlc6o"),
+		Keyword: tea.String("zsj"),
 	})
 	if err != nil {
 		t.Error(err)
@@ -36,10 +36,10 @@ func TestDescribePrivateRecordList(t *testing.T) {
 // TEST DescribePrivateRecordListWithPages
 func TestDescribePrivateRecordListWithPages(t *testing.T) {
 	timeStart := time.Now()
-	resp, err := TencentIo.DescribePrivateRecordListWithPages("tencent", model.DescribeRecordListWithPageRequest{
+	resp, err := TencentIo.DescribePrivateRecordListWithPages("tencent", model.DescribePrivateDnsRecordListWithPageRequest{
 		Domain: tea.String("zone-3m8hlc6o"),
-		Limit:  tea.Int64(2),
-		Page:   tea.Int64(2),
+		// Limit:  tea.Int64(2),
+		// Page:   tea.Int64(2),
 	})
 	if err != nil {
 		t.Error(err)

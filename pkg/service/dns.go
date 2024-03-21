@@ -41,7 +41,7 @@ func (s *DnsService) PrivateDomainList(profile string, req model.DescribeDomainL
 }
 
 // PrivateRecordList
-func (s *DnsService) PrivateRecordList(profile string, req model.DescribeRecordListRequest) (model.DescribePrivateRecordListResponse, error) {
+func (s *DnsService) PrivateRecordList(profile string, req model.DescribePrivateRecordListRequest) (model.DescribePrivateRecordListResponse, error) {
 	if p, ok := s.Profiles[profile]; ok {
 		switch p.Cloud {
 		case model.AWS:
@@ -56,7 +56,7 @@ func (s *DnsService) PrivateRecordList(profile string, req model.DescribeRecordL
 }
 
 // PrivateRecordListWithPages
-func (s *DnsService) PrivateRecordListWithPages(profile string, req model.DescribeRecordListWithPageRequest) (model.ListRecordsPageResponse, error) {
+func (s *DnsService) PrivateRecordListWithPages(profile string, req model.DescribePrivateDnsRecordListWithPageRequest) (model.ListRecordsPageResponse, error) {
 	if p, ok := s.Profiles[profile]; ok {
 		switch p.Cloud {
 		case model.AWS:

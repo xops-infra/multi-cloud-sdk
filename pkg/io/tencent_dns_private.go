@@ -73,7 +73,8 @@ func (c *tencentClient) getDomainIdByname(profile string, domain string) (string
 	return *resp.DomainList[0].DomainId, nil
 }
 
-func (c *tencentClient) DescribePrivateRecordList(profile string, input model.DescribeRecordListRequest) (model.DescribePrivateRecordListResponse, error) {
+// 过滤 keyword通过数据集再次比较的方式实现，官方接口不支持模糊匹配。
+func (c *tencentClient) DescribePrivateRecordList(profile string, input model.DescribePrivateRecordListRequest) (model.DescribePrivateRecordListResponse, error) {
 	client, err := c.io.GetTencentPrivateDNSClient(profile)
 	if err != nil {
 		return model.DescribePrivateRecordListResponse{}, err
@@ -88,8 +89,7 @@ func (c *tencentClient) DescribePrivateRecordList(profile string, input model.De
 		return model.DescribePrivateRecordListResponse{}, err
 	}
 	request.ZoneId = tea.String(zoneId)
-	request.Filters = input.ToTencentFilter()
-	request.Limit = tea.Int64(2) // 默认100
+	request.Limit = tea.Int64(100) // 默认100
 
 	// 返回的resp是一个DescribePrivateZoneRecordListResponse的实例，与请求对象对应
 	response, err := client.DescribePrivateZoneRecordList(request)
@@ -100,8 +100,15 @@ func (c *tencentClient) DescribePrivateRecordList(profile string, input model.De
 		return model.DescribePrivateRecordListResponse{}, err
 	}
 	var records []model.Record
+	total := 0
 	for {
 		for _, record := range response.Response.RecordSet {
+			total++
+			if input.Keyword != nil {
+				if !strings.Contains(*record.SubDomain, *input.Keyword) {
+					continue
+				}
+			}
 			records = append(records, model.Record{
 				RecordId:   tea.String(cast.ToString(record.RecordId)),
 				SubDomain:  record.SubDomain,
@@ -112,7 +119,7 @@ func (c *tencentClient) DescribePrivateRecordList(profile string, input model.De
 				UpdatedOn:  record.UpdatedOn,
 			})
 		}
-		if cast.ToInt(response.Response.TotalCount) == len(records) {
+		if cast.ToInt(response.Response.TotalCount) == total {
 			break
 		}
 		request.Offset = tea.Int64(cast.ToInt64(len(records)))
@@ -124,12 +131,12 @@ func (c *tencentClient) DescribePrivateRecordList(profile string, input model.De
 
 	return model.DescribePrivateRecordListResponse{
 		RecordList: records,
-		TotalCount: response.Response.TotalCount,
+		TotalCount: tea.Int64(cast.ToInt64(len(records))),
 	}, nil
 
 }
 
-func (c *tencentClient) DescribePrivateRecordListWithPages(profile string, input model.DescribeRecordListWithPageRequest) (model.ListRecordsPageResponse, error) {
+func (c *tencentClient) DescribePrivateRecordListWithPages(profile string, input model.DescribePrivateDnsRecordListWithPageRequest) (model.ListRecordsPageResponse, error) {
 	client, err := c.io.GetTencentPrivateDNSClient(profile)
 	if err != nil {
 		return model.ListRecordsPageResponse{}, err
@@ -151,7 +158,6 @@ func (c *tencentClient) DescribePrivateRecordListWithPages(profile string, input
 	if input.Page != nil {
 		request.Offset = tea.Int64(cast.ToInt64(input.Limit) * cast.ToInt64(tea.Int64Value(input.Page)-1))
 	}
-
 	// 返回的resp是一个DescribePrivateZoneRecordListResponse的实例，与请求对象对应
 	response, err := client.DescribePrivateZoneRecordList(request)
 	if _, ok := err.(*errors.TencentCloudSDKError); ok {

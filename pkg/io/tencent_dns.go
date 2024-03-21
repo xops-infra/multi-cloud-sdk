@@ -110,7 +110,6 @@ func (c *tencentClient) DescribeRecordList(profile, region string, input model.D
 		return model.DescribeRecordListResponse{}, fmt.Errorf("Domain is required")
 	}
 	request.Domain = tea.String(*input.Domain)
-	request.RecordType = input.RecordType
 	request.Keyword = input.Keyword
 	request.Limit = tea.Uint64(100)
 
@@ -119,8 +118,13 @@ func (c *tencentClient) DescribeRecordList(profile, region string, input model.D
 		return model.DescribeRecordListResponse{}, err
 	}
 	var records []model.Record
+	total := 0
 	for {
 		for _, record := range resp.Response.RecordList {
+			total++
+			if input.Keyword != nil && *input.Keyword != "" && !strings.Contains(*record.Name, *input.Keyword) {
+				continue
+			}
 			records = append(records, model.Record{
 				RecordId:   tea.String(cast.ToString(record.RecordId)),
 				SubDomain:  record.Name,
@@ -134,7 +138,7 @@ func (c *tencentClient) DescribeRecordList(profile, region string, input model.D
 				Weight:     record.Weight,
 			})
 		}
-		if len(records) == int(*resp.Response.RecordCountInfo.TotalCount) {
+		if total == int(*resp.Response.RecordCountInfo.TotalCount) {
 			break
 		}
 		request.Offset = tea.Uint64(cast.ToUint64(len(records)))
@@ -145,7 +149,7 @@ func (c *tencentClient) DescribeRecordList(profile, region string, input model.D
 	}
 
 	return model.DescribeRecordListResponse{
-		Total:      cast.ToInt64(resp.Response.RecordCountInfo.TotalCount),
+		Total:      cast.ToInt64(len(records)),
 		RecordList: records,
 	}, nil
 }
@@ -157,9 +161,8 @@ func (c *tencentClient) DescribeRecord(profile, region string, input model.Descr
 	}
 
 	resp, err := c.DescribeRecordList(profile, region, model.DescribeRecordListRequest{
-		Domain:     input.Domain,
-		RecordType: input.RecordType,
-		Keyword:    input.SubDomain,
+		Domain:  input.Domain,
+		Keyword: input.SubDomain,
 	})
 	if err != nil {
 		return model.Record{}, err
@@ -222,9 +225,8 @@ func (c *tencentClient) ModifyRecord(profile, region string, ignoreType bool, in
 	}
 	if ignoreType {
 		resp, err := c.DescribeRecordList(profile, region, model.DescribeRecordListRequest{
-			Domain:     input.Domain,
-			RecordType: input.RecordType,
-			Keyword:    input.SubDomain,
+			Domain:  input.Domain,
+			Keyword: input.SubDomain,
 		})
 		if err != nil {
 			return err
@@ -305,9 +307,8 @@ func (c *tencentClient) ModifyRecord(profile, region string, ignoreType bool, in
 // getRecordIdBySubDomain
 func (c *tencentClient) getRecordIdBySubDomain(profile, region, subDomain, domain, recordType string) (*uint64, error) {
 	resp, err := c.DescribeRecordList(profile, region, model.DescribeRecordListRequest{
-		Domain:     &domain,
-		RecordType: &recordType,
-		Keyword:    &subDomain,
+		Domain:  &domain,
+		Keyword: &subDomain,
 	})
 	if err != nil {
 		return nil, err
