@@ -6,7 +6,7 @@ func (c *awsClient) DescribePrivateDomainList(profile string, input model.Descri
 	panic("implement me")
 }
 
-func (c *awsClient) DescribePrivateRecordList(profile string, input model.DescribeRecordListRequest) (model.DescribePrivateRecordListResponse, error) {
+func (c *awsClient) DescribePrivateRecordList(profile string, input model.DescribePrivateRecordListRequest) (model.DescribePrivateRecordListResponse, error) {
 	panic("implement me")
 }
 
@@ -22,6 +22,6 @@ func (c *awsClient) DeletePrivateRecord(profile string, input model.DeletePrivat
 	panic("implement me")
 }
 
-func (c *awsClient) DescribePrivateRecordListWithPages(profile string, input model.DescribeRecordListWithPageRequest) (model.ListRecordsPageResponse, error) {
+func (c *awsClient) DescribePrivateRecordListWithPages(profile string, input model.DescribePrivateDnsRecordListWithPageRequest) (model.ListRecordsPageResponse, error) {
 	panic("implement me")
 }

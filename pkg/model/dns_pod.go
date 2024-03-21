@@ -1,14 +1,9 @@
 package model
 
-import (
-	"github.com/alibabacloud-go/tea/tea"
-	privatedns "github.com/tencentcloud/tencentcloud-sdk-go/tencentcloud/privatedns/v20201028"
-)
-
 type DnsContract interface {
 	PrivateDomainList(profile string, req DescribeDomainListRequest) (DescribePrivateDomainListResponse, error)
-	PrivateRecordList(profile string, req DescribeRecordListRequest) (DescribePrivateRecordListResponse, error)
-	PrivateRecordListWithPages(profile string, req DescribeRecordListWithPageRequest) (ListRecordsPageResponse, error)
+	PrivateRecordList(profile string, req DescribePrivateRecordListRequest) (DescribePrivateRecordListResponse, error)
+	PrivateRecordListWithPages(profile string, req DescribePrivateDnsRecordListWithPageRequest) (ListRecordsPageResponse, error)
 	PrivateCreateRecord(profile string, req CreateRecordRequest) (CreateRecordResponse, error)
 	PrivateModifyRecord(profile string, req ModifyRecordRequest) error
 	PrivateDeleteRecord(profile string, req DeletePrivateRecordRequest) error
@@ -43,36 +38,14 @@ type DomainCountInfo struct {
 }
 
 type DescribeRecordListWithPageRequest struct {
-	Domain *string `json:"domain" binding:"required"`
-	Limit  *int64  `json:"limit"` // 分页 默认100
-	Page   *int64  `json:"page"`  // 页码
+	Domain *string `json:"domain" binding:"required"` // 支持使用域名或者ID
+	Limit  *int64  `json:"limit"`                     // 分页 默认100
+	Page   *int64  `json:"page"`                      // 页码
 }
 
 type DescribeRecordListRequest struct {
-	Domain     *string `json:"domain" binding:"required"`
-	RecordType *string `json:"record_type"`
-	Keyword    *string `json:"keyword"` // 当前支持搜索主机头和记录值
-}
-
-func (r DescribeRecordListRequest) ToTencentFilter() []*privatedns.Filter {
-	var filters []*privatedns.Filter
-	if r.RecordType != nil {
-		filters = append(filters, &privatedns.Filter{
-			Name: tea.String("RecordType"),
-			Values: []*string{
-				r.RecordType,
-			},
-		})
-	}
-	if r.Keyword != nil {
-		filters = append(filters, &privatedns.Filter{
-			Name: tea.String("SubDomain"),
-			Values: []*string{
-				r.Keyword,
-			},
-		})
-	}
-	return filters
+	Domain  *string `json:"domain" binding:"required"`
+	Keyword *string `json:"keyword"` // 只支持二级域名的模糊搜索
 }
 
 type DescribeRecordListResponse struct {

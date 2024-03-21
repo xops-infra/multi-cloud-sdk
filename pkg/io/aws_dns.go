@@ -145,11 +145,8 @@ func (c *awsClient) DescribeRecordList(profile, region string, input model.Descr
 			for _, value := range record.ResourceRecords {
 				values = *value.Value
 			}
-			if input.RecordType != nil && *input.RecordType != "" && *input.RecordType != *record.Type {
-				continue
-			}
 			if input.Keyword != nil && *input.Keyword != "" {
-				if !strings.Contains(*record.Name, *input.Keyword) && !strings.Contains(values, *input.Keyword) {
+				if !strings.Contains(*record.Name, *input.Keyword) {
 					continue
 				}
 			}
@@ -188,9 +185,8 @@ func (c *awsClient) DescribeRecordList(profile, region string, input model.Descr
 // DescribeRecord 完全匹配
 func (c *awsClient) DescribeRecord(profile, region string, input model.DescribeRecordRequest) (model.Record, error) {
 	resp, err := c.DescribeRecordList(profile, region, model.DescribeRecordListRequest{
-		Domain:     input.Domain,
-		RecordType: input.RecordType,
-		Keyword:    input.SubDomain,
+		Domain:  input.Domain,
+		Keyword: input.SubDomain,
 	})
 	if err != nil {
 		return model.Record{}, err

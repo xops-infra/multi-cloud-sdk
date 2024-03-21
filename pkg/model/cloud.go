@@ -40,13 +40,12 @@ type CloudIO interface {
 	DeleteRecord(profile, region string, input DeleteRecordRequest) (CommonDnsResponse, error)
 
 	// Private_Dns
-
 	DescribePrivateDomainList(profile string, input DescribeDomainListRequest) (DescribePrivateDomainListResponse, error)
 	CreatePrivateRecord(profile string, input CreateRecordRequest) (CreateRecordResponse, error)
 	DeletePrivateRecord(profile string, input DeletePrivateRecordRequest) error
 	ModifyPrivateRecord(profile string, input ModifyRecordRequest) error
-	DescribePrivateRecordList(profile string, input DescribeRecordListRequest) (DescribePrivateRecordListResponse, error)
-	DescribePrivateRecordListWithPages(profile string, input DescribeRecordListWithPageRequest) (ListRecordsPageResponse, error)
+	DescribePrivateRecordList(profile string, input DescribePrivateRecordListRequest) (DescribePrivateRecordListResponse, error)
+	DescribePrivateRecordListWithPages(profile string, input DescribePrivateDnsRecordListWithPageRequest) (ListRecordsPageResponse, error)
 
 	// OCR
 	CommonOCR(profile, region string, input OcrRequest) (OcrResponse, error)
