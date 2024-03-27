@@ -58,9 +58,9 @@ func TestDescribeList(t *testing.T) {
 	// TEST DescribeRecordList
 	{
 		req := model.DescribeRecordListRequest{
-			Domain: tea.String("patentexplorer.cas.org"),
+			Domain: tea.String("patsnap.info"),
 		}
-		resp, err := AwsIo.DescribeRecordList("aws-cas", "us-east-2", req)
+		resp, err := AwsIo.DescribeRecordList("aws", "cn-notrhwest-1", req)
 		if err != nil {
 			t.Error(err)
 			return

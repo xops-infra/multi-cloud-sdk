@@ -261,10 +261,8 @@ func (c *awsClient) getHostedZoneIdByDomain(profile, region string, domain *stri
 	if err != nil {
 		return nil, err
 	}
-	domain = tea.String(strings.TrimSuffix(*domain, "."))
-
 	for _, _domain := range resp.DomainList {
-		if *_domain.Name == *domain+"." {
+		if *_domain.Name == *domain {
 			return _domain.DomainId, nil
 		}
 	}
