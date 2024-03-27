@@ -60,17 +60,17 @@ func (c *awsClient) DescribeRecordListWithPages(profile, region string, input mo
 	if err != nil {
 		return model.ListRecordsPageResponse{}, err
 	}
-	if !strings.HasPrefix(*input.Domain, "/hostedzone/") {
-		hostedZoneId, err := c.getHostedZoneIdByDomain(profile, region, input.Domain)
-		if err != nil {
-			return model.ListRecordsPageResponse{}, err
-		}
-		input.Domain = hostedZoneId
-	}
+
 	params := &route53.ListResourceRecordSetsInput{
 		HostedZoneId: input.Domain,
 		MaxItems:     tea.String("100"),
 	}
+	domain, err := c.getHostedZoneIdByDomain(profile, region, input.Domain)
+	if err != nil {
+		return model.ListRecordsPageResponse{}, err
+	}
+	params.HostedZoneId = domain.DomainId
+
 	if input.Limit != nil {
 		params.MaxItems = tea.String(cast.ToString(input.Limit))
 	}
@@ -90,7 +90,7 @@ func (c *awsClient) DescribeRecordListWithPages(profile, region string, input mo
 					// }
 					// 解决httpDecode问题，比如 \\052
 					records.Name = tea.String(strings.ReplaceAll(*records.Name, "\\052", "*"))
-					subDomain := strings.TrimSuffix(*records.Name, fmt.Sprintf("%s.", *input.Domain))
+					subDomain := strings.TrimSuffix(*records.Name, fmt.Sprintf("%s.", *domain.Name))
 					resp.RecordList = append(resp.RecordList, model.Record{
 						SubDomain:  tea.String(strings.TrimSuffix(subDomain, ".")),
 						TTL:        tea.Uint64(cast.ToUint64(records.TTL)),
@@ -128,14 +128,14 @@ func (c *awsClient) DescribeRecordList(profile, region string, input model.Descr
 		return model.DescribeRecordListResponse{}, err
 	}
 
-	hostedZoneId, err := c.getHostedZoneIdByDomain(profile, region, input.Domain)
+	param := &route53.ListResourceRecordSetsInput{
+		HostedZoneId: input.Domain,
+	}
+	domain, err := c.getHostedZoneIdByDomain(profile, region, input.Domain)
 	if err != nil {
 		return model.DescribeRecordListResponse{}, err
 	}
-
-	param := &route53.ListResourceRecordSetsInput{
-		HostedZoneId: hostedZoneId,
-	}
+	param.HostedZoneId = domain.DomainId
 
 	var records []model.Record
 	resp, err := client.ListResourceRecordSets(param)
@@ -155,7 +155,7 @@ func (c *awsClient) DescribeRecordList(profile, region string, input model.Descr
 			}
 			// 解决httpDecode问题，比如 \\052
 			record.Name = tea.String(strings.ReplaceAll(*record.Name, "\\052", "*"))
-			subDomain := strings.TrimSuffix(*record.Name, fmt.Sprintf("%s.", *input.Domain))
+			subDomain := strings.TrimSuffix(*record.Name, fmt.Sprintf("%s.", *domain.Name))
 			records = append(records, model.Record{
 				SubDomain:  tea.String(strings.TrimSuffix(subDomain, ".")),
 				TTL:        tea.Uint64(cast.ToUint64(record.TTL)),
@@ -215,12 +215,12 @@ func (c *awsClient) CreateRecord(profile, region string, input model.CreateRecor
 	if input.TTL != nil {
 		ttl = cast.ToInt64(input.TTL)
 	}
-	hostedZoneId, err := c.getHostedZoneIdByDomain(profile, region, input.Domain)
+	domain, err := c.getHostedZoneIdByDomain(profile, region, input.Domain)
 	if err != nil {
 		return model.CreateRecordResponse{}, err
 	}
 	param := &route53.ChangeResourceRecordSetsInput{
-		HostedZoneId: hostedZoneId,
+		HostedZoneId: domain.DomainId,
 		ChangeBatch: &route53.ChangeBatch{
 			Changes: []*route53.Change{
 				{
@@ -250,20 +250,24 @@ func (c *awsClient) CreateRecord(profile, region string, input model.CreateRecor
 	}, nil
 }
 
-// getHostedZoneIdByDomain
-func (c *awsClient) getHostedZoneIdByDomain(profile, region string, domain *string) (*string, error) {
+// getHostedZoneIdByDomain domain 为域名或者hostedzoneId
+func (c *awsClient) getHostedZoneIdByDomain(profile, region string, domain *string) (*model.Domain, error) {
 	if domain == nil {
 		return nil, fmt.Errorf("domain is required")
 	}
-	resp, err := c.DescribeDomainList(profile, region, model.DescribeDomainListRequest{
-		DomainKeyword: domain,
-	})
+	resp, err := c.DescribeDomainList(profile, region, model.DescribeDomainListRequest{})
 	if err != nil {
 		return nil, err
 	}
 	for _, _domain := range resp.DomainList {
-		if *_domain.Name == *domain {
-			return _domain.DomainId, nil
+		if strings.HasPrefix(*domain, "/hostedzone/") {
+			if *_domain.DomainId == *domain {
+				return &_domain, nil
+			}
+		} else {
+			if *_domain.Name == *domain {
+				return &_domain, nil
+			}
 		}
 	}
 	return nil, fmt.Errorf("domain not found")
@@ -276,7 +280,7 @@ func (c *awsClient) ModifyRecord(profile, region string, ignoreType bool, input 
 	if err != nil {
 		return err
 	}
-	hostedZoneId, err := c.getHostedZoneIdByDomain(profile, region, input.Domain)
+	resp, err := c.getHostedZoneIdByDomain(profile, region, input.Domain)
 	if err != nil {
 		return err
 	}
@@ -285,7 +289,7 @@ func (c *awsClient) ModifyRecord(profile, region string, ignoreType bool, input 
 		ttl = cast.ToInt64(input.TTL)
 	}
 	param := &route53.ChangeResourceRecordSetsInput{
-		HostedZoneId: hostedZoneId,
+		HostedZoneId: resp.DomainId,
 		ChangeBatch: &route53.ChangeBatch{
 			Changes: []*route53.Change{
 				{
@@ -334,7 +338,7 @@ func (c *awsClient) DeleteRecord(profile, region string, input model.DeleteRecor
 		return model.CommonDnsResponse{}, err
 	}
 	param := &route53.ChangeResourceRecordSetsInput{
-		HostedZoneId: hostedZoneId,
+		HostedZoneId: hostedZoneId.DomainId,
 		ChangeBatch: &route53.ChangeBatch{
 			Changes: []*route53.Change{
 				{
