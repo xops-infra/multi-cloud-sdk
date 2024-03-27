@@ -53,12 +53,27 @@ func TestMain(t *testing.T) {
 	}
 }
 
+// TEST ListDomain
+func TestListDomain(t *testing.T) {
+	// TEST DescribePrivateDomainList
+	{
+		req := model.DescribeDomainListRequest{}
+		resp, err := AwsIo.DescribeDomainList("aws", "cn-notrhwest-1", req)
+		if err != nil {
+			t.Error(err)
+			return
+		}
+		assert.Nil(t, err)
+		fmt.Println(tea.Prettify(resp))
+	}
+}
+
 // TEST DescribePrivateDomainList
 func TestDescribeList(t *testing.T) {
 	// TEST DescribeRecordList
 	{
 		req := model.DescribeRecordListRequest{
-			Domain: tea.String("patsnap.info"),
+			Domain: tea.String("/hostedzone/xxx"),
 		}
 		resp, err := AwsIo.DescribeRecordList("aws", "cn-notrhwest-1", req)
 		if err != nil {
@@ -70,11 +85,24 @@ func TestDescribeList(t *testing.T) {
 	}
 }
 
+// TEST DescribeRecordListWithPages
+func TestDescribeRecordListWithPages(t *testing.T) {
+	// TEST DescribeRecordList
+	req := model.DescribeRecordListWithPageRequest{
+		Limit:  tea.Int64(2),
+		Page:   tea.Int64(1),
+		Domain: tea.String("/hostedzone/xxx"),
+	}
+	resp, err := AwsIo.DescribeRecordListWithPages("aws", "cn-notrhwest-1", req)
+	assert.Nil(t, err)
+	t.Log(tea.Prettify(resp))
+}
+
 // TEST DescribePrivateDomainList
 func TestDescribeListWithPages(t *testing.T) {
 	// TEST DescribeRecordList
 	req := model.DescribeDomainListRequest{}
-	resp, err := AwsIo.DescribeDomainList("aws-cas", "us-east-2", req)
+	resp, err := AwsIo.DescribeDomainList("aws", "cn-notrhwest-1", req)
 	if err != nil {
 		t.Error(err)
 		return
