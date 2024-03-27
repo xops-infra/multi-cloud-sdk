@@ -52,3 +52,32 @@ func TestMain(t *testing.T) {
 		assert.Nil(t, err)
 	}
 }
+
+// TEST DescribePrivateDomainList
+func TestDescribeList(t *testing.T) {
+	// TEST DescribeRecordList
+	{
+		req := model.DescribeRecordListRequest{
+			Domain: tea.String("patentexplorer.cas.org"),
+		}
+		resp, err := AwsIo.DescribeRecordList("aws-cas", "us-east-2", req)
+		if err != nil {
+			t.Error(err)
+			return
+		}
+		assert.Nil(t, err)
+		fmt.Println(tea.Prettify(resp))
+	}
+}
+
+// TEST DescribePrivateDomainList
+func TestDescribeListWithPages(t *testing.T) {
+	// TEST DescribeRecordList
+	req := model.DescribeDomainListRequest{}
+	resp, err := AwsIo.DescribeDomainList("aws-cas", "us-east-2", req)
+	if err != nil {
+		t.Error(err)
+		return
+	}
+	t.Log(tea.Prettify(resp))
+}

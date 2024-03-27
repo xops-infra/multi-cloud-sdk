@@ -31,6 +31,11 @@ func init() {
 			Cloud: model.AWS,
 			AK:    os.Getenv("AWS_US_ACCESS_KEY_ID"),
 			SK:    os.Getenv("AWS_US_SECRET_ACCESS_KEY"),
+		}, {
+			Name:  "aws-cas",
+			Cloud: model.AWS,
+			AK:    os.Getenv("AWS_CAS_ACCESS_KEY_ID"),
+			SK:    os.Getenv("AWS_CAS_SECRET_ACCESS_KEY"),
 		},
 	}
 	clientIo := io.NewCloudClient(profiles)
