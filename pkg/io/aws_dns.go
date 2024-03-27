@@ -34,7 +34,7 @@ func (c *awsClient) DescribeDomainList(profile, region string, input model.Descr
 			}
 			domains = append(domains, model.Domain{
 				DomainId: domain.Id,
-				Name:     domain.Name,
+				Name:     tea.String(strings.TrimSuffix(*domain.Name, ".")),
 				Meta:     domain,
 			})
 		}
@@ -85,6 +85,9 @@ func (c *awsClient) DescribeRecordListWithPages(profile, region string, input mo
 			}
 			if pageNum == *input.Page-1 {
 				for _, records := range page.ResourceRecordSets {
+					// if records.ResourceRecords == nil {
+					// 	continue
+					// }
 					// 解决httpDecode问题，比如 \\052
 					records.Name = tea.String(strings.ReplaceAll(*records.Name, "\\052", "*"))
 					subDomain := strings.TrimSuffix(*records.Name, fmt.Sprintf("%s.", *input.Domain))
