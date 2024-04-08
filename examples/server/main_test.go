@@ -1,6 +1,7 @@
 package main
 
 import (
+	"fmt"
 	"os"
 	"testing"
 	"time"
@@ -41,19 +42,37 @@ func init() {
 }
 
 func TestDescribeServers(t *testing.T) {
+	profile := "tencent"
+	region := "ap-shanghai"
 	timeStart := time.Now()
 	filter := model.InstanceFilter{
+		Size: tea.Int64(10),
 		// Profile: tea.String("aws"),
 		// Region:  tea.String("cn-northwest-1"),
 	}
 	// filter.Owner = tea.String("zhoushoujian")
-	filter.NextMarker = tea.String("xxx")
+	// filter.NextMarker = tea.String("xxx")
+	var ids []model.Instance
 	filter.Status = model.InstanceStatusRunning.TString()
-	instances, err := serverS.DescribeInstances("aws", "cn-northwest-1", filter)
+	resp, err := serverS.DescribeInstances(profile, region, filter)
 	if err != nil {
 		t.Error(err)
 		return
 	}
-	// fmt.Println(*instances.NextMarker, *instances.Instances[0].Tags.GetName())
-	t.Log(time.Since(timeStart), len(instances.Instances))
+	ids = append(ids, resp.Instances...)
+	for {
+		fmt.Println(tea.Prettify(filter))
+		resp, err = serverS.DescribeInstances(profile, region, filter)
+		if err != nil {
+			t.Error(err)
+			return
+		}
+		if resp.NextMarker == nil {
+			break
+		}
+		filter.NextMarker = resp.NextMarker
+		ids = append(ids, resp.Instances...)
+	}
+
+	t.Log(time.Since(timeStart), len(ids))
 }
