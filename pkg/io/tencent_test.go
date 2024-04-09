@@ -42,7 +42,7 @@ func TestQueryTencentEmrCluster(t *testing.T) {
 	timeStart := time.Now()
 	filter := model.EmrFilter{
 		Profile: tea.String("tencent"),
-		Region:  tea.String("na-ashburn"),
+		Region:  tea.String("ap-shanghai"),
 	}
 	instances, err := TencentIo.QueryEmrCluster(filter)
 	if err != nil {

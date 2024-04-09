@@ -29,10 +29,15 @@ func (c *tencentClient) QueryEmrCluster(input model.EmrFilter) (model.FilterEmrR
 			return model.FilterEmrResponse{}, err
 		}
 		for _, cluster := range response.Response.InstancesList {
+			if cluster.AddTime == nil {
+				return model.FilterEmrResponse{}, fmt.Errorf("cluster.AddTime is nil")
+			}
+			addTime, _ := time.Parse("2006-01-02 15:04:05", *cluster.AddTime)
 			clusters = append(clusters, model.EmrCluster{
-				ID:     cluster.ClusterId,
-				Name:   cluster.ClusterName,
-				Status: model.FmtTencentState(tea.Int64(cast.ToInt64(cluster.Status))),
+				ID:      cluster.ClusterId,
+				Name:    cluster.ClusterName,
+				AddTime: addTime,
+				Status:  model.FmtTencentState(tea.Int64(cast.ToInt64(cluster.Status))),
 			})
 		}
 		if len(clusters) == cast.ToInt(response.Response.TotalCnt) {

@@ -36,6 +36,7 @@ type InstanceFilter struct {
 	PublicIp   *string         `json:"public_ip"`   // 公有IP
 	Status     *InstanceStatus `json:"status"`      // 机器状态
 	Owner      *string         `json:"owner"`       // 机器所有者，tags的Owner
+	Size       *int64          `json:"size"`        // 分页大小
 	NextMarker *string         `json:"next_marker"` // 如果没有下一页，返回nil 腾讯云直接返回所有数据，不需要分页
 }
 
@@ -78,6 +79,7 @@ func (q *InstanceFilter) ToTxDescribeInstancesInput() DescribeInstancesInput {
 	return DescribeInstancesInput{
 		InstanceIds: instanceIds,
 		Filters:     filters,
+		Size:        q.Size,
 		NextMarker:  q.NextMarker,
 	}
 }
@@ -123,6 +125,7 @@ func (q *InstanceFilter) ToAwsDescribeInstancesInput() DescribeInstancesInput {
 		InstanceIds: instanceIds,
 		Filters:     filters,
 		NextMarker:  q.NextMarker,
+		Size:        q.Size,
 	}
 }
 

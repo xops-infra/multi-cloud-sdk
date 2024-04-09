@@ -36,10 +36,14 @@ func (c *awsClient) QueryEmrCluster(filter model.EmrFilter) (model.FilterEmrResp
 	}
 	var clusters []model.EmrCluster
 	for _, cluster := range result.Clusters {
+		if cluster.Status.Timeline.CreationDateTime == nil {
+			return model.FilterEmrResponse{}, fmt.Errorf("cluster.Status.Timeline.CreationDateTime is nil")
+		}
 		clusters = append(clusters, model.EmrCluster{
-			ID:     cluster.Id,
-			Name:   cluster.Name,
-			Status: model.EMRClusterStatus(*cluster.Status.State),
+			ID:      cluster.Id,
+			Name:    cluster.Name,
+			AddTime: *cluster.Status.Timeline.CreationDateTime,
+			Status:  model.EMRClusterStatus(*cluster.Status.State),
 		})
 	}
 	return model.FilterEmrResponse{

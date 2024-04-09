@@ -8,13 +8,14 @@ import (
 type EmrCluster struct {
 	ID, Name *string
 	Status   EMRClusterStatus
+	AddTime  time.Time
 }
 
 type EmrFilter struct {
 	Profile       *string            `json:"profile" binding:"required"`
 	Region        *string            `json:"region" binding:"required"` // 为空则取默认
 	ClusterStates []EMRClusterStatus `json:"cluster_states"`
-	Period        *time.Duration     `json:"period"` // 为空则取默认
+	Period        *time.Duration     `json:"period"` // aws支持的，腾讯云没有用到
 	NextMarker    *string            `json:"next_marker"`
 }
 
