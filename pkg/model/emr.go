@@ -22,7 +22,7 @@ type EmrFilter struct {
 type DescribeInput struct {
 	Profile *string   `json:"profile" binding:"required"`
 	Region  *string   `json:"region" binding:"required"` // 为空则取默认
-	IDS     []*string `json:"ids"`
+	IDS     []*string `json:"ids"`                       // 为空则取所有
 }
 
 type FilterEmrResponse struct {
