@@ -59,8 +59,8 @@ func TestDescribeTencentEmrCluster(t *testing.T) {
 	timeStart := time.Now()
 	instances, err := TencentIo.DescribeEmrCluster(model.DescribeInput{
 		Profile: tea.String("tencent"),
-		Region:  tea.String("na-ashburn"),
-		IDS:     []*string{tea.String("emr-xxx")},
+		Region:  tea.String("ap-shanghai"),
+		// IDS:     []*string{tea.String("emr-alhn4h4s")},
 	})
 	if err != nil {
 		t.Error(err)
@@ -69,7 +69,7 @@ func TestDescribeTencentEmrCluster(t *testing.T) {
 	for _, instance := range instances {
 		fmt.Println(tea.Prettify(instance))
 	}
-	t.Log("Success.", time.Since(timeStart), len(instances))
+	t.Log("Success.", time.Since(timeStart), len(instances), instances)
 }
 
 func TestListInstance(t *testing.T) {

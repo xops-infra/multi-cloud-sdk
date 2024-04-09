@@ -60,6 +60,7 @@ func (c *tencentClient) DescribeEmrCluster(input model.DescribeInput) ([]model.D
 	}
 	request := emr.NewDescribeInstancesRequest()
 	request.DisplayStrategy = tea.String("clusterList")
+	request.ProjectId = tea.Int64(-1) // 默认-1 查询所有
 	request.InstanceIds = input.IDS
 	response, err := client.DescribeInstances(request)
 	if err != nil {
