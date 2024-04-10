@@ -51,4 +51,8 @@ type CommonContract interface {
 	QuerySubnets(profile, region string, input CommonFilter) ([]Subnet, error)
 	QueryEIPs(profile, region string, input CommonFilter) ([]EIP, error)
 	QueryNATs(profile, region string, input CommonFilter) ([]NAT, error)
+
+	CreateBucket(profile, region string, input CreateBucketRequest) error
+	DeleteBucket(profile, region string, input DeleteBucketRequest) (DeleteBucketResponse, error)
+	ListBuckets(profile, region string, input ListBucketRequest) (ListBucketResponse, error)
 }
