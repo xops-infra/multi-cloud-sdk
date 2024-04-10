@@ -55,4 +55,9 @@ type CloudIO interface {
 	DeletePicture(profile, region string, input CommonPictureRequest) (CommonPictureResponse, error)
 	UpdatePicture(profile, region string, input UpdatePictureRequest) (CommonPictureResponse, error)
 	SearchPicture(profile, region string, input SearchPictureRequest) (SearchPictureResponse, error)
+
+	// S3 COS
+	CreateBucket(profile, region string, input CreateBucketRequest) error
+	DeleteBucket(profile, region string, input DeleteBucketRequest) (DeleteBucketResponse, error)
+	ListBucket(profile, region string, input ListBucketRequest) (ListBucketResponse, error) // 比官方多支持了 aws location 返回，并且都带上了tag返回。
 }

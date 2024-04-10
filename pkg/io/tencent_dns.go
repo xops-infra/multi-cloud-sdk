@@ -107,7 +107,7 @@ func (c *tencentClient) DescribeRecordList(profile, region string, input model.D
 	}
 	request := dnspod.NewDescribeRecordListRequest()
 	if input.Domain == nil {
-		return model.DescribeRecordListResponse{}, fmt.Errorf("Domain is required")
+		return model.DescribeRecordListResponse{}, fmt.Errorf("domain is required")
 	}
 	request.Domain = tea.String(*input.Domain)
 	request.Keyword = input.Keyword
@@ -218,10 +218,10 @@ func (c *tencentClient) ModifyRecord(profile, region string, ignoreType bool, in
 		return err
 	}
 	if input.Domain == nil {
-		return fmt.Errorf("Domain is required")
+		return fmt.Errorf("domain is required")
 	}
 	if input.SubDomain == nil {
-		return fmt.Errorf("SubDomain is required")
+		return fmt.Errorf("subDomain is required")
 	}
 	if ignoreType {
 		resp, err := c.DescribeRecordList(profile, region, model.DescribeRecordListRequest{

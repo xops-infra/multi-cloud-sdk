@@ -4,10 +4,6 @@ import (
 	"time"
 )
 
-const (
-	slot = "thisisascreatkey"
-)
-
 type CommonFilter struct {
 	ID string `json:"id"`
 }

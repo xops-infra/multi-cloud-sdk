@@ -9,6 +9,8 @@ go get -u github.com/xops-infra/multi-cloud-sdk@main
 [cloud.go](pkg/model/cloud.go)
 
 ### 开发日志
+- 2024-04:
+    - feat: add s3&cos 比原版 SDK 增强，支持 tag返回以及s3 location 返回。
 - 2024-03:
     - feat: remove reigon的初始配置，改为传参后 new client. 这样不需要初始化 N多 client.
     - feat: 支持查询分页

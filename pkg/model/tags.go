@@ -5,15 +5,63 @@ import (
 
 	"github.com/aws/aws-sdk-go/aws"
 	"github.com/aws/aws-sdk-go/service/ec2"
+	"github.com/aws/aws-sdk-go/service/s3"
 	cvm "github.com/tencentcloud/tencentcloud-sdk-go/tencentcloud/cvm/v20170312"
 	tencentTag "github.com/tencentcloud/tencentcloud-sdk-go/tencentcloud/tag/v20180813"
 	tencentVpc "github.com/tencentcloud/tencentcloud-sdk-go/tencentcloud/vpc/v20170312"
+	cos "github.com/tencentyun/cos-go-sdk-v5"
 )
 
 type Tags []Tag
 
+func NewTagsFromAWSS3Tags(tags []*s3.Tag) Tags {
+	var modelTags Tags
+	for _, tag := range tags {
+		modelTags = append(modelTags, Tag{
+			Key:   *tag.Key,
+			Value: *tag.Value,
+		})
+	}
+	return modelTags
+}
+
+func NewTagsFromTencentCosTags(tags []cos.BucketTaggingTag) Tags {
+	var modelTags Tags
+	for _, tag := range tags {
+		modelTags = append(modelTags, Tag{
+			Key:   tag.Key,
+			Value: tag.Value,
+		})
+	}
+	return modelTags
+}
+
 type CreateTagsInput struct {
 	Tags Tags
+}
+
+// to aws s3 tags
+func (t Tags) ToAWSS3Tags() []*s3.Tag {
+	var tags []*s3.Tag
+	for _, tag := range t {
+		tags = append(tags, &s3.Tag{
+			Key:   aws.String(tag.Key),
+			Value: aws.String(tag.Value),
+		})
+	}
+	return tags
+}
+
+// to tencent cos tags
+func (t Tags) ToTencentCosTags() []cos.BucketTaggingTag {
+	var tags []cos.BucketTaggingTag
+	for _, tag := range t {
+		tags = append(tags, cos.BucketTaggingTag{
+			Key:   tag.Key,
+			Value: tag.Value,
+		})
+	}
+	return tags
 }
 
 // to string

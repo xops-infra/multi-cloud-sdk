@@ -3,6 +3,7 @@ package io
 import (
 	"fmt"
 	"net/http"
+	"net/url"
 	"strings"
 
 	"github.com/alibabacloud-go/tea/tea"
@@ -115,7 +116,7 @@ func (c *cloudClient) GetAwsEc2Client(accountId, region string) (*ec2.EC2, error
 }
 
 // getAwsObjectStorageClient
-func (c *cloudClient) GetAWSObjectStorageClient(accountId, region string) (*s3.S3, error) {
+func (c *cloudClient) GetAWSS3Client(accountId, region string) (*s3.S3, error) {
 	// s3 不需要指定 region，但是需要指定 endpoint
 	// endpoint 不能是 eu-central-1 否则无响应，直到超时
 	sess, err := c.getAWSSession(accountId)
@@ -181,12 +182,17 @@ func (c *cloudClient) GetTencentVpcClient(accountId, region string) (*tencentVpc
 	return tencentVpc.NewClient(credential, region, clientProfile)
 }
 
-func (c *cloudClient) GetTencentObjectStorageClient(accountId, region string) (*cos.Client, error) {
+// host "https://billing-1251949819.cos.ap-shanghai.myqcloud.com"
+func (c *cloudClient) GetTencentCosClient(accountId, host string) (*cos.Client, error) {
 	credential, err := c.getTencentCredential(accountId)
 	if err != nil {
 		return nil, err
 	}
-	client := cos.NewClient(nil, &http.Client{
+	u, _ := url.Parse(host)
+	b := &cos.BaseURL{
+		ServiceURL: u,
+	}
+	client := cos.NewClient(b, &http.Client{
 		Transport: &cos.AuthorizationTransport{
 			SecretID:  credential.SecretId,
 			SecretKey: credential.SecretKey,

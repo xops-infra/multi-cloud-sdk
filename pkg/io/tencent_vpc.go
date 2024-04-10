@@ -198,7 +198,7 @@ func (c *tencentClient) CreateSecurityGroupPolicies(profile, region string, inpu
 	// 返回的resp是一个CreateSecurityGroupPoliciesResponse的实例，与请求对象对应
 	response, err := client.CreateSecurityGroupPolicies(request)
 	if _, ok := err.(*errors.TencentCloudSDKError); ok {
-		return model.CreateSecurityGroupPoliciesResponse{}, fmt.Errorf("An API error has returned: %s", err)
+		return model.CreateSecurityGroupPoliciesResponse{}, fmt.Errorf("an api error has returned: %s", err)
 	}
 	if err != nil {
 		return model.CreateSecurityGroupPoliciesResponse{}, err
