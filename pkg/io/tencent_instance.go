@@ -81,7 +81,7 @@ func (c *tencentClient) CreateInstance(profile, region string, input model.Creat
 	}
 	response, err := client.RunInstances(input.ToTencentRunInstancesRequest())
 	if _, ok := err.(*errors.TencentCloudSDKError); ok {
-		return model.CreateInstanceResponse{}, fmt.Errorf("An API error has returned: %s", err)
+		return model.CreateInstanceResponse{}, fmt.Errorf("an api error has returned: %s", err)
 	}
 	if err != nil {
 		return model.CreateInstanceResponse{}, err
@@ -103,7 +103,7 @@ func (c *tencentClient) QueryRegions(profile, region string) (*cvm.DescribeZones
 	// 返回的resp是一个DescribeZonesResponse的实例，与请求对象对应
 	response, err := svc.DescribeZones(request)
 	if _, ok := err.(*errors.TencentCloudSDKError); ok {
-		return nil, fmt.Errorf("An API error has returned: %s", err)
+		return nil, fmt.Errorf("an api error has returned: %s", err)
 	}
 	if err != nil {
 		return nil, err
@@ -140,7 +140,7 @@ func (c *tencentClient) StartInstance(profile, region string, instances []*strin
 	request.InstanceIds = instances
 	response, err := client.StartInstances(request)
 	if _, ok := err.(*errors.TencentCloudSDKError); ok {
-		return model.ModifyInstanceResponse{}, fmt.Errorf("An API error has returned: %s", err)
+		return model.ModifyInstanceResponse{}, fmt.Errorf("an api error has returned: %s", err)
 	}
 	if err != nil {
 		return model.ModifyInstanceResponse{}, err
@@ -159,7 +159,7 @@ func (c *tencentClient) StopInstance(profile, region string, instances []*string
 	request.InstanceIds = instances
 	response, err := client.StopInstances(request)
 	if _, ok := err.(*errors.TencentCloudSDKError); ok {
-		return model.ModifyInstanceResponse{}, fmt.Errorf("An API error has returned: %s", err)
+		return model.ModifyInstanceResponse{}, fmt.Errorf("an api error has returned: %s", err)
 	}
 	if err != nil {
 		return model.ModifyInstanceResponse{}, err
@@ -178,7 +178,7 @@ func (c *tencentClient) RebootInstance(profile, region string, instances []*stri
 	request.InstanceIds = instances
 	response, err := client.RebootInstances(request)
 	if _, ok := err.(*errors.TencentCloudSDKError); ok {
-		return model.ModifyInstanceResponse{}, fmt.Errorf("An API error has returned: %s", err)
+		return model.ModifyInstanceResponse{}, fmt.Errorf("an api error has returned: %s", err)
 	}
 	if err != nil {
 		return model.ModifyInstanceResponse{}, err
@@ -212,7 +212,7 @@ func (c *tencentClient) ResetInstance(profile, region string, instanceIDs []*str
 	}
 	response, err := client.ResetInstance(request)
 	if _, ok := err.(*errors.TencentCloudSDKError); ok {
-		return model.ModifyInstanceResponse{}, fmt.Errorf("An API error has returned: %s", err)
+		return model.ModifyInstanceResponse{}, fmt.Errorf("an api error has returned: %s", err)
 	}
 	if err != nil {
 		return model.ModifyInstanceResponse{}, err
@@ -234,7 +234,7 @@ func (c *tencentClient) ChangeInstanceType(profile, region string, instances []*
 	request.ForceStop = tea.Bool(false)
 	response, err := client.ResetInstancesType(request)
 	if _, ok := err.(*errors.TencentCloudSDKError); ok {
-		return model.ModifyInstanceResponse{}, fmt.Errorf("An API error has returned: %s", err)
+		return model.ModifyInstanceResponse{}, fmt.Errorf("an api error has returned: %s", err)
 	}
 	if err != nil {
 		return model.ModifyInstanceResponse{}, err
@@ -251,7 +251,7 @@ func (c *tencentClient) DeleteInstance(profile, region string, input model.Delet
 	}
 	response, err := client.TerminateInstances(input.ToTencentTerminateInstancesRequest())
 	if _, ok := err.(*errors.TencentCloudSDKError); ok {
-		return model.DeleteInstanceResponse{}, fmt.Errorf("An API error has returned: %s", err)
+		return model.DeleteInstanceResponse{}, fmt.Errorf("an api error has returned: %s", err)
 	}
 	if err != nil {
 		return model.DeleteInstanceResponse{}, err

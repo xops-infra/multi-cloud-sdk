@@ -18,7 +18,7 @@ require (
 	github.com/tencentcloud/tencentcloud-sdk-go/tencentcloud/tag v1.0.753
 	github.com/tencentcloud/tencentcloud-sdk-go/tencentcloud/tiia v1.0.759
 	github.com/tencentcloud/tencentcloud-sdk-go/tencentcloud/vpc v1.0.753
-	github.com/tencentyun/cos-go-sdk-v5 v0.7.43
+	github.com/tencentyun/cos-go-sdk-v5 v0.7.47
 )
 
 require (

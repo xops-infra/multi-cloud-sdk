@@ -33,7 +33,7 @@ func (c *tencentClient) DescribePrivateDomainList(profile string, input model.De
 	// 返回的resp是一个DescribePrivateZoneListResponse的实例，与请求对象对应
 	response, err := client.DescribePrivateZoneList(request)
 	if _, ok := err.(*errors.TencentCloudSDKError); ok {
-		return model.DescribePrivateDomainListResponse{}, fmt.Errorf("An API error has returned: %s", err.Error())
+		return model.DescribePrivateDomainListResponse{}, fmt.Errorf("an api error has returned: %s", err.Error())
 	}
 	if err != nil {
 		return model.DescribePrivateDomainListResponse{}, err
@@ -82,7 +82,7 @@ func (c *tencentClient) DescribePrivateRecordList(profile string, input model.De
 	// 实例化一个请求对象,每个接口都会对应一个request对象
 	request := privatedns.NewDescribePrivateZoneRecordListRequest()
 	if input.Domain == nil {
-		return model.DescribePrivateRecordListResponse{}, fmt.Errorf("Domain is required")
+		return model.DescribePrivateRecordListResponse{}, fmt.Errorf("domain is required")
 	}
 	zoneId, err := c.getDomainIdByname(profile, *input.Domain)
 	if err != nil {
@@ -94,7 +94,7 @@ func (c *tencentClient) DescribePrivateRecordList(profile string, input model.De
 	// 返回的resp是一个DescribePrivateZoneRecordListResponse的实例，与请求对象对应
 	response, err := client.DescribePrivateZoneRecordList(request)
 	if _, ok := err.(*errors.TencentCloudSDKError); ok {
-		return model.DescribePrivateRecordListResponse{}, fmt.Errorf("An API error has returned: %s", err.Error())
+		return model.DescribePrivateRecordListResponse{}, fmt.Errorf("an api error has returned: %s", err.Error())
 	}
 	if err != nil {
 		return model.DescribePrivateRecordListResponse{}, err
@@ -144,7 +144,7 @@ func (c *tencentClient) DescribePrivateRecordListWithPages(profile string, input
 	// 实例化一个请求对象,每个接口都会对应一个request对象
 	request := privatedns.NewDescribePrivateZoneRecordListRequest()
 	if input.Domain == nil {
-		return model.ListRecordsPageResponse{}, fmt.Errorf("Domain is required")
+		return model.ListRecordsPageResponse{}, fmt.Errorf("domain is required")
 	}
 	zoneId, err := c.getDomainIdByname(profile, *input.Domain)
 	if err != nil {
@@ -161,7 +161,7 @@ func (c *tencentClient) DescribePrivateRecordListWithPages(profile string, input
 	// 返回的resp是一个DescribePrivateZoneRecordListResponse的实例，与请求对象对应
 	response, err := client.DescribePrivateZoneRecordList(request)
 	if _, ok := err.(*errors.TencentCloudSDKError); ok {
-		return model.ListRecordsPageResponse{}, fmt.Errorf("An API error has returned: %s", err.Error())
+		return model.ListRecordsPageResponse{}, fmt.Errorf("an api error has returned: %s", err.Error())
 	}
 	if err != nil {
 		return model.ListRecordsPageResponse{}, err
@@ -205,7 +205,7 @@ func (c *tencentClient) CreatePrivateRecord(profile string, input model.CreateRe
 	request := privatedns.NewCreatePrivateZoneRecordRequest()
 	request.TTL = tea.Int64(60) // 默认60
 	if input.Domain == nil {
-		return model.CreateRecordResponse{}, fmt.Errorf("Domain is required")
+		return model.CreateRecordResponse{}, fmt.Errorf("domain is required")
 	}
 	zoneId, err := c.getDomainIdByname(profile, *input.Domain)
 	if err != nil {
@@ -213,17 +213,17 @@ func (c *tencentClient) CreatePrivateRecord(profile string, input model.CreateRe
 	}
 	request.ZoneId = tea.String(zoneId)
 	if input.RecordType == nil {
-		return model.CreateRecordResponse{}, fmt.Errorf("RecordType is required")
+		return model.CreateRecordResponse{}, fmt.Errorf("recordtype is required")
 	}
 	if input.TTL != nil {
 		request.TTL = tea.Int64(cast.ToInt64(*input.TTL))
 	}
 	if input.SubDomain == nil {
-		return model.CreateRecordResponse{}, fmt.Errorf("SubDomain is required")
+		return model.CreateRecordResponse{}, fmt.Errorf("subdomain is required")
 	}
 	request.SubDomain = input.SubDomain
 	if input.Value == nil {
-		return model.CreateRecordResponse{}, fmt.Errorf("Value is required")
+		return model.CreateRecordResponse{}, fmt.Errorf("value is required")
 	}
 	request.RecordValue = input.Value
 	request.RecordType = input.RecordType
@@ -231,7 +231,7 @@ func (c *tencentClient) CreatePrivateRecord(profile string, input model.CreateRe
 	// 返回的resp是一个CreatePrivateZoneRecordResponse的实例，与请求对象对应
 	response, err := client.CreatePrivateZoneRecord(request)
 	if _, ok := err.(*errors.TencentCloudSDKError); ok {
-		return model.CreateRecordResponse{}, fmt.Errorf("An API error has returned: %s", err.Error())
+		return model.CreateRecordResponse{}, fmt.Errorf("an api error has returned: %s", err.Error())
 	}
 	if err != nil {
 		return model.CreateRecordResponse{}, err
@@ -248,7 +248,7 @@ func (c *tencentClient) ModifyPrivateRecord(profile string, input model.ModifyRe
 		return err
 	}
 	if input.Domain == nil {
-		return fmt.Errorf("Domain is required")
+		return fmt.Errorf("domain is required")
 	}
 	zoneId, err := c.getDomainIdByname(profile, *input.Domain)
 	if err != nil {
@@ -263,17 +263,17 @@ func (c *tencentClient) ModifyPrivateRecord(profile string, input model.ModifyRe
 	request.RecordId = tea.String(cast.ToString(*input.RecordId))
 
 	if input.RecordType == nil {
-		return fmt.Errorf("RecordType is required")
+		return fmt.Errorf("recordtype is required")
 	}
 	request.RecordType = input.RecordType
 
 	if input.SubDomain == nil {
-		return fmt.Errorf("SubDomain is required")
+		return fmt.Errorf("subdomain is required")
 	}
 	request.SubDomain = input.SubDomain
 
 	if input.Value == nil {
-		return fmt.Errorf("Value is required")
+		return fmt.Errorf("value is required")
 	}
 	request.RecordValue = input.Value
 
@@ -286,12 +286,12 @@ func (c *tencentClient) ModifyPrivateRecord(profile string, input model.ModifyRe
 	}
 
 	if input.Status != nil {
-		return fmt.Errorf("Status is not supported for tencent cloud private dns. remove it from input.")
+		return fmt.Errorf("status is not supported for tencent cloud private dns. remove it from input")
 	}
 
 	_, err = client.ModifyPrivateZoneRecord(request)
 	if _, ok := err.(*errors.TencentCloudSDKError); ok {
-		return fmt.Errorf("An API error has returned: %s", err.Error())
+		return fmt.Errorf("an api error has returned: %s", err.Error())
 	}
 	if err != nil {
 		return err
@@ -306,7 +306,7 @@ func (c *tencentClient) DeletePrivateRecord(profile string, input model.DeletePr
 		return err
 	}
 	if input.Domain == nil {
-		return fmt.Errorf("Domain is required")
+		return fmt.Errorf("domain is required")
 	}
 	zoneId, err := c.getDomainIdByname(profile, *input.Domain)
 	if err != nil {
@@ -316,13 +316,13 @@ func (c *tencentClient) DeletePrivateRecord(profile string, input model.DeletePr
 	request := privatedns.NewDeletePrivateZoneRecordRequest()
 	request.ZoneId = tea.String(zoneId)
 	if input.RecordId == nil && input.RecordIds == nil {
-		return fmt.Errorf("RecordId & RecordIds must have one")
+		return fmt.Errorf("recordid & RecordIds must have one")
 	}
 	request.RecordId = input.RecordId
 	request.RecordIdSet = input.RecordIds
 	_, err = client.DeletePrivateZoneRecord(request)
 	if _, ok := err.(*errors.TencentCloudSDKError); ok {
-		return fmt.Errorf("An API error has returned: %s", err.Error())
+		return fmt.Errorf("an api error has returned: %s", err.Error())
 	}
 	if err != nil {
 		return err
