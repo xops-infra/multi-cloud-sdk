@@ -4,17 +4,6 @@ package model
 https://console.cloud.tencent.com/api/explorer?Product=tiia&Version=2019-05-29&Action=SearchImage
 */
 
-type OcrContract interface {
-	QueryOcr(profile, region string, input OcrRequest) (OcrResponse, error)
-	// tiia
-	CreatePicture(profile, region string, input CreatePictureRequest) (CreatePictureResponse, error)
-	GetPictureByName(profile, region string, input CommonPictureRequest) (GetPictureByNameResponse, error)
-	QueryPicture(profile, region string, input QueryPictureRequest) (QueryPictureResponse, error)
-	DeletePicture(profile, region string, input CommonPictureRequest) (CommonPictureResponse, error)
-	UpdatePicture(profile, region string, input UpdatePictureRequest) (CommonPictureResponse, error)
-	SearchPicture(profile, region string, input SearchPictureRequest) (SearchPictureResponse, error)
-}
-
 type OcrResponse struct {
 	TextDetections []TextDetection `json:"text_detections"`
 }

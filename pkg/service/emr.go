@@ -4,20 +4,7 @@ import (
 	"github.com/xops-infra/multi-cloud-sdk/pkg/model"
 )
 
-type EmrService struct {
-	Profiles     []model.ProfileConfig
-	Aws, Tencent model.CloudIO
-}
-
-func NewEmrService(profiles []model.ProfileConfig, aws, tencent model.CloudIO) model.EmrContact {
-	return &EmrService{
-		Profiles: profiles,
-		Aws:      aws,
-		Tencent:  tencent,
-	}
-}
-
-func (s *EmrService) DescribeEmrCluster(input model.DescribeInput) ([]model.DescribeEmrCluster, error) {
+func (s *CommonService) DescribeEmrCluster(input model.DescribeInput) ([]model.DescribeEmrCluster, error) {
 	for _, cfgProfile := range s.Profiles {
 		if cfgProfile.Name == *input.Profile {
 			switch cfgProfile.Cloud {
@@ -41,7 +28,7 @@ func (s *EmrService) DescribeEmrCluster(input model.DescribeInput) ([]model.Desc
 	return nil, model.ErrProfileNotFound
 }
 
-func (s *EmrService) QueryEmrCluster(input model.EmrFilter) (model.FilterEmrResponse, error) {
+func (s *CommonService) QueryEmrCluster(input model.EmrFilter) (model.FilterEmrResponse, error) {
 	for _, cfgProfile := range s.Profiles {
 		if cfgProfile.Name == *input.Profile {
 			switch cfgProfile.Cloud {

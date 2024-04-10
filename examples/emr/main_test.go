@@ -13,7 +13,7 @@ import (
 	"github.com/xops-infra/multi-cloud-sdk/pkg/service"
 )
 
-var emrC model.EmrContact
+var emrC model.CommonContract
 
 func init() {
 	err := godotenv.Load(".env")
@@ -37,7 +37,7 @@ func init() {
 	cloudIo := io.NewCloudClient(profiles)
 	aws := io.NewAwsClient(cloudIo)
 	tencent := io.NewTencentClient(cloudIo)
-	emrC = service.NewEmrService(profiles, aws, tencent)
+	emrC = service.NewCommonService(profiles, aws, tencent)
 }
 
 func TestDescribeEmr(t *testing.T) {

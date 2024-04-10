@@ -2,20 +2,7 @@ package service
 
 import "github.com/xops-infra/multi-cloud-sdk/pkg/model"
 
-type OcrService struct {
-	Profiles     []model.ProfileConfig
-	Aws, Tencent model.CloudIO
-}
-
-func NewOcrService(profiles []model.ProfileConfig, aws, tencent model.CloudIO) model.OcrContract {
-	return &OcrService{
-		Profiles: profiles,
-		Aws:      aws,
-		Tencent:  tencent,
-	}
-}
-
-func (s *OcrService) QueryOcr(profile, region string, request model.OcrRequest) (model.OcrResponse, error) {
+func (s *CommonService) QueryOcr(profile, region string, request model.OcrRequest) (model.OcrResponse, error) {
 	for _, p := range s.Profiles {
 		if p.Name == profile {
 			switch p.Cloud {
@@ -32,7 +19,7 @@ func (s *OcrService) QueryOcr(profile, region string, request model.OcrRequest) 
 }
 
 // tiia CreatePicture
-func (s *OcrService) CreatePicture(profile, region string, request model.CreatePictureRequest) (model.CreatePictureResponse, error) {
+func (s *CommonService) CreatePicture(profile, region string, request model.CreatePictureRequest) (model.CreatePictureResponse, error) {
 	for _, p := range s.Profiles {
 		if p.Name == profile {
 			switch p.Cloud {
@@ -49,7 +36,7 @@ func (s *OcrService) CreatePicture(profile, region string, request model.CreateP
 }
 
 // tiia GetPictureByName
-func (s *OcrService) GetPictureByName(profile, region string, input model.CommonPictureRequest) (model.GetPictureByNameResponse, error) {
+func (s *CommonService) GetPictureByName(profile, region string, input model.CommonPictureRequest) (model.GetPictureByNameResponse, error) {
 	for _, p := range s.Profiles {
 		if p.Name == profile {
 			switch p.Cloud {
@@ -64,7 +51,7 @@ func (s *OcrService) GetPictureByName(profile, region string, input model.Common
 }
 
 // tiia QueryPicture
-func (s *OcrService) QueryPicture(profile, region string, input model.QueryPictureRequest) (model.QueryPictureResponse, error) {
+func (s *CommonService) QueryPicture(profile, region string, input model.QueryPictureRequest) (model.QueryPictureResponse, error) {
 	for _, p := range s.Profiles {
 		if p.Name == profile {
 			switch p.Cloud {
@@ -79,7 +66,7 @@ func (s *OcrService) QueryPicture(profile, region string, input model.QueryPictu
 }
 
 // tiia DeletePicture
-func (s *OcrService) DeletePicture(profile, region string, input model.CommonPictureRequest) (model.CommonPictureResponse, error) {
+func (s *CommonService) DeletePicture(profile, region string, input model.CommonPictureRequest) (model.CommonPictureResponse, error) {
 	for _, p := range s.Profiles {
 		if p.Name == profile {
 			switch p.Cloud {
@@ -94,7 +81,7 @@ func (s *OcrService) DeletePicture(profile, region string, input model.CommonPic
 }
 
 // tiia UpdatePicture
-func (s *OcrService) UpdatePicture(profile, region string, input model.UpdatePictureRequest) (model.CommonPictureResponse, error) {
+func (s *CommonService) UpdatePicture(profile, region string, input model.UpdatePictureRequest) (model.CommonPictureResponse, error) {
 	for _, p := range s.Profiles {
 		if p.Name == profile {
 			switch p.Cloud {
@@ -109,7 +96,7 @@ func (s *OcrService) UpdatePicture(profile, region string, input model.UpdatePic
 }
 
 // tiia SearchPicture
-func (s *OcrService) SearchPicture(profile, region string, input model.SearchPictureRequest) (model.SearchPictureResponse, error) {
+func (s *CommonService) SearchPicture(profile, region string, input model.SearchPictureRequest) (model.SearchPictureResponse, error) {
 	for _, p := range s.Profiles {
 		if p.Name == profile {
 			switch p.Cloud {

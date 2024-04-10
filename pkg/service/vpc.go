@@ -4,20 +4,7 @@ import (
 	"github.com/xops-infra/multi-cloud-sdk/pkg/model"
 )
 
-type VpcService struct {
-	Profiles     []model.ProfileConfig
-	Aws, Tencent model.CloudIO
-}
-
-func NewVpcService(profiles []model.ProfileConfig, aws, tencent model.CloudIO) model.VpcContract {
-	return &VpcService{
-		Profiles: profiles,
-		Aws:      aws,
-		Tencent:  tencent,
-	}
-}
-
-func (s *VpcService) QueryVPCs(profile, region string, input model.CommonFilter) ([]model.VPC, error) {
+func (s *CommonService) QueryVPCs(profile, region string, input model.CommonFilter) ([]model.VPC, error) {
 	for _, cfgProfile := range s.Profiles {
 		if cfgProfile.Name == profile {
 			switch cfgProfile.Cloud {
@@ -33,7 +20,7 @@ func (s *VpcService) QueryVPCs(profile, region string, input model.CommonFilter)
 	return nil, model.ErrProfileNotFound
 }
 
-func (s *VpcService) QueryEIPs(profile, region string, input model.CommonFilter) ([]model.EIP, error) {
+func (s *CommonService) QueryEIPs(profile, region string, input model.CommonFilter) ([]model.EIP, error) {
 	for _, cfgProfile := range s.Profiles {
 		if cfgProfile.Name == profile {
 			switch cfgProfile.Cloud {
@@ -49,7 +36,7 @@ func (s *VpcService) QueryEIPs(profile, region string, input model.CommonFilter)
 	return nil, model.ErrProfileNotFound
 }
 
-func (s *VpcService) QueryNATs(profile, region string, input model.CommonFilter) (nats []model.NAT, err error) {
+func (s *CommonService) QueryNATs(profile, region string, input model.CommonFilter) (nats []model.NAT, err error) {
 	for _, cfgProfile := range s.Profiles {
 		if cfgProfile.Name == profile {
 			switch cfgProfile.Cloud {
@@ -65,7 +52,7 @@ func (s *VpcService) QueryNATs(profile, region string, input model.CommonFilter)
 	return nil, model.ErrProfileNotFound
 }
 
-func (s *VpcService) QuerySubnets(profile, region string, input model.CommonFilter) (subnets []model.Subnet, err error) {
+func (s *CommonService) QuerySubnets(profile, region string, input model.CommonFilter) (subnets []model.Subnet, err error) {
 	for _, cfgProfile := range s.Profiles {
 		if cfgProfile.Name == profile {
 			switch cfgProfile.Cloud {
