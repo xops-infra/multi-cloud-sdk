@@ -13,7 +13,7 @@ import (
 	server "github.com/xops-infra/multi-cloud-sdk/pkg/service"
 )
 
-var ocrS model.OcrContract
+var ocrS model.CommonContract
 
 func init() {
 	err := godotenv.Load(".env")
@@ -35,7 +35,7 @@ func init() {
 	cloudIo := io.NewCloudClient(profiles)
 	serverTencent := io.NewTencentClient(cloudIo)
 	serverAws := io.NewAwsClient(cloudIo)
-	ocrS = server.NewOcrService(profiles, serverAws, serverTencent)
+	ocrS = server.NewCommonService(profiles, serverAws, serverTencent)
 }
 
 func TestOcr(t *testing.T) {

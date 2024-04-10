@@ -12,7 +12,7 @@ import (
 	server "github.com/xops-infra/multi-cloud-sdk/pkg/service"
 )
 
-var vpcS model.VpcContract
+var vpcS model.CommonContract
 
 func init() {
 	err := godotenv.Load(".env")
@@ -36,7 +36,7 @@ func init() {
 	cloudIo := io.NewCloudClient(profiles)
 	serverTencent := io.NewTencentClient(cloudIo)
 	serverAws := io.NewAwsClient(cloudIo)
-	vpcS = server.NewVpcService(profiles, serverAws, serverTencent)
+	vpcS = server.NewCommonService(profiles, serverAws, serverTencent)
 }
 
 func TestAws(t *testing.T) {

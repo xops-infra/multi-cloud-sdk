@@ -14,7 +14,7 @@ import (
 	server "github.com/xops-infra/multi-cloud-sdk/pkg/service"
 )
 
-var serverS model.InstanceContact
+var serverS model.CommonContract
 
 func init() {
 	err := godotenv.Load(".env")
@@ -38,7 +38,7 @@ func init() {
 	cloudIo := io.NewCloudClient(profiles)
 	serverTencent := io.NewTencentClient(cloudIo)
 	serverAws := io.NewAwsClient(cloudIo)
-	serverS = server.NewServer(profiles, serverAws, serverTencent)
+	serverS = server.NewCommonService(profiles, serverAws, serverTencent)
 }
 
 func TestDescribeServers(t *testing.T) {

@@ -8,13 +8,6 @@ import (
 	cvm "github.com/tencentcloud/tencentcloud-sdk-go/tencentcloud/cvm/v20170312"
 )
 
-type InstanceContact interface {
-	DescribeInstances(profile, region string, input InstanceFilter) (InstanceResponse, error)
-	CreateInstance(profile, region string, input CreateInstanceInput) (CreateInstanceResponse, error)
-	ModifyInstance(profile, region string, input ModifyInstanceInput) (ModifyInstanceResponse, error)
-	DeleteInstance(profile, region string, input DeleteInstanceInput) (DeleteInstanceResponse, error)
-}
-
 type Instance struct {
 	Name       *string        `json:"name"`
 	InstanceID *string        `json:"instance_id" gorm:"primarykey"`

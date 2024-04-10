@@ -7,26 +7,8 @@ import (
 	"github.com/xops-infra/multi-cloud-sdk/pkg/model"
 )
 
-type DnsService struct {
-	Profiles     map[string]model.ProfileConfig
-	Aws, Tencent model.CloudIO
-}
-
-func NewDnsService(profiles []model.ProfileConfig, aws, tencent model.CloudIO) model.DnsContract {
-	_profiles := make(map[string]model.ProfileConfig)
-	for _, p := range profiles {
-		_profiles[p.Name] = p
-
-	}
-	return &DnsService{
-		Profiles: _profiles,
-		Aws:      aws,
-		Tencent:  tencent,
-	}
-}
-
 // PrivateDomainList
-func (s *DnsService) PrivateDomainList(profile string, req model.DescribeDomainListRequest) (model.DescribePrivateDomainListResponse, error) {
+func (s *CommonService) PrivateDomainList(profile string, req model.DescribeDomainListRequest) (model.DescribePrivateDomainListResponse, error) {
 	if p, ok := s.Profiles[profile]; ok {
 		switch p.Cloud {
 		case model.AWS:
@@ -41,7 +23,7 @@ func (s *DnsService) PrivateDomainList(profile string, req model.DescribeDomainL
 }
 
 // PrivateRecordList
-func (s *DnsService) PrivateRecordList(profile string, req model.DescribePrivateRecordListRequest) (model.DescribePrivateRecordListResponse, error) {
+func (s *CommonService) PrivateRecordList(profile string, req model.DescribePrivateRecordListRequest) (model.DescribePrivateRecordListResponse, error) {
 	if p, ok := s.Profiles[profile]; ok {
 		switch p.Cloud {
 		case model.AWS:
@@ -56,7 +38,7 @@ func (s *DnsService) PrivateRecordList(profile string, req model.DescribePrivate
 }
 
 // PrivateRecordListWithPages
-func (s *DnsService) PrivateRecordListWithPages(profile string, req model.DescribePrivateDnsRecordListWithPageRequest) (model.ListRecordsPageResponse, error) {
+func (s *CommonService) PrivateRecordListWithPages(profile string, req model.DescribePrivateDnsRecordListWithPageRequest) (model.ListRecordsPageResponse, error) {
 	if p, ok := s.Profiles[profile]; ok {
 		switch p.Cloud {
 		case model.AWS:
@@ -72,7 +54,7 @@ func (s *DnsService) PrivateRecordListWithPages(profile string, req model.Descri
 }
 
 // PrivateCreateRecord
-func (s *DnsService) PrivateCreateRecord(profile string, request model.CreateRecordRequest) (model.CreateRecordResponse, error) {
+func (s *CommonService) PrivateCreateRecord(profile string, request model.CreateRecordRequest) (model.CreateRecordResponse, error) {
 	if p, ok := s.Profiles[profile]; ok {
 		switch p.Cloud {
 		case model.AWS:
@@ -87,7 +69,7 @@ func (s *DnsService) PrivateCreateRecord(profile string, request model.CreateRec
 }
 
 // PrivateModifyRecord
-func (s *DnsService) PrivateModifyRecord(profile string, request model.ModifyRecordRequest) error {
+func (s *CommonService) PrivateModifyRecord(profile string, request model.ModifyRecordRequest) error {
 	if p, ok := s.Profiles[profile]; ok {
 		switch p.Cloud {
 		case model.AWS:
@@ -102,7 +84,7 @@ func (s *DnsService) PrivateModifyRecord(profile string, request model.ModifyRec
 }
 
 // PrivateDeleteRecord
-func (s *DnsService) PrivateDeleteRecord(profile string, request model.DeletePrivateRecordRequest) error {
+func (s *CommonService) PrivateDeleteRecord(profile string, request model.DeletePrivateRecordRequest) error {
 	if p, ok := s.Profiles[profile]; ok {
 		switch p.Cloud {
 		case model.AWS:
@@ -117,7 +99,7 @@ func (s *DnsService) PrivateDeleteRecord(profile string, request model.DeletePri
 }
 
 // DescribeDomainList
-func (s *DnsService) DescribeDomainList(profile, region string, req model.DescribeDomainListRequest) (model.DescribeDomainListResponse, error) {
+func (s *CommonService) DescribeDomainList(profile, region string, req model.DescribeDomainListRequest) (model.DescribeDomainListResponse, error) {
 	if p, ok := s.Profiles[profile]; ok {
 		switch p.Cloud {
 		case model.AWS:
@@ -132,7 +114,7 @@ func (s *DnsService) DescribeDomainList(profile, region string, req model.Descri
 }
 
 // DescribeRecordList
-func (s *DnsService) DescribeRecordList(profile, region string, req model.DescribeRecordListRequest) (model.DescribeRecordListResponse, error) {
+func (s *CommonService) DescribeRecordList(profile, region string, req model.DescribeRecordListRequest) (model.DescribeRecordListResponse, error) {
 	if p, ok := s.Profiles[profile]; ok {
 		switch p.Cloud {
 		case model.AWS:
@@ -147,7 +129,7 @@ func (s *DnsService) DescribeRecordList(profile, region string, req model.Descri
 }
 
 // DescribeRecordListWithPages
-func (s *DnsService) DescribeRecordListWithPages(profile, region string, req model.DescribeRecordListWithPageRequest) (model.ListRecordsPageResponse, error) {
+func (s *CommonService) DescribeRecordListWithPages(profile, region string, req model.DescribeRecordListWithPageRequest) (model.ListRecordsPageResponse, error) {
 	if p, ok := s.Profiles[profile]; ok {
 		switch p.Cloud {
 		case model.AWS:
@@ -163,7 +145,7 @@ func (s *DnsService) DescribeRecordListWithPages(profile, region string, req mod
 }
 
 // DescribeRecord
-func (s *DnsService) DescribeRecord(profile, region string, req model.DescribeRecordRequest) (model.Record, error) {
+func (s *CommonService) DescribeRecord(profile, region string, req model.DescribeRecordRequest) (model.Record, error) {
 	if p, ok := s.Profiles[profile]; ok {
 		switch p.Cloud {
 		case model.AWS:
@@ -182,7 +164,7 @@ func (s *DnsService) DescribeRecord(profile, region string, req model.DescribeRe
 }
 
 // CreateRecord
-func (s *DnsService) CreateRecord(profile, region string, request model.CreateRecordRequest) (model.CreateRecordResponse, error) {
+func (s *CommonService) CreateRecord(profile, region string, request model.CreateRecordRequest) (model.CreateRecordResponse, error) {
 	if p, ok := s.Profiles[profile]; ok {
 		switch p.Cloud {
 		case model.AWS:
@@ -196,7 +178,7 @@ func (s *DnsService) CreateRecord(profile, region string, request model.CreateRe
 	return model.CreateRecordResponse{}, fmt.Errorf("profile not found")
 }
 
-func (s *DnsService) ModifyRecord(profile, region string, ignoreType bool, request model.ModifyRecordRequest) error {
+func (s *CommonService) ModifyRecord(profile, region string, ignoreType bool, request model.ModifyRecordRequest) error {
 	if p, ok := s.Profiles[profile]; ok {
 		switch p.Cloud {
 		case model.AWS:
@@ -210,7 +192,7 @@ func (s *DnsService) ModifyRecord(profile, region string, ignoreType bool, reque
 	return fmt.Errorf("profile not found")
 }
 
-func (s *DnsService) DeleteRecord(profile, region string, request model.DeleteRecordRequest) (model.CommonDnsResponse, error) {
+func (s *CommonService) DeleteRecord(profile, region string, request model.DeleteRecordRequest) (model.CommonDnsResponse, error) {
 	if request.Domain == nil || request.SubDomain == nil || request.RecordType == nil {
 		return model.CommonDnsResponse{}, fmt.Errorf("domain, subDomain, recordType is required")
 	}

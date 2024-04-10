@@ -13,7 +13,7 @@ import (
 	server "github.com/xops-infra/multi-cloud-sdk/pkg/service"
 )
 
-var dnsS model.DnsContract
+var dnsS model.CommonContract
 
 func init() {
 	err := godotenv.Load(".env")
@@ -40,7 +40,7 @@ func init() {
 	cloudIo := io.NewCloudClient(profiles)
 	serverTencent := io.NewTencentClient(cloudIo)
 	serverAws := io.NewAwsClient(cloudIo)
-	dnsS = server.NewDnsService(profiles, serverAws, serverTencent)
+	dnsS = server.NewCommonService(profiles, serverAws, serverTencent)
 }
 
 func TestAwsDomain(t *testing.T) {

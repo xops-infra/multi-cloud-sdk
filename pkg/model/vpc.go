@@ -15,13 +15,6 @@ type CreateSecurityGroupPoliciesResponse struct {
 	Result any
 }
 
-type VpcContract interface {
-	QueryVPCs(profile, region string, input CommonFilter) ([]VPC, error)
-	QuerySubnets(profile, region string, input CommonFilter) ([]Subnet, error)
-	QueryEIPs(profile, region string, input CommonFilter) ([]EIP, error)
-	QueryNATs(profile, region string, input CommonFilter) ([]NAT, error)
-}
-
 type VPC struct {
 	ID            string `json:"id"`
 	Region        string `json:"region"`

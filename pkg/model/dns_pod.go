@@ -1,22 +1,5 @@
 package model
 
-type DnsContract interface {
-	PrivateDomainList(profile string, req DescribeDomainListRequest) (DescribePrivateDomainListResponse, error)
-	PrivateRecordList(profile string, req DescribePrivateRecordListRequest) (DescribePrivateRecordListResponse, error)
-	PrivateRecordListWithPages(profile string, req DescribePrivateDnsRecordListWithPageRequest) (ListRecordsPageResponse, error)
-	PrivateCreateRecord(profile string, req CreateRecordRequest) (CreateRecordResponse, error)
-	PrivateModifyRecord(profile string, req ModifyRecordRequest) error
-	PrivateDeleteRecord(profile string, req DeletePrivateRecordRequest) error
-
-	DescribeDomainList(profile, region string, req DescribeDomainListRequest) (DescribeDomainListResponse, error)
-	DescribeRecordList(profile, region string, req DescribeRecordListRequest) (DescribeRecordListResponse, error)
-	DescribeRecordListWithPages(profile, region string, req DescribeRecordListWithPageRequest) (ListRecordsPageResponse, error)
-	DescribeRecord(profile, region string, req DescribeRecordRequest) (Record, error)
-	CreateRecord(profile, region string, req CreateRecordRequest) (CreateRecordResponse, error)
-	ModifyRecord(profile, region string, ignoreType bool, req ModifyRecordRequest) error
-	DeleteRecord(profile, region string, req DeleteRecordRequest) (CommonDnsResponse, error)
-}
-
 type DescribeDomainListRequest struct {
 	DomainKeyword *string `json:"keyword"`
 }
