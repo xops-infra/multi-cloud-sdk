@@ -76,3 +76,20 @@ func TestDescribeServers(t *testing.T) {
 
 	t.Log(time.Since(timeStart), len(ids))
 }
+
+// test GetObjectPregisnWithAKSK
+func TestGetObjectPregisnWithAKSK(t *testing.T) {
+	ak := os.Getenv("AWS_ACCESS_KEY_ID")
+	sk := os.Getenv("AWS_SECRET_ACCESS_KEY")
+	region := "cn-northwest-1"
+	input := model.ObjectPregisnRequest{
+		Bucket: tea.String("xxx"),
+		Key:    tea.String("xx/index.html"),
+	}
+	resp, err := serverS.GetObjectPregisnWithAKSK(model.AWS, ak, sk, region, input)
+	if err != nil {
+		t.Error(err)
+		return
+	}
+	t.Log(resp.Url)
+}

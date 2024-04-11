@@ -67,3 +67,14 @@ func (s *CommonService) GetObjectPregisn(profile, region string, input model.Obj
 	}
 	return model.ObjectPregisnResponse{}, model.ErrProfileNotFound
 }
+
+func (s *CommonService) GetObjectPregisnWithAKSK(cloud model.Cloud, ak, sk, region string, input model.ObjectPregisnRequest) (model.ObjectPregisnResponse, error) {
+	switch cloud {
+	case model.AWS:
+		return s.Aws.GetObjectPregisnWithAKSK(ak, sk, region, input)
+	case model.TENCENT:
+		return s.Tencent.GetObjectPregisnWithAKSK(ak, sk, region, input)
+	default:
+		return model.ObjectPregisnResponse{}, model.ErrCloudNotSupported
+	}
+}
