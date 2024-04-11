@@ -7,6 +7,9 @@ import (
 	"time"
 
 	"github.com/alibabacloud-go/tea/tea"
+	"github.com/aws/aws-sdk-go/aws"
+	"github.com/aws/aws-sdk-go/aws/credentials"
+	"github.com/aws/aws-sdk-go/aws/session"
 	"github.com/aws/aws-sdk-go/service/s3"
 	"github.com/xops-infra/multi-cloud-sdk/pkg/model"
 )
@@ -141,9 +144,23 @@ func (c *awsClient) GetObjectPregisn(profile, region string, req model.ObjectPre
 	if err != nil {
 		return model.ObjectPregisnResponse{}, err
 	}
+	return c.getObjectPregisn(client, req)
+}
 
+func (c *awsClient) GetObjectPregisnWithAKSK(ak, sk, region string, req model.ObjectPregisnRequest) (model.ObjectPregisnResponse, error) {
+	cre := credentials.NewStaticCredentials(ak, sk, "")
+	session, err := session.NewSession(aws.NewConfig().WithCredentials(cre))
+	if err != nil {
+		return model.ObjectPregisnResponse{}, err
+	}
+	session.Config.Region = aws.String(region)
+	client := s3.New(session)
+	return c.getObjectPregisn(client, req)
+}
+
+func (c *awsClient) getObjectPregisn(client *s3.S3, req model.ObjectPregisnRequest) (model.ObjectPregisnResponse, error) {
 	// head object
-	_, err = client.HeadObject(&s3.HeadObjectInput{
+	_, err := client.HeadObject(&s3.HeadObjectInput{
 		Bucket: req.Bucket,
 		Key:    req.Key,
 	})

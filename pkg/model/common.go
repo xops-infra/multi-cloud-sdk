@@ -56,4 +56,5 @@ type CommonContract interface {
 	DeleteBucket(profile, region string, input DeleteBucketRequest) (DeleteBucketResponse, error)
 	ListBuckets(profile, region string, input ListBucketRequest) (ListBucketResponse, error)
 	GetObjectPregisn(profile, region string, input ObjectPregisnRequest) (ObjectPregisnResponse, error)
+	GetObjectPregisnWithAKSK(cloud Cloud, ak, sk, region string, input ObjectPregisnRequest) (ObjectPregisnResponse, error)
 }

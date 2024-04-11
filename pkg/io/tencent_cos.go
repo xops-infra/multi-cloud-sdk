@@ -10,6 +10,7 @@ import (
 	"time"
 
 	"github.com/alibabacloud-go/tea/tea"
+	"github.com/tencentcloud/tencentcloud-sdk-go/tencentcloud/common"
 	"github.com/tencentyun/cos-go-sdk-v5"
 	"github.com/xops-infra/multi-cloud-sdk/pkg/model"
 )
@@ -137,11 +138,34 @@ func (c *tencentClient) GetObjectPregisn(profile, region string, input model.Obj
 	if err != nil {
 		return model.ObjectPregisnResponse{}, err
 	}
+	return c.getObjectPregisn(client, region, input)
+}
+
+func (c *tencentClient) GetObjectPregisnWithAKSK(ak, sk, region string, input model.ObjectPregisnRequest) (model.ObjectPregisnResponse, error) {
+	credential := common.NewTokenCredential(ak, sk, "")
+	host := "https://service.cos.myqcloud.com"
+	if region != "" {
+		host = fmt.Sprintf("https://cos.%s.myqcloud.com", region)
+	}
+	u, _ := url.Parse(host)
+	b := &cos.BaseURL{
+		ServiceURL: u,
+	}
+	client := cos.NewClient(b, &http.Client{
+		Transport: &cos.AuthorizationTransport{
+			SecretID:  credential.SecretId,
+			SecretKey: credential.SecretKey,
+		},
+	})
+	return c.getObjectPregisn(client, region, input)
+}
+
+func (c *tencentClient) getObjectPregisn(client *cos.Client, region string, input model.ObjectPregisnRequest) (model.ObjectPregisnResponse, error) {
+
 	bucketUrl, _ := url.Parse(fmt.Sprintf("https://%s.cos.%s.myqcloud.com", *input.Bucket, region))
 	client.BaseURL.BucketURL = bucketUrl
-	// fmt.Println(tea.Prettify(client.BaseURL))
 	// check object exist
-	_, err = client.Object.Head(context.Background(), *input.Key, nil)
+	_, err := client.Object.Head(context.Background(), *input.Key, nil)
 	if err != nil {
 		return model.ObjectPregisnResponse{}, err
 	}
