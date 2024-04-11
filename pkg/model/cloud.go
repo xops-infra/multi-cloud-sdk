@@ -60,4 +60,5 @@ type CloudIO interface {
 	CreateBucket(profile, region string, input CreateBucketRequest) error
 	DeleteBucket(profile, region string, input DeleteBucketRequest) (DeleteBucketResponse, error)
 	ListBucket(profile, region string, input ListBucketRequest) (ListBucketResponse, error) // 比官方多支持了 aws location 返回，并且都带上了tag返回。
+	GetObjectPregisn(profile, region string, input ObjectPregisnRequest) (ObjectPregisnResponse, error)
 }

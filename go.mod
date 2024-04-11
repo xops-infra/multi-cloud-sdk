@@ -6,7 +6,6 @@ require (
 	github.com/alibabacloud-go/tea v1.2.1
 	github.com/aws/aws-sdk-go v1.45.6
 	github.com/joho/godotenv v1.5.1
-	github.com/rogpeppe/go-internal v1.9.0
 	github.com/spf13/cast v1.5.1
 	github.com/stretchr/testify v1.3.0
 	github.com/tencentcloud/tencentcloud-sdk-go/tencentcloud/common v1.0.872

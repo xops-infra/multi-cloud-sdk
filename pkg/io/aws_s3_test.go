@@ -31,3 +31,17 @@ func TestListS3Bucket(t *testing.T) {
 	}
 	t.Log(tea.Prettify(resp))
 }
+
+// TestGetObjectPregisn
+func TestS3GetObjectPregisn(t *testing.T) {
+	resp, err := AwsIo.GetObjectPregisn("aws-us", "us-east-1", model.ObjectPregisnRequest{
+		Bucket: tea.String("zhoushoujiantest"),
+		Key:    tea.String("xxx.pdf"),
+		Expire: tea.Int64(3600),
+	})
+	if err != nil {
+		t.Error(err)
+		return
+	}
+	t.Log(resp.Url)
+}
