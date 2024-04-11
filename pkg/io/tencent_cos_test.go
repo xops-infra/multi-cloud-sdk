@@ -11,7 +11,7 @@ import (
 func TestCreateBucket(t *testing.T) {
 	t.Log("CreateBucket")
 	err := TencentIo.CreateBucket(profile, "ap-beijing", model.CreateBucketRequest{
-		BucketName: tea.String("test-bucket-zsj-1-xxx"),
+		BucketName: tea.String("examplebucket-1250000000"),
 		Tags: model.Tags{
 			{Key: "Owner", Value: "zhoushoujian"},
 			{Key: "Team", Value: "ops"},
@@ -35,4 +35,19 @@ func TestListBucket(t *testing.T) {
 		t.Error(err)
 	}
 	t.Log(tea.Prettify(resp))
+}
+
+// GetObjectPregisn
+func TestGetObjectPregisn(t *testing.T) {
+	t.Log("GetObjectPregisn")
+	resp, err := TencentIo.GetObjectPregisn(profile, "ap-shanghai", model.ObjectPregisnRequest{
+		Bucket: tea.String("examplebucket-1250000000"),
+		Key:    tea.String("test.txt"),
+		Expire: tea.Int64(3600),
+	})
+	if err != nil {
+		t.Error(err)
+		return
+	}
+	t.Log(resp.Url)
 }

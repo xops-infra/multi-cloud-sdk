@@ -183,7 +183,12 @@ func (c *cloudClient) GetTencentVpcClient(accountId, region string) (*tencentVpc
 }
 
 // host "https://billing-1251949819.cos.ap-shanghai.myqcloud.com"
-func (c *cloudClient) GetTencentCosClient(accountId, host string) (*cos.Client, error) {
+func (c *cloudClient) GetTencentCosClient(accountId, region string) (*cos.Client, error) {
+	host := "https://service.cos.myqcloud.com"
+	if region != "" {
+		host = fmt.Sprintf("https://cos.%s.myqcloud.com", region)
+	}
+
 	credential, err := c.getTencentCredential(accountId)
 	if err != nil {
 		return nil, err

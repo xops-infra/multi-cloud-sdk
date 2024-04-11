@@ -51,3 +51,19 @@ func (s *CommonService) DeleteBucket(profile, region string, input model.DeleteB
 	}
 	return model.DeleteBucketResponse{}, model.ErrProfileNotFound
 }
+
+func (s *CommonService) GetObjectPregisn(profile, region string, input model.ObjectPregisnRequest) (model.ObjectPregisnResponse, error) {
+	for _, cfgProfile := range s.Profiles {
+		if cfgProfile.Name == profile {
+			switch cfgProfile.Cloud {
+			case model.AWS:
+				return s.Aws.GetObjectPregisn(profile, region, input)
+			case model.TENCENT:
+				return s.Tencent.GetObjectPregisn(profile, region, input)
+			default:
+				return model.ObjectPregisnResponse{}, model.ErrCloudNotSupported
+			}
+		}
+	}
+	return model.ObjectPregisnResponse{}, model.ErrProfileNotFound
+}

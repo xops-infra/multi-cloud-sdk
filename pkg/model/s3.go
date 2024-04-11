@@ -29,3 +29,13 @@ type ListBucketResponse struct {
 	Buckets []*Bucket `json:"buckets"`
 	Total   int64     `json:"total"`
 }
+
+type ObjectPregisnRequest struct {
+	Bucket *string `json:"bucket" binding:"required"`
+	Key    *string `json:"key" binding:"required"`
+	Expire *int64  `json:"expire"` // 默认 1 小时。 签名最多支持7天(604800秒)，控制台上最多 12小时(43200秒)
+}
+
+type ObjectPregisnResponse struct {
+	Url string `json:"url"`
+}

@@ -135,3 +135,36 @@ func (c *awsClient) ListBucket(profile, region string, input model.ListBucketReq
 		Total:   int64(len(buckets)),
 	}, nil
 }
+
+func (c *awsClient) GetObjectPregisn(profile, region string, req model.ObjectPregisnRequest) (model.ObjectPregisnResponse, error) {
+	client, err := c.io.GetAWSS3Client(profile, region)
+	if err != nil {
+		return model.ObjectPregisnResponse{}, err
+	}
+
+	// head object
+	_, err = client.HeadObject(&s3.HeadObjectInput{
+		Bucket: req.Bucket,
+		Key:    req.Key,
+	})
+	if err != nil {
+		return model.ObjectPregisnResponse{}, err
+	}
+
+	// request object
+	resp, _ := client.GetObjectRequest(&s3.GetObjectInput{
+		Bucket: req.Bucket,
+		Key:    req.Key,
+	})
+	timeD := 3600 * time.Second // 1 hour
+	if req.Expire != nil {
+		timeD = time.Duration(*req.Expire) * time.Second
+	}
+	urlPresign, err := resp.Presign(timeD)
+	if err != nil {
+		return model.ObjectPregisnResponse{}, err
+	}
+	return model.ObjectPregisnResponse{
+		Url: urlPresign,
+	}, nil
+}

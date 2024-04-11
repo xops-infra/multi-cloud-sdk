@@ -3,6 +3,7 @@ package io
 import (
 	"context"
 	"fmt"
+	"net/http"
 	"net/url"
 	"strings"
 	"sync"
@@ -31,11 +32,13 @@ func (c *tencentClient) CreateBucket(profile, region string, input model.CreateB
 	if len(*input.BucketName) > 60 {
 		return fmt.Errorf("bucket name is too long")
 	}
-	host := fmt.Sprintf("https://%s.cos.%s.myqcloud.com", *input.BucketName, region)
-	client, err := c.io.GetTencentCosClient(profile, host)
+	client, err := c.io.GetTencentCosClient(profile, region)
 	if err != nil {
 		return err
 	}
+	// 增加 bucketUrl
+	bucketUrl, _ := url.Parse(fmt.Sprintf("https://%s.cos.%s.myqcloud.com", *input.BucketName, region))
+	client.BaseURL.BucketURL = bucketUrl
 	_, err = client.Bucket.Put(context.Background(), &cos.BucketPutOptions{
 		XCosACL: "private",
 	})
@@ -63,11 +66,7 @@ func (c *tencentClient) DeleteBucket(profile, region string, input model.DeleteB
 
 // Host: 查询全部存储桶列表指定为 service.cos.myqcloud.com，查询特定地域下的存储桶列表指定为 cos.<Region>.myqcloud.com，其中 <Region> 为 COS 的可用地域
 func (c *tencentClient) ListBucket(profile, region string, input model.ListBucketRequest) (model.ListBucketResponse, error) {
-	host := "http://service.cos.myqcloud.com"
-	if region != "" {
-		host = fmt.Sprintf("http://cos.%s.myqcloud.com", region)
-	}
-	client, err := c.io.GetTencentCosClient(profile, host)
+	client, err := c.io.GetTencentCosClient(profile, region)
 	if err != nil {
 		return model.ListBucketResponse{}, err
 	}
@@ -131,4 +130,30 @@ func (c *tencentClient) ListBucket(profile, region string, input model.ListBucke
 		Buckets: buckets,
 		Total:   int64(len(buckets)),
 	}, nil
+}
+
+func (c *tencentClient) GetObjectPregisn(profile, region string, input model.ObjectPregisnRequest) (model.ObjectPregisnResponse, error) {
+	client, err := c.io.GetTencentCosClient(profile, region)
+	if err != nil {
+		return model.ObjectPregisnResponse{}, err
+	}
+	bucketUrl, _ := url.Parse(fmt.Sprintf("https://%s.cos.%s.myqcloud.com", *input.Bucket, region))
+	client.BaseURL.BucketURL = bucketUrl
+	// fmt.Println(tea.Prettify(client.BaseURL))
+	// check object exist
+	_, err = client.Object.Head(context.Background(), *input.Key, nil)
+	if err != nil {
+		return model.ObjectPregisnResponse{}, err
+	}
+
+	// get presigned url
+	timeD := time.Second * 3600
+	if input.Expire != nil {
+		timeD = time.Second * time.Duration(*input.Expire)
+	}
+	url, err := client.Object.GetPresignedURL2(context.Background(), http.MethodGet, *input.Key, timeD, nil)
+	if err != nil {
+		return model.ObjectPregisnResponse{}, err
+	}
+	return model.ObjectPregisnResponse{Url: url.String()}, nil
 }
