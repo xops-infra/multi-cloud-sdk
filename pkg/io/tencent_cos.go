@@ -9,7 +9,6 @@ import (
 	"sync"
 	"time"
 
-	"github.com/alibabacloud-go/tea/tea"
 	"github.com/tencentcloud/tencentcloud-sdk-go/tencentcloud/common"
 	"github.com/tencentyun/cos-go-sdk-v5"
 	"github.com/xops-infra/multi-cloud-sdk/pkg/model"
@@ -85,7 +84,6 @@ func (c *tencentClient) ListBucket(profile, region string, input model.ListBucke
 	for {
 		wg := sync.WaitGroup{}
 		for _, bucket := range result.Buckets {
-			fmt.Println(tea.Prettify(bucket))
 			if input.KeyWord != nil && *input.KeyWord != "" {
 				if !strings.Contains(bucket.Name, *input.KeyWord) {
 					continue
