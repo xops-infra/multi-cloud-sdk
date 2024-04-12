@@ -1,70 +1,64 @@
 package service
 
 import (
+	"fmt"
+
 	"github.com/xops-infra/multi-cloud-sdk/pkg/model"
 )
 
 func (s *CommonService) DescribeInstances(profile, region string, input model.InstanceFilter) (model.InstanceResponse, error) {
-	for _, cfgProfile := range s.Profiles {
-		if cfgProfile.Name == profile {
-			switch cfgProfile.Cloud {
-			case model.AWS:
-				return s.Aws.DescribeInstances(profile, region, input.ToAwsDescribeInstancesInput())
-			case model.TENCENT:
-				return s.Tencent.DescribeInstances(profile, region, input.ToTxDescribeInstancesInput())
-			default:
-				return model.InstanceResponse{}, model.ErrCloudNotSupported
-			}
+	if p, ok := s.Profiles[profile]; ok {
+		switch p.Cloud {
+		case model.AWS:
+			return s.Aws.DescribeInstances(profile, region, input.ToAwsDescribeInstancesInput())
+		case model.TENCENT:
+			return s.Tencent.DescribeInstances(profile, region, input.ToTxDescribeInstancesInput())
+		default:
+			return model.InstanceResponse{}, fmt.Errorf("%s %s", profile, model.ErrCloudNotSupported.Error())
 		}
 	}
-	return model.InstanceResponse{}, model.ErrProfileNotFound
+	return model.InstanceResponse{}, fmt.Errorf("%s %s", profile, model.ErrProfileNotFound.Error())
 }
 
 // CreateInstance
 func (s *CommonService) CreateInstance(profile, region string, input model.CreateInstanceInput) (model.CreateInstanceResponse, error) {
-	for _, cfgProfile := range s.Profiles {
-		if cfgProfile.Name == profile {
-			switch cfgProfile.Cloud {
-			case model.AWS:
-				return s.Aws.CreateInstance(profile, region, input)
-			case model.TENCENT:
-				return s.Tencent.CreateInstance(profile, region, input)
-			default:
-				return model.CreateInstanceResponse{}, model.ErrCloudNotSupported
-			}
+	if p, ok := s.Profiles[profile]; ok {
+		switch p.Cloud {
+		case model.AWS:
+			return s.Aws.CreateInstance(profile, region, input)
+		case model.TENCENT:
+			return s.Tencent.CreateInstance(profile, region, input)
+		default:
+			return model.CreateInstanceResponse{}, fmt.Errorf("%s %s", profile, model.ErrCloudNotSupported.Error())
 		}
 	}
-	return model.CreateInstanceResponse{}, model.ErrProfileNotFound
+	return model.CreateInstanceResponse{}, fmt.Errorf("%s %s", profile, model.ErrProfileNotFound.Error())
 }
 
 func (s *CommonService) ModifyInstance(profile, region string, input model.ModifyInstanceInput) (model.ModifyInstanceResponse, error) {
-	for _, cfgProfile := range s.Profiles {
-		if cfgProfile.Name == profile {
-			switch cfgProfile.Cloud {
-			case model.AWS:
-				return s.Aws.ModifyInstance(profile, region, input)
-			case model.TENCENT:
-				return s.Tencent.ModifyInstance(profile, region, input)
-			default:
-				return model.ModifyInstanceResponse{}, model.ErrCloudNotSupported
-			}
+	if p, ok := s.Profiles[profile]; ok {
+		switch p.Cloud {
+		case model.AWS:
+			return s.Aws.ModifyInstance(profile, region, input)
+		case model.TENCENT:
+			return s.Tencent.ModifyInstance(profile, region, input)
+		default:
+			return model.ModifyInstanceResponse{}, fmt.Errorf("%s %s", profile, model.ErrCloudNotSupported.Error())
 		}
 	}
-	return model.ModifyInstanceResponse{}, model.ErrProfileNotFound
+	return model.ModifyInstanceResponse{}, fmt.Errorf("%s %s", profile, model.ErrProfileNotFound.Error())
 }
 
 func (s *CommonService) DeleteInstance(profile, region string, input model.DeleteInstanceInput) (model.DeleteInstanceResponse, error) {
-	for _, cfgProfile := range s.Profiles {
-		if cfgProfile.Name == profile {
-			switch cfgProfile.Cloud {
-			case model.AWS:
-				return s.Aws.DeleteInstance(profile, region, input)
-			case model.TENCENT:
-				return s.Tencent.DeleteInstance(profile, region, input)
-			default:
-				return model.DeleteInstanceResponse{}, model.ErrCloudNotSupported
-			}
+	if p, ok := s.Profiles[profile]; ok {
+		switch p.Cloud {
+		case model.AWS:
+			return s.Aws.DeleteInstance(profile, region, input)
+		case model.TENCENT:
+			return s.Tencent.DeleteInstance(profile, region, input)
+		default:
+			return model.DeleteInstanceResponse{}, fmt.Errorf("%s %s", profile, model.ErrCloudNotSupported.Error())
 		}
 	}
-	return model.DeleteInstanceResponse{}, model.ErrProfileNotFound
+	return model.DeleteInstanceResponse{}, fmt.Errorf("%s %s", profile, model.ErrProfileNotFound.Error())
 }

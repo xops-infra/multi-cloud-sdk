@@ -16,10 +16,10 @@ func (s *CommonService) PrivateDomainList(profile string, req model.DescribeDoma
 		case model.TENCENT:
 			return s.Tencent.DescribePrivateDomainList(profile, req)
 		default:
-			return model.DescribePrivateDomainListResponse{}, nil
+			return model.DescribePrivateDomainListResponse{}, fmt.Errorf("%s %s", profile, model.ErrCloudNotSupported.Error())
 		}
 	}
-	return model.DescribePrivateDomainListResponse{}, fmt.Errorf("profile not found")
+	return model.DescribePrivateDomainListResponse{}, fmt.Errorf("%s %s", profile, model.ErrProfileNotFound.Error())
 }
 
 // PrivateRecordList
@@ -31,10 +31,10 @@ func (s *CommonService) PrivateRecordList(profile string, req model.DescribePriv
 		case model.TENCENT:
 			return s.Tencent.DescribePrivateRecordList(profile, req)
 		default:
-			return model.DescribePrivateRecordListResponse{}, nil
+			return model.DescribePrivateRecordListResponse{}, fmt.Errorf("%s %s", profile, model.ErrCloudNotSupported.Error())
 		}
 	}
-	return model.DescribePrivateRecordListResponse{}, fmt.Errorf("profile not found")
+	return model.DescribePrivateRecordListResponse{}, fmt.Errorf("%s %s", profile, model.ErrProfileNotFound.Error())
 }
 
 // PrivateRecordListWithPages
@@ -46,10 +46,10 @@ func (s *CommonService) PrivateRecordListWithPages(profile string, req model.Des
 		case model.TENCENT:
 			return s.Tencent.DescribePrivateRecordListWithPages(profile, req)
 		default:
-			return model.ListRecordsPageResponse{}, nil
+			return model.ListRecordsPageResponse{}, fmt.Errorf("%s %s", profile, model.ErrCloudNotSupported.Error())
 		}
 	}
-	return model.ListRecordsPageResponse{}, fmt.Errorf("profile not found")
+	return model.ListRecordsPageResponse{}, fmt.Errorf("%s %s", profile, model.ErrProfileNotFound.Error())
 
 }
 
@@ -62,10 +62,10 @@ func (s *CommonService) PrivateCreateRecord(profile string, request model.Create
 		case model.TENCENT:
 			return s.Tencent.CreatePrivateRecord(profile, request)
 		default:
-			return model.CreateRecordResponse{}, nil
+			return model.CreateRecordResponse{}, fmt.Errorf("%s %s", profile, model.ErrCloudNotSupported.Error())
 		}
 	}
-	return model.CreateRecordResponse{}, fmt.Errorf("profile not found")
+	return model.CreateRecordResponse{}, fmt.Errorf("%s %s", profile, model.ErrProfileNotFound.Error())
 }
 
 // PrivateModifyRecord
@@ -77,10 +77,10 @@ func (s *CommonService) PrivateModifyRecord(profile string, request model.Modify
 		case model.TENCENT:
 			return s.Tencent.ModifyPrivateRecord(profile, request)
 		default:
-			return nil
+			return fmt.Errorf("%s %s", profile, model.ErrCloudNotSupported.Error())
 		}
 	}
-	return fmt.Errorf("profile not found")
+	return fmt.Errorf("%s %s", profile, model.ErrProfileNotFound.Error())
 }
 
 // PrivateDeleteRecord
@@ -92,10 +92,10 @@ func (s *CommonService) PrivateDeleteRecord(profile string, request model.Delete
 		case model.TENCENT:
 			return s.Tencent.DeletePrivateRecord(profile, request)
 		default:
-			return fmt.Errorf("not support cloud %s", p.Cloud)
+			return fmt.Errorf("%s %s", profile, model.ErrCloudNotSupported.Error())
 		}
 	}
-	return fmt.Errorf("profile not found")
+	return fmt.Errorf("%s %s", profile, model.ErrProfileNotFound.Error())
 }
 
 // DescribeDomainList
@@ -107,10 +107,10 @@ func (s *CommonService) DescribeDomainList(profile, region string, req model.Des
 		case model.TENCENT:
 			return s.Tencent.DescribeDomainList(profile, region, req)
 		default:
-			return model.DescribeDomainListResponse{}, nil
+			return model.DescribeDomainListResponse{}, fmt.Errorf("%s %s", profile, model.ErrCloudNotSupported.Error())
 		}
 	}
-	return model.DescribeDomainListResponse{}, fmt.Errorf("profile not found")
+	return model.DescribeDomainListResponse{}, fmt.Errorf("%s %s", profile, model.ErrProfileNotFound.Error())
 }
 
 // DescribeRecordList
@@ -122,10 +122,10 @@ func (s *CommonService) DescribeRecordList(profile, region string, req model.Des
 		case model.TENCENT:
 			return s.Tencent.DescribeRecordList(profile, region, req)
 		default:
-			return model.DescribeRecordListResponse{}, nil
+			return model.DescribeRecordListResponse{}, fmt.Errorf("%s %s", profile, model.ErrCloudNotSupported.Error())
 		}
 	}
-	return model.DescribeRecordListResponse{}, fmt.Errorf("profile not found")
+	return model.DescribeRecordListResponse{}, fmt.Errorf("%s %s", profile, model.ErrProfileNotFound.Error())
 }
 
 // DescribeRecordListWithPages
@@ -137,11 +137,11 @@ func (s *CommonService) DescribeRecordListWithPages(profile, region string, req 
 		case model.TENCENT:
 			return s.Tencent.DescribeRecordListWithPages(profile, region, req)
 		default:
-			return model.ListRecordsPageResponse{}, nil
+			return model.ListRecordsPageResponse{}, fmt.Errorf("%s %s", profile, model.ErrCloudNotSupported.Error())
 		}
 	}
-	return model.ListRecordsPageResponse{}, fmt.Errorf("profile not found")
 
+	return model.ListRecordsPageResponse{}, fmt.Errorf("%s %s", profile, model.ErrProfileNotFound.Error())
 }
 
 // DescribeRecord
@@ -158,9 +158,11 @@ func (s *CommonService) DescribeRecord(profile, region string, req model.Describ
 				}
 			}
 			return resp, err
+		default:
+			return model.Record{}, fmt.Errorf("%s %s", profile, model.ErrCloudNotSupported.Error())
 		}
 	}
-	return model.Record{}, fmt.Errorf("profile not found")
+	return model.Record{}, fmt.Errorf("%s %s", profile, model.ErrProfileNotFound.Error())
 }
 
 // CreateRecord
@@ -172,10 +174,10 @@ func (s *CommonService) CreateRecord(profile, region string, request model.Creat
 		case model.TENCENT:
 			return s.Tencent.CreateRecord(profile, region, request)
 		default:
-			return model.CreateRecordResponse{}, nil
+			return model.CreateRecordResponse{}, fmt.Errorf("%s %s", profile, model.ErrCloudNotSupported.Error())
 		}
 	}
-	return model.CreateRecordResponse{}, fmt.Errorf("profile not found")
+	return model.CreateRecordResponse{}, fmt.Errorf("%s %s", profile, model.ErrProfileNotFound.Error())
 }
 
 func (s *CommonService) ModifyRecord(profile, region string, ignoreType bool, request model.ModifyRecordRequest) error {
@@ -186,10 +188,10 @@ func (s *CommonService) ModifyRecord(profile, region string, ignoreType bool, re
 		case model.TENCENT:
 			return s.Tencent.ModifyRecord(profile, region, ignoreType, request)
 		default:
-			return nil
+			return fmt.Errorf("%s %s", profile, model.ErrCloudNotSupported.Error())
 		}
 	}
-	return fmt.Errorf("profile not found")
+	return fmt.Errorf("%s %s", profile, model.ErrProfileNotFound.Error())
 }
 
 func (s *CommonService) DeleteRecord(profile, region string, request model.DeleteRecordRequest) (model.CommonDnsResponse, error) {
@@ -203,8 +205,8 @@ func (s *CommonService) DeleteRecord(profile, region string, request model.Delet
 		case model.TENCENT:
 			return s.Tencent.DeleteRecord(profile, region, request)
 		default:
-			return model.CommonDnsResponse{}, fmt.Errorf("not support cloud %s", p.Cloud)
+			return model.CommonDnsResponse{}, fmt.Errorf("%s %s", profile, model.ErrCloudNotSupported.Error())
 		}
 	}
-	return model.CommonDnsResponse{}, fmt.Errorf("profile not found")
+	return model.CommonDnsResponse{}, fmt.Errorf("%s %s", profile, model.ErrProfileNotFound.Error())
 }
