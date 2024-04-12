@@ -22,27 +22,29 @@ func (c *tencentClient) QueryEmrCluster(input model.EmrFilter) (model.FilterEmrR
 	}
 	request := emr.NewDescribeInstancesListRequest()
 	request.DisplayStrategy = tea.String("clusterList")
+	request.Limit = tea.Uint64(100) // TODO: 处理分页，目前不会超过 100 个。
 	var clusters []model.EmrCluster
-	for {
-		response, err := client.DescribeInstancesList(request)
-		if err != nil {
-			return model.FilterEmrResponse{}, err
-		}
-		for _, cluster := range response.Response.InstancesList {
-			if cluster.AddTime == nil {
-				return model.FilterEmrResponse{}, fmt.Errorf("cluster.AddTime is nil")
+	response, err := client.DescribeInstancesList(request)
+	if err != nil {
+		return model.FilterEmrResponse{}, err
+	}
+	for _, cluster := range response.Response.InstancesList {
+		state := model.FmtTencentState(tea.Int64(cast.ToInt64(cluster.Status)))
+		if input.ClusterStates != nil {
+			if !model.Contains(input.ClusterStates, state) {
+				continue
 			}
-			addTime, _ := time.Parse("2006-01-02 15:04:05", *cluster.AddTime)
-			clusters = append(clusters, model.EmrCluster{
-				ID:      cluster.ClusterId,
-				Name:    cluster.ClusterName,
-				AddTime: addTime,
-				Status:  model.FmtTencentState(tea.Int64(cast.ToInt64(cluster.Status))),
-			})
 		}
-		if len(clusters) == cast.ToInt(response.Response.TotalCnt) {
-			break
+		if cluster.AddTime == nil {
+			return model.FilterEmrResponse{}, fmt.Errorf("cluster.AddTime is nil")
 		}
+		addTime, _ := time.Parse("2006-01-02 15:04:05", *cluster.AddTime)
+		clusters = append(clusters, model.EmrCluster{
+			ID:      cluster.ClusterId,
+			Name:    cluster.ClusterName,
+			AddTime: addTime,
+			Status:  state,
+		})
 	}
 	return model.FilterEmrResponse{
 		Clusters:   clusters,

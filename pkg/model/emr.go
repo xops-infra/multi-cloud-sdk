@@ -136,3 +136,12 @@ func FmtTencentState(state *int64) EMRClusterStatus {
 		return EMRClusterUnknown
 	}
 }
+
+func Contains(states []EMRClusterStatus, state EMRClusterStatus) bool {
+	for _, s := range states {
+		if s == state {
+			return true
+		}
+	}
+	return false
+}
