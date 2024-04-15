@@ -76,6 +76,7 @@ func TestDescribeEmrCluster(t *testing.T) {
 	clusters, err := AwsIo.DescribeEmrCluster(model.DescribeInput{
 		Profile: tea.String("aws-us"),
 		Region:  tea.String("us-east-1"),
+		IDS:     []*string{tea.String("j-xxx")},
 	})
 	if err != nil {
 		t.Error(err)

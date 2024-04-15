@@ -35,6 +35,7 @@ type DescribeEmrCluster struct {
 	ID, Name   *string
 	Status     EMRClusterStatus
 	CreateTime *time.Time
+	Tags       Tags
 }
 
 type InstanceChargeType string

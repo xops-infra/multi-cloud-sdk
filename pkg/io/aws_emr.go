@@ -74,6 +74,7 @@ func (c *awsClient) DescribeEmrCluster(input model.DescribeInput) ([]model.Descr
 			Status:     model.EMRClusterStatus(*out.Cluster.Status.State),
 			CreateTime: out.Cluster.Status.Timeline.CreationDateTime,
 			Meta:       out.Cluster,
+			Tags:       model.NewTagsFromAWSEmrTags(out.Cluster.Tags),
 		})
 	}
 	return clusters, nil

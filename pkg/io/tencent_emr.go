@@ -78,6 +78,7 @@ func (c *tencentClient) DescribeEmrCluster(input model.DescribeInput) ([]model.D
 			Status:     model.FmtTencentState(cluster.Status),
 			CreateTime: &createTime,
 			Meta:       cluster,
+			Tags:       model.NewTagsFromTencentEmrTags(cluster.Tags),
 		})
 	}
 	return clusters, nil
