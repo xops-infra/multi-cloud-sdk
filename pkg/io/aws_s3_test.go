@@ -8,7 +8,7 @@ import (
 )
 
 func TestCreateS3Bucket(t *testing.T) {
-	err := AwsIo.CreateBucket("aws-us", "us-east-1", model.CreateBucketRequest{
+	err := AwsIo.CreateBucket("aws", "us-east-1", model.CreateBucketRequest{
 		BucketName: tea.String("test-bucket-zsj-1"),
 		Tags: model.Tags{
 			{Key: "Owner", Value: "zhoushoujian"},
@@ -23,7 +23,7 @@ func TestCreateS3Bucket(t *testing.T) {
 
 // TestListS3Bucket
 func TestListS3Bucket(t *testing.T) {
-	resp, err := AwsIo.ListBucket("aws-us", "us-east-1", model.ListBucketRequest{
+	resp, err := AwsIo.ListBucket("aws", "us-east-1", model.ListBucketRequest{
 		KeyWord: tea.String("test-bucket-zsj"),
 	})
 	if err != nil {
@@ -34,7 +34,7 @@ func TestListS3Bucket(t *testing.T) {
 
 // TestGetObjectPregisn
 func TestS3GetObjectPregisn(t *testing.T) {
-	resp, err := AwsIo.GetObjectPregisn("aws-us", "us-east-1", model.ObjectPregisnRequest{
+	resp, err := AwsIo.GetObjectPregisn("aws", "us-east-1", model.ObjectPregisnRequest{
 		Bucket: tea.String("zhoushoujiantest"),
 		Key:    tea.String("xxx.pdf"),
 		Expire: tea.Int64(3600),
