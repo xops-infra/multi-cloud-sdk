@@ -84,21 +84,29 @@ func (c *awsClient) DescribeRecordListWithPages(profile, region string, input mo
 				input.Page = tea.Int64(1)
 			}
 			if pageNum == *input.Page-1 {
-				for _, records := range page.ResourceRecordSets {
-					// if records.ResourceRecords == nil {
-					// 	continue
-					// }
-					// 解决httpDecode问题，比如 \\052
-					records.Name = tea.String(strings.ReplaceAll(*records.Name, "\\052", "*"))
-					subDomain := strings.TrimSuffix(*records.Name, fmt.Sprintf("%s.", *domain.Name))
+				for _, record := range page.ResourceRecordSets {
+					var recordValue *string
+					if record.ResourceRecords == nil {
+						recordValue = record.AliasTarget.DNSName
+					} else {
+						// TODO: 有多个值的情况
+						for _, value := range record.ResourceRecords {
+							recordValue = value.Value
+						}
+					}
+					// 解决httpDecode问题，比如 * -> \\052 @ -> \\100 # -> \\043
+					record.Name = aws.String(strings.ReplaceAll(aws.StringValue(record.Name), "\\052", "*"))
+					record.Name = aws.String(strings.ReplaceAll(*record.Name, "\\100", "@"))
+					record.Name = aws.String(strings.ReplaceAll(*record.Name, "\\043", "#"))
+					subDomain := strings.TrimSuffix(*record.Name, fmt.Sprintf("%s.", *domain.Name))
 					resp.RecordList = append(resp.RecordList, model.Record{
-						SubDomain:  tea.String(strings.TrimSuffix(subDomain, ".")),
-						TTL:        tea.Uint64(cast.ToUint64(records.TTL)),
-						Weight:     tea.Uint64(cast.ToUint64(records.Weight)),
-						RecordType: records.Type,
-						Value:      records.ResourceRecords[0].Value,
-						Status:     records.SetIdentifier,
-						RecordId:   records.Name,
+						SubDomain:  aws.String(strings.TrimSuffix(subDomain, ".")),
+						TTL:        tea.Uint64(cast.ToUint64(record.TTL)),
+						Weight:     tea.Uint64(cast.ToUint64(record.Weight)),
+						RecordType: record.Type,
+						Value:      recordValue,
+						Status:     record.SetIdentifier,
+						RecordId:   record.Name,
 					})
 				}
 				if len(resp.RecordList) == cast.ToInt(params.MaxItems) {

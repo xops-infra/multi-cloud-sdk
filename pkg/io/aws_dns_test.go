@@ -73,9 +73,9 @@ func TestDescribeList(t *testing.T) {
 	// TEST DescribeRecordList
 	{
 		req := model.DescribeRecordListRequest{
-			Domain: tea.String("/hostedzone/xxx"),
+			Domain: tea.String("test.com"),
 		}
-		resp, err := AwsIo.DescribeRecordList("aws", "cn-notrhwest-1", req)
+		resp, err := AwsIo.DescribeRecordList("aws-prod", "us-east-1", req)
 		if err != nil {
 			t.Error(err)
 			return
@@ -89,9 +89,9 @@ func TestDescribeList(t *testing.T) {
 func TestDescribeRecordListWithPages(t *testing.T) {
 	// TEST DescribeRecordList
 	req := model.DescribeRecordListWithPageRequest{
-		Limit:  tea.Int64(2),
+		// Limit:  tea.Int64(2),
 		Page:   tea.Int64(1),
-		Domain: tea.String("/hostedzone/xxx"),
+		Domain: tea.String("patsnap.co"),
 	}
 	resp, err := AwsIo.DescribeRecordListWithPages("aws", "cn-notrhwest-1", req)
 	assert.Nil(t, err)

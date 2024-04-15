@@ -5,8 +5,10 @@ import (
 
 	"github.com/aws/aws-sdk-go/aws"
 	"github.com/aws/aws-sdk-go/service/ec2"
+	"github.com/aws/aws-sdk-go/service/emr"
 	"github.com/aws/aws-sdk-go/service/s3"
 	cvm "github.com/tencentcloud/tencentcloud-sdk-go/tencentcloud/cvm/v20170312"
+	tencentEmr "github.com/tencentcloud/tencentcloud-sdk-go/tencentcloud/emr/v20190103"
 	tencentTag "github.com/tencentcloud/tencentcloud-sdk-go/tencentcloud/tag/v20180813"
 	tencentVpc "github.com/tencentcloud/tencentcloud-sdk-go/tencentcloud/vpc/v20170312"
 	cos "github.com/tencentyun/cos-go-sdk-v5"
@@ -31,6 +33,28 @@ func NewTagsFromTencentCosTags(tags []cos.BucketTaggingTag) Tags {
 		modelTags = append(modelTags, Tag{
 			Key:   tag.Key,
 			Value: tag.Value,
+		})
+	}
+	return modelTags
+}
+
+func NewTagsFromTencentEmrTags(tags []*tencentEmr.Tag) Tags {
+	var modelTags Tags
+	for _, tag := range tags {
+		modelTags = append(modelTags, Tag{
+			Key:   *tag.TagKey,
+			Value: *tag.TagValue,
+		})
+	}
+	return modelTags
+}
+
+func NewTagsFromAWSEmrTags(tags []*emr.Tag) Tags {
+	var modelTags Tags
+	for _, tag := range tags {
+		modelTags = append(modelTags, Tag{
+			Key:   *tag.Key,
+			Value: *tag.Value,
 		})
 	}
 	return modelTags

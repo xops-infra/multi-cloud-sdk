@@ -26,16 +26,6 @@ func init() {
 			Cloud: model.AWS,
 			AK:    os.Getenv("AWS_ACCESS_KEY_ID"),
 			SK:    os.Getenv("AWS_SECRET_ACCESS_KEY"),
-		}, {
-			Name:  "aws-us",
-			Cloud: model.AWS,
-			AK:    os.Getenv("AWS_US_ACCESS_KEY_ID"),
-			SK:    os.Getenv("AWS_US_SECRET_ACCESS_KEY"),
-		}, {
-			Name:  "aws-cas",
-			Cloud: model.AWS,
-			AK:    os.Getenv("AWS_CAS_ACCESS_KEY_ID"),
-			SK:    os.Getenv("AWS_CAS_SECRET_ACCESS_KEY"),
 		},
 	}
 	clientIo := io.NewCloudClient(profiles)
@@ -46,7 +36,7 @@ func TestQueryEmrCluster(t *testing.T) {
 	timeStart := time.Now()
 	period := 24 * time.Hour
 	filter := model.EmrFilter{
-		Profile: tea.String("aws-us"),
+		Profile: tea.String("aws"),
 		Region:  tea.String("us-east-1"),
 		Period:  &period,
 		ClusterStates: []model.EMRClusterStatus{
@@ -74,8 +64,9 @@ func TestQueryEmrCluster(t *testing.T) {
 func TestDescribeEmrCluster(t *testing.T) {
 	timeStart := time.Now()
 	clusters, err := AwsIo.DescribeEmrCluster(model.DescribeInput{
-		Profile: tea.String("aws-us"),
+		Profile: tea.String("aws"),
 		Region:  tea.String("us-east-1"),
+		IDS:     []*string{tea.String("j-xxx")},
 	})
 	if err != nil {
 		t.Error(err)
