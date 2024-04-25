@@ -30,7 +30,7 @@ func (c *tencentClient) QueryEmrCluster(input model.EmrFilter) (model.FilterEmrR
 	}
 	for _, cluster := range response.Response.InstancesList {
 		state := model.FmtTencentState(tea.Int64(cast.ToInt64(cluster.Status)))
-		if input.ClusterStates != nil {
+		if len(input.ClusterStates) != 0 {
 			if !model.Contains(input.ClusterStates, state) {
 				continue
 			}
