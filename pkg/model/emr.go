@@ -1,7 +1,12 @@
 package model
 
 import (
+	"fmt"
 	"time"
+
+	"github.com/alibabacloud-go/tea/tea"
+	"github.com/aws/aws-sdk-go/service/emr"
+	txemr "github.com/tencentcloud/tencentcloud-sdk-go/tencentcloud/emr/v20190103"
 )
 
 // 更详细的信息用Describe接口查询
@@ -39,6 +44,19 @@ type DescribeEmrCluster struct {
 }
 
 type InstanceChargeType string
+
+// *uint64 实例计费模式。取值范围： <li>0：表示按量计费。</li> <li>1：表示包年包月。</li>
+func (t InstanceChargeType) ToTencentEmrChargeType() *uint64 {
+	if t == PREPAID {
+		return tea.Uint64(1)
+	}
+	return tea.Uint64(0)
+}
+
+func (t InstanceChargeType) String() *InstanceChargeType {
+	return &t
+}
+
 type InstancePolicy string
 
 const (
@@ -145,4 +163,130 @@ func Contains(states []EMRClusterStatus, state EMRClusterStatus) bool {
 		}
 	}
 	return false
+}
+
+type CreateEmrClusterInput struct {
+	Name               *string             `json:"name"`
+	Tags               Tags                `json:"tags"`
+	APPs               []*string           `json:"apps"` // hive、flink、spark
+	EMRVersion         *string             `json:"emr_version"`
+	InstanceChargeType *InstanceChargeType `json:"instance_charge_type"`
+	ResourceSpec       *ResourceSpec       `json:"resource_spec"`
+}
+
+func (c *CreateEmrClusterInput) ToAwsRequest() (*emr.RunJobFlowInput, error) {
+	return &emr.RunJobFlowInput{}, nil
+}
+
+func (c *CreateEmrClusterInput) ToTencentEmrInstanceRequest() (*txemr.CreateInstanceRequest, error) {
+	request := txemr.NewCreateInstanceRequest()
+	request.ApplicationRole = tea.String("EMR_QCSLinkedRoleInApplicationDataAccess") // EMR_QCSLinkedRoleInApplicationDataAccess
+	request.Tags = c.Tags.ToTencentEmrTags()
+	request.Software = c.APPs
+	request.InstanceName = c.Name
+	if c.InstanceChargeType == nil {
+		return nil, fmt.Errorf("instance charge type is nil")
+	}
+	request.PayMode = c.InstanceChargeType.ToTencentEmrChargeType()
+
+	request.SupportHA = tea.Uint64(0)
+	if *c.ResourceSpec.HA {
+		request.SupportHA = tea.Uint64(1)
+	}
+	fmt.Println("request.SupportHA", *request.SupportHA)
+	request.VPCSettings = &txemr.VPCSettings{
+		VpcId:    c.ResourceSpec.VPC,
+		SubnetId: c.ResourceSpec.Subnet,
+	}
+	request.SgId = c.ResourceSpec.SgId
+	request.LoginSettings = &txemr.LoginSettings{
+		Password:    tea.String("loodai0le!Gh"),
+		PublicKeyId: c.ResourceSpec.KeyID,
+	}
+	request.NeedMasterWan = tea.String("NEED_MASTER_WAN")
+
+	// TODO
+	request.ProductId = tea.Uint64(33)
+	if c.EMRVersion != nil {
+		request.ProductId = tea.Uint64(33)
+	}
+	request.TimeSpan = tea.Uint64(3600)
+	request.TimeUnit = tea.String("s")
+	request.MultiZone = tea.Bool(false)
+	request.Placement = &txemr.Placement{
+		Zone: tea.String("ap-shanghai-5"),
+	}
+
+	request.ResourceSpec = &txemr.NewResourceSpec{
+		MasterCount: c.ResourceSpec.MasterResourceSpec.InstanceCount,
+		MasterResourceSpec: &txemr.Resource{
+			InstanceType: c.ResourceSpec.MasterResourceSpec.InstanceType,
+			DiskType:     c.ResourceSpec.MasterResourceSpec.DiskType,
+			DiskSize:     c.ResourceSpec.MasterResourceSpec.DiskSize,
+			DiskNum:      tea.Uint64(1),
+			RootSize:     c.ResourceSpec.MasterResourceSpec.RootSize,
+			Tags:         c.Tags.ToTencentEmrTags(),
+		},
+	}
+	if request.ResourceSpec.MasterResourceSpec.DiskNum != nil {
+		request.ResourceSpec.MasterResourceSpec.DiskNum = tea.Uint64(uint64(tea.Int64Value(c.ResourceSpec.MasterResourceSpec.DiskNum)))
+	}
+
+	if c.ResourceSpec.CoreResourceSpec != nil {
+		request.ResourceSpec.CoreCount = c.ResourceSpec.CoreResourceSpec.InstanceCount
+		request.ResourceSpec.CoreResourceSpec = &txemr.Resource{
+			InstanceType: c.ResourceSpec.CoreResourceSpec.InstanceType,
+			DiskType:     c.ResourceSpec.CoreResourceSpec.DiskType,
+			DiskSize:     c.ResourceSpec.CoreResourceSpec.DiskSize,
+			DiskNum:      tea.Uint64(1),
+			RootSize:     c.ResourceSpec.CoreResourceSpec.RootSize,
+			Tags:         c.Tags.ToTencentEmrTags(),
+		}
+		if request.ResourceSpec.CoreResourceSpec.DiskNum != nil {
+			request.ResourceSpec.CoreResourceSpec.DiskNum = tea.Uint64(uint64(tea.Int64Value(c.ResourceSpec.CoreResourceSpec.DiskNum)))
+		}
+	}
+
+	if c.ResourceSpec.TaskResourceSpec != nil {
+		request.ResourceSpec.TaskCount = c.ResourceSpec.TaskResourceSpec.InstanceCount
+		request.ResourceSpec.TaskResourceSpec = &txemr.Resource{
+			InstanceType: c.ResourceSpec.TaskResourceSpec.InstanceType,
+			DiskType:     c.ResourceSpec.TaskResourceSpec.DiskType,
+			DiskSize:     c.ResourceSpec.TaskResourceSpec.DiskSize,
+			DiskNum:      tea.Uint64(1),
+			RootSize:     c.ResourceSpec.TaskResourceSpec.RootSize,
+			Tags:         c.Tags.ToTencentEmrTags(),
+		}
+		if request.ResourceSpec.TaskResourceSpec.DiskNum != nil {
+			request.ResourceSpec.TaskResourceSpec.DiskNum = tea.Uint64(uint64(tea.Int64Value(c.ResourceSpec.TaskResourceSpec.DiskNum)))
+		}
+	}
+
+	return request, nil
+}
+
+type ResourceSpec struct {
+	HA                 *bool           `json:"ha"`
+	VPC                *string         `json:"vpc"`
+	Subnet             *string         `json:"subnet"`
+	SgId               *string         `json:"sg_id"`
+	Passwd             *string         `json:"passwd"`
+	KeyID              *string         `json:"key_id"`
+	MasterResourceSpec *EMRInstaceSpec `json:"master_resource_spec"`
+	CoreResourceSpec   *EMRInstaceSpec `json:"core_resource_spec"`
+	TaskResourceSpec   *EMRInstaceSpec `json:"task_resource_spec"`
+}
+
+// tencent https://cloud.tencent.com/document/api/589/33981#Resource
+type EMRInstaceSpec struct {
+	InstanceCount *int64  `json:"instance_count"`
+	InstanceType  *string `json:"instance_type"`
+	DiskType      *string `json:"disk_type"`
+	DiskSize      *int64  `json:"disk_size"`
+	DiskNum       *int64  `json:"disk_num"`
+	RootSize      *int64  `json:"root_size"`
+}
+
+type CreateEmrClusterResponse struct {
+	ID string `json:"id"`
 }

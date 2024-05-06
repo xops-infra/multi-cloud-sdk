@@ -83,3 +83,20 @@ func (c *tencentClient) DescribeEmrCluster(input model.DescribeInput) ([]model.D
 	}
 	return clusters, nil
 }
+
+func (c *tencentClient) CreateEmrCluster(profile, region string, input model.CreateEmrClusterInput) (model.CreateEmrClusterResponse, error) {
+	client, err := c.io.GetTencentEmrClient(profile, region)
+	if err != nil {
+		return model.CreateEmrClusterResponse{}, err
+	}
+	req, err := input.ToTencentEmrInstanceRequest()
+	if err != nil {
+		return model.CreateEmrClusterResponse{}, err
+	}
+	fmt.Println(tea.Prettify(req))
+	response, err := client.CreateInstance(req)
+	if err != nil {
+		return model.CreateEmrClusterResponse{}, fmt.Errorf("create emr cluster error: %s", err)
+	}
+	return model.CreateEmrClusterResponse{ID: *response.Response.InstanceId}, nil
+}

@@ -75,6 +75,50 @@ func TestDescribeTencentEmrCluster(t *testing.T) {
 	t.Log("Success.", time.Since(timeStart), len(instances), instances)
 }
 
+func TestCreateEmrCluster(t *testing.T) {
+	timeStart := time.Now()
+	input := model.CreateEmrClusterInput{
+		Name: tea.String("test"),
+		Tags: model.Tags{
+			{
+				Key:   "Owner",
+				Value: "zhoushoujian",
+			},
+		},
+		InstanceChargeType: model.POSTPAID_BY_HOUR.String(),
+		APPs:               []*string{tea.String("Spark")},
+		ResourceSpec: &model.ResourceSpec{
+			HA:     tea.Bool(false),
+			VPC:    tea.String("vpc-gjljk6e8"),
+			Subnet: tea.String("subnet-j94dsqaj"),
+			SgId:   tea.String("sg-2qt3di24"),
+			KeyID:  tea.String("skey-gyqojq9d"),
+			MasterResourceSpec: &model.EMRInstaceSpec{
+				InstanceCount: tea.Int64(1),
+				InstanceType:  tea.String("TS5.2XLARGE32"),
+				DiskType:      tea.String("CLOUD_SSD"),
+				DiskNum:       tea.Int64(0),
+				DiskSize:      tea.Int64(40),
+				RootSize:      tea.Int64(40),
+			},
+			CoreResourceSpec: &model.EMRInstaceSpec{
+				InstanceCount: tea.Int64(2),
+				InstanceType:  tea.String("TS5.2XLARGE32"),
+				DiskType:      tea.String("CLOUD_SSD"),
+				DiskNum:       tea.Int64(0),
+				DiskSize:      tea.Int64(40),
+				RootSize:      tea.Int64(40),
+			},
+		},
+	}
+	instances, err := TencentIo.CreateEmrCluster("tencent", "ap-shanghai", input)
+	if err != nil {
+		t.Error(err)
+		return
+	}
+	t.Log("Success.", time.Since(timeStart), instances)
+}
+
 func TestListInstance(t *testing.T) {
 	timeStart := time.Now()
 	filter := model.InstanceFilter{}
