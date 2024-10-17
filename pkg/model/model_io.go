@@ -23,6 +23,7 @@ type CloudIO interface {
 	// EMR
 	QueryEmrCluster(EmrFilter) (FilterEmrResponse, error) // 方便 Post使用，将Profile和Region放入filter
 	DescribeEmrCluster(DescribeInput) ([]DescribeEmrCluster, error)
+	CreateEmrCluster(profile, region string, input CreateEmrClusterInput) (CreateEmrClusterResponse, error)
 
 	// tencent region is not required
 	DescribeDomainList(profile, region string, input DescribeDomainListRequest) (DescribeDomainListResponse, error)

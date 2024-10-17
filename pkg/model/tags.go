@@ -164,6 +164,18 @@ func (t *Tags) ToTencentTags() []*tencentTag.Tag {
 	return tencentTags
 }
 
+// []*emr.Tag
+func (t *Tags) ToTencentEmrTags() []*tencentEmr.Tag {
+	var tencentTags []*tencentEmr.Tag
+	for _, tag := range *t {
+		tencentTags = append(tencentTags, &tencentEmr.Tag{
+			TagKey:   aws.String(tag.Key),
+			TagValue: aws.String(tag.Value),
+		})
+	}
+	return tencentTags
+}
+
 func (t *Tags) ToRunInstanceTags() []*cvm.TagSpecification {
 	var tencentTags []*cvm.TagSpecification
 	for _, tag := range *t {

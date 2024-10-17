@@ -144,16 +144,16 @@ type InstanceResponse struct {
 type CreateInstanceInput struct {
 	Name               *string   `json:"name"`
 	Count              *int64    `json:"count" default:"1"` // 默认 1 个
-	ImageID            *string   `json:"image_id" binding:"required"`
-	InstanceType       *string   `json:"instance_type" binding:"required"`
-	InstanceChargeType *string   `json:"instance_charge_type"`    // 默认按需
-	Zone               *string   `json:"zone" binding:"required"` // 这里写可用区 ID后台转换
+	ImageID            *string   `json:"image_id"`
+	InstanceType       *string   `json:"instance_type"`
+	InstanceChargeType *string   `json:"instance_charge_type"` // 默认按需
+	Zone               *string   `json:"zone"`                 // 这里写可用区 ID后台转换
 	SystemDisk         *Disk     `json:"system_disk"`
 	DataDisks          []Disk    `json:"data_disks"`
 	RoleName           *string   `json:"role_name"`
-	VpcID              *string   `json:"vpc_id" binding:"required"`
+	VpcID              *string   `json:"vpc_id"`
 	SecurityGroupIDs   []*string `json:"security_group_ids"`
-	SubnetID           *string   `json:"subnet_id" binding:"required"`
+	SubnetID           *string   `json:"subnet_id"`
 	UserData           *string   `json:"user_data"` // base64
 	Password           *string   `json:"password"`
 	KeyIds             []*string `json:"key_ids"`

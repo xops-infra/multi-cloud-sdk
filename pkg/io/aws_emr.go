@@ -79,3 +79,19 @@ func (c *awsClient) DescribeEmrCluster(input model.DescribeInput) ([]model.Descr
 	}
 	return clusters, nil
 }
+
+func (c *awsClient) CreateEmrCluster(profile, region string, input model.CreateEmrClusterInput) (model.CreateEmrClusterResponse, error) {
+	client, err := c.io.GetAWSEmrClient(profile, region)
+	if err != nil {
+		return model.CreateEmrClusterResponse{}, err
+	}
+	req, err := input.ToAwsRequest()
+	if err != nil {
+		return model.CreateEmrClusterResponse{}, err
+	}
+	response, err := client.RunJobFlow(req)
+	if err != nil {
+		return model.CreateEmrClusterResponse{}, fmt.Errorf("create emr cluster error: %s", err)
+	}
+	return model.CreateEmrClusterResponse{ID: *response.JobFlowId}, nil
+}
