@@ -33,33 +33,40 @@ func (c *awsClient) DescribeInstances(profile, region string, input model.Descri
 		req.MaxResults = input.Size
 	}
 
-	out, err := svc.DescribeInstances(req)
-	if err != nil {
-		return model.InstanceResponse{}, err
-	}
 	var instances []model.Instance
-	for _, reservation := range out.Reservations {
-		for _, instance := range reservation.Instances {
-			tags := model.AwsTagsToModelTags(instance.Tags)
-			instances = append(instances, model.Instance{
-				Profile:    profile,
-				KeyIDs:     []*string{instance.KeyName},
-				InstanceID: instance.InstanceId,
-				Name:       tags.GetName(),
-				Region:     instance.Placement.AvailabilityZone,
-				Status:     model.ToInstanceStatus(strings.ToUpper(*instance.State.Name)),
-				PublicIP:   []*string{instance.PublicIpAddress},
-				PrivateIP:  []*string{instance.PrivateIpAddress},
-				Tags:       tags,
-				Owner:      tags.GetOwner(),
-				Platform:   instance.PlatformDetails,
-			})
+	for {
+		out, err := svc.DescribeInstances(req)
+		if err != nil {
+			return model.InstanceResponse{}, err
 		}
+		for _, reservation := range out.Reservations {
+			for _, instance := range reservation.Instances {
+				tags := model.AwsTagsToModelTags(instance.Tags)
+				instances = append(instances, model.Instance{
+					Profile:    profile,
+					KeyIDs:     []*string{instance.KeyName},
+					InstanceID: instance.InstanceId,
+					Name:       tags.GetName(),
+					Region:     instance.Placement.AvailabilityZone,
+					Status:     model.ToInstanceStatus(strings.ToUpper(*instance.State.Name)),
+					PublicIP:   []*string{instance.PublicIpAddress},
+					PrivateIP:  []*string{instance.PrivateIpAddress},
+					Tags:       tags,
+					Owner:      tags.GetOwner(),
+					Platform:   instance.PlatformDetails,
+				})
+			}
+		}
+		if out.NextToken == nil {
+			break
+		}
+		req.NextToken = out.NextToken
+
+		// Release memory
+		out = nil
 	}
-	return model.InstanceResponse{
-		Instances:  instances,
-		NextMarker: out.NextToken,
-	}, nil
+
+	return model.InstanceResponse{Instances: instances}, nil
 }
 
 func (c *awsClient) CreateInstance(profile, region string, input model.CreateInstanceInput) (model.CreateInstanceResponse, error) {
