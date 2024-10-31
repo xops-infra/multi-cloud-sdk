@@ -182,7 +182,6 @@ func (c *cloudClient) GetTencentVpcClient(accountId, region string) (*tencentVpc
 	return tencentVpc.NewClient(credential, region, clientProfile)
 }
 
-// host "https://billing-1251949819.cos.ap-shanghai.myqcloud.com"
 func (c *cloudClient) GetTencentCosClient(accountId, region string) (*cos.Client, error) {
 	host := "https://service.cos.myqcloud.com"
 	if region != "" {
@@ -196,6 +195,23 @@ func (c *cloudClient) GetTencentCosClient(accountId, region string) (*cos.Client
 	u, _ := url.Parse(host)
 	b := &cos.BaseURL{
 		ServiceURL: u,
+	}
+	client := cos.NewClient(b, &http.Client{
+		Transport: &cos.AuthorizationTransport{
+			SecretID:  credential.SecretId,
+			SecretKey: credential.SecretKey,
+		},
+	})
+	return client, nil
+}
+
+func (c *cloudClient) GetTencentCosLifecycleClient(accountId, region, bucket string) (*cos.Client, error) {
+	u, _ := url.Parse(fmt.Sprintf("https://%s.cos.%s.myqcloud.com", bucket, region))
+	b := &cos.BaseURL{BucketURL: u}
+
+	credential, err := c.getTencentCredential(accountId)
+	if err != nil {
+		return nil, err
 	}
 	client := cos.NewClient(b, &http.Client{
 		Transport: &cos.AuthorizationTransport{

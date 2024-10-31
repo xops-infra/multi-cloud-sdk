@@ -14,6 +14,10 @@ import (
 	"github.com/xops-infra/multi-cloud-sdk/pkg/model"
 )
 
+func (c *awsClient) CreateBucketLifecycle(profile, region string, input model.CreateBucketLifecycleRequest) error {
+	panic("implement me")
+}
+
 // 比官方多了个创建bucket的tags功能。
 func (c *awsClient) CreateBucket(profile, region string, input model.CreateBucketRequest) error {
 	client, err := c.io.GetAWSS3Client(profile, region)
