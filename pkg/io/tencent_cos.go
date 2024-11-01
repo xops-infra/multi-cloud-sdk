@@ -15,6 +15,10 @@ import (
 	"github.com/xops-infra/multi-cloud-sdk/pkg/model"
 )
 
+func (c *tencentClient) GetBucketLifecycle(profile, region string, input model.GetBucketLifecycleRequest) (model.GetBucketLifecycleResponse, error) {
+	panic("implement me")
+}
+
 func (c *tencentClient) CreateBucketLifecycle(profile, region string, input model.CreateBucketLifecycleRequest) error {
 	if input.Bucket == nil || region == "" {
 		return fmt.Errorf("bucket name or region is empty")

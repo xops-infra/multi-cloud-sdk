@@ -5,6 +5,8 @@ import (
 	"fmt"
 
 	"github.com/alibabacloud-go/tea/tea"
+	"github.com/aws/aws-sdk-go/service/s3"
+	"github.com/spf13/cast"
 	cos "github.com/tencentyun/cos-go-sdk-v5"
 )
 
@@ -54,9 +56,9 @@ type CreateBucketLifecycleRequest struct {
 }
 
 type Lifecycle struct {
-	ID                             *string                                  `xml:"ID" json:"id"`
-	Filter                         *LifecycleFilter                         `xml:"Filter" json:"filter"`
-	Status                         *bool                                    `xml:"Status" json:"status"`
+	ID     *string          `xml:"ID" json:"id" binding:"required"`
+	Filter *LifecycleFilter `xml:"Filter" json:"filter"`
+	// Status                         *bool                                    `xml:"Status" json:"status"`
 	Expiration                     *LifecycleExpiration                     `xml:"Expiration" json:"expiration"`
 	Transition                     *LifecycleTransition                     `xml:"Transition" json:"transition"`
 	AbortIncompleteMultipartUpload *LifecycleAbortIncompleteMultipartUpload `xml:"AbortIncompleteMultipartUpload" json:"abort_incomplete_multipart_upload"`
@@ -105,7 +107,9 @@ func (c *CreateBucketLifecycleRequest) ToCOSLifecycle() *cos.BucketPutLifecycleO
 	cosRules := make([]cos.BucketLifecycleRule, len(c.Lifecycles))
 
 	for i, lifecycle := range c.Lifecycles {
-		rule := cos.BucketLifecycleRule{}
+		rule := cos.BucketLifecycleRule{
+			Status: "Enabled",
+		}
 
 		if lifecycle.ID != nil {
 			rule.ID = *lifecycle.ID
@@ -114,11 +118,6 @@ func (c *CreateBucketLifecycleRequest) ToCOSLifecycle() *cos.BucketPutLifecycleO
 			rule.Filter = &cos.BucketLifecycleFilter{
 				Prefix: *lifecycle.Filter.Prefix,
 			}
-		}
-		if lifecycle.Status != nil || *lifecycle.Status {
-			rule.Status = "Enabled" // 默认开启
-		} else {
-			rule.Status = "Disabled"
 		}
 		if lifecycle.AbortIncompleteMultipartUpload != nil {
 			rule.AbortIncompleteMultipartUpload = &cos.BucketLifecycleAbortIncompleteMultipartUpload{
@@ -146,4 +145,46 @@ func (c *CreateBucketLifecycleRequest) ToCOSLifecycle() *cos.BucketPutLifecycleO
 		XMLName: xml.Name{Local: "LifecycleConfiguration"},
 		Rules:   cosRules,
 	}
+}
+
+// to aws lifecycle
+func (c *CreateBucketLifecycleRequest) ToAWSS3Lifecycle() *s3.PutBucketLifecycleInput {
+	input := &s3.PutBucketLifecycleInput{
+		Bucket: c.Bucket,
+	}
+	rules := make([]*s3.Rule, len(c.Lifecycles))
+	for i, lifecycle := range c.Lifecycles {
+		rule := &s3.Rule{
+			ID:     lifecycle.ID,
+			Status: tea.String("Enabled"),
+		}
+		if lifecycle.Filter != nil && lifecycle.Filter.Prefix != nil {
+			rule.Prefix = lifecycle.Filter.Prefix
+		}
+		if lifecycle.Expiration != nil {
+			rule.Expiration = &s3.LifecycleExpiration{
+				Days: tea.Int64(cast.ToInt64(lifecycle.Expiration.Days)),
+			}
+		}
+		if lifecycle.Transition != nil {
+			rule.Transition = &s3.Transition{
+				Days: tea.Int64(cast.ToInt64(lifecycle.Transition.Days)),
+			}
+		}
+
+		rules[i] = rule
+	}
+	input.SetLifecycleConfiguration(&s3.LifecycleConfiguration{
+		Rules: rules,
+	})
+
+	return input
+}
+
+type GetBucketLifecycleRequest struct {
+	Bucket *string
+}
+
+type GetBucketLifecycleResponse struct {
+	Lifecycle any
 }

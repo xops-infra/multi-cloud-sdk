@@ -1,11 +1,43 @@
 package io_test
 
 import (
+	"fmt"
 	"testing"
 
 	"github.com/alibabacloud-go/tea/tea"
 	"github.com/xops-infra/multi-cloud-sdk/pkg/model"
 )
+
+func TestGetBucketLifecycle(t *testing.T) {
+	resp, err := AwsIo.GetBucketLifecycle("aws", "us-east-1", model.GetBucketLifecycleRequest{
+		Bucket: tea.String("zhoushoujiantest"),
+	})
+	if err != nil {
+		t.Error(err)
+	}
+	fmt.Println(tea.Prettify(resp))
+}
+
+func TestAwsCreateBucketLifecycle(t *testing.T) {
+	err := AwsIo.CreateBucketLifecycle("aws", "us-east-1", model.CreateBucketLifecycleRequest{
+		Bucket: tea.String("zhoushoujiantest"),
+		Lifecycles: []model.Lifecycle{
+			{
+				ID: tea.String("删除测试 30 天前"),
+				Filter: &model.LifecycleFilter{
+					Prefix: tea.String("test"),
+				},
+
+				Expiration: &model.LifecycleExpiration{
+					Days: tea.Int(30),
+				},
+			},
+		},
+	})
+	if err != nil {
+		t.Error(err)
+	}
+}
 
 func TestCreateS3Bucket(t *testing.T) {
 	err := AwsIo.CreateBucket("aws", "us-east-1", model.CreateBucketRequest{

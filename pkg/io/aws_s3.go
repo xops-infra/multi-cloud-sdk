@@ -15,7 +15,51 @@ import (
 )
 
 func (c *awsClient) CreateBucketLifecycle(profile, region string, input model.CreateBucketLifecycleRequest) error {
-	panic("implement me")
+	client, err := c.io.GetAWSS3Client(profile, region)
+	if err != nil {
+		return err
+	}
+	_, err = client.PutBucketLifecycle(input.ToAWSS3Lifecycle())
+	if err != nil {
+		return err
+	}
+	return nil
+}
+
+/*
+	{
+	   "Lifecycle": [
+	      {
+	         "AbortIncompleteMultipartUpload": null,
+	         "Expiration": {
+	            "Date": null,
+	            "Days": 30,
+	            "ExpiredObjectDeleteMarker": null
+	         },
+	         "ID": "删除测试 30 天前",
+	         "NoncurrentVersionExpiration": null,
+	         "NoncurrentVersionTransition": null,
+	         "Prefix": "test",
+	         "Status": "Enabled",
+	         "Transition": null
+	      }
+	   ]
+	}
+*/
+func (c *awsClient) GetBucketLifecycle(profile, region string, input model.GetBucketLifecycleRequest) (model.GetBucketLifecycleResponse, error) {
+	client, err := c.io.GetAWSS3Client(profile, region)
+	if err != nil {
+		return model.GetBucketLifecycleResponse{}, err
+	}
+	resp, err := client.GetBucketLifecycle(&s3.GetBucketLifecycleInput{
+		Bucket: input.Bucket,
+	})
+	if err != nil {
+		return model.GetBucketLifecycleResponse{}, err
+	}
+	return model.GetBucketLifecycleResponse{
+		Lifecycle: resp.Rules,
+	}, nil
 }
 
 // 比官方多了个创建bucket的tags功能。

@@ -16,7 +16,6 @@ func TestCreateBucketLifecycle(t *testing.T) {
 			{
 				ID:     tea.String("huggingface模型定期删除"),
 				Filter: &model.LifecycleFilter{Prefix: tea.String("hg/")},
-				Status: tea.Bool(true),
 				Expiration: &model.LifecycleExpiration{
 					Days: tea.Int(6),
 				},
@@ -24,7 +23,6 @@ func TestCreateBucketLifecycle(t *testing.T) {
 			{
 				ID:     tea.String("OPS_BASE"),
 				Filter: &model.LifecycleFilter{},
-				Status: tea.Bool(true),
 				AbortIncompleteMultipartUpload: &model.LifecycleAbortIncompleteMultipartUpload{
 					DaysAfterInitiation: tea.Int(40),
 				},
