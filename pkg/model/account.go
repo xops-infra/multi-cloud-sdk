@@ -30,6 +30,7 @@ type ClientIo interface {
 	GetTencentEmrClient(profile, region string) (*tencentEmr.Client, error)
 	GetTencentVpcClient(profile, region string) (*tencentVpc.Client, error)
 	GetTencentCosClient(profile, region string) (*cos.Client, error)
+	GetTencentCosLifecycleClient(profile, region, bucket string) (*cos.Client, error)
 	GetTencentTagsClient(profile, region string) (*tag.Client, error)
 	GetTencentOcrClient(profile, region string) (*ocr.Client, error)
 	GetTencentOcrTiiaClient(profile, region string) (*tiia.Client, error)

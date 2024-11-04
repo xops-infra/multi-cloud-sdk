@@ -9,10 +9,35 @@ import (
 	"sync"
 	"time"
 
+	"github.com/alibabacloud-go/tea/tea"
 	"github.com/tencentcloud/tencentcloud-sdk-go/tencentcloud/common"
 	"github.com/tencentyun/cos-go-sdk-v5"
 	"github.com/xops-infra/multi-cloud-sdk/pkg/model"
 )
+
+func (c *tencentClient) GetBucketLifecycle(profile, region string, input model.GetBucketLifecycleRequest) (model.GetBucketLifecycleResponse, error) {
+	panic("implement me")
+}
+
+func (c *tencentClient) CreateBucketLifecycle(profile, region string, input model.CreateBucketLifecycleRequest) error {
+	if input.Bucket == nil || region == "" {
+		return fmt.Errorf("bucket name or region is empty")
+	}
+	client, err := c.io.GetTencentCosLifecycleClient(profile, region, *input.Bucket)
+	if err != nil {
+		return err
+	}
+	param, err := input.ToCOSLifecycle()
+	if err != nil {
+		return err
+	}
+	resp, err := client.Bucket.PutLifecycle(context.Background(), param)
+	if err != nil {
+		return err
+	}
+	fmt.Printf(tea.Prettify(resp))
+	return nil
+}
 
 // Host: <BucketName-APPID>.cos.<Region>.myqcloud.com，其中 <BucketName-APPID> 为带 APPID 后缀的存储桶名字，例如 examplebucket-1250000000
 // appid不考虑在配置中获取，考虑云配置的一致性，特性的东西不应该放在配置中。
