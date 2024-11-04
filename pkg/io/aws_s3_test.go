@@ -23,13 +23,15 @@ func TestAwsCreateBucketLifecycle(t *testing.T) {
 		Bucket: tea.String("zhoushoujiantest"),
 		Lifecycles: []model.Lifecycle{
 			{
-				ID: tea.String("删除测试 30 天前"),
-				Filter: &model.LifecycleFilter{
-					Prefix: tea.String("test"),
+				ID: tea.String("删除桶数据"),
+				NoncurrentVersionExpiration: &model.LifecycleNoncurrentVersionExpiration{
+					Days: tea.Int(1),
 				},
-
-				Expiration: &model.LifecycleExpiration{
-					Days: tea.Int(30),
+				AbortIncompleteMultipartUpload: &model.LifecycleAbortIncompleteMultipartUpload{
+					DaysAfterInitiation: tea.Int(3),
+				},
+				Filter: &model.LifecycleFilter{
+					Prefix: tea.String(""),
 				},
 			},
 		},

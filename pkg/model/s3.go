@@ -60,20 +60,34 @@ type Lifecycle struct {
 	Filter *LifecycleFilter `xml:"Filter" json:"filter"`
 	// Status                         *bool                                    `xml:"Status" json:"status"`
 	Expiration                     *LifecycleExpiration                     `xml:"Expiration" json:"expiration"`
+	NoncurrentVersionExpiration    *LifecycleNoncurrentVersionExpiration    `xml:"NoncurrentVersionExpiration" json:"noncurrent_version_expiration"`
 	Transition                     *LifecycleTransition                     `xml:"Transition" json:"transition"`
+	NoncurrentVersionTransition    *LifecycleNoncurrentVersionTransition    `xml:"NoncurrentVersionTransition" json:"noncurrent_version_transition"`
 	AbortIncompleteMultipartUpload *LifecycleAbortIncompleteMultipartUpload `xml:"AbortIncompleteMultipartUpload" json:"abort_incomplete_multipart_upload"`
 }
 
 type LifecycleFilter struct {
-	Prefix *string
+	Prefix *string `xml:"Prefix" json:"prefix"` // "" 表示整个存储桶
 }
 
 type LifecycleExpiration struct {
+	Days                      *int
+	Date                      *string
+	ExpiredObjectDeleteMarker *bool
+}
+
+type LifecycleNoncurrentVersionExpiration struct {
 	Days *int
 }
 
 type LifecycleTransition struct {
-	Days *int
+	StorageClass *string // "STANDARD" "STANDARD_IA" "ARCHIVE"
+	Days         *int
+}
+
+type LifecycleNoncurrentVersionTransition struct {
+	Days         *int
+	StorageClass *string // "STANDARD" "STANDARD_IA" "ARCHIVE"
 }
 
 type LifecycleAbortIncompleteMultipartUpload struct {
@@ -103,7 +117,7 @@ type LifecycleAbortIncompleteMultipartUpload struct {
 </LifecycleConfiguration>
 */
 // to COSLifecycle
-func (c *CreateBucketLifecycleRequest) ToCOSLifecycle() *cos.BucketPutLifecycleOptions {
+func (c *CreateBucketLifecycleRequest) ToCOSLifecycle() (*cos.BucketPutLifecycleOptions, error) {
 	cosRules := make([]cos.BucketLifecycleRule, len(c.Lifecycles))
 
 	for i, lifecycle := range c.Lifecycles {
@@ -113,27 +127,64 @@ func (c *CreateBucketLifecycleRequest) ToCOSLifecycle() *cos.BucketPutLifecycleO
 
 		if lifecycle.ID != nil {
 			rule.ID = *lifecycle.ID
+		} else {
+			return nil, fmt.Errorf("id is required")
 		}
+
 		if lifecycle.Filter != nil && lifecycle.Filter.Prefix != nil {
 			rule.Filter = &cos.BucketLifecycleFilter{
 				Prefix: *lifecycle.Filter.Prefix,
 			}
 		}
+
 		if lifecycle.AbortIncompleteMultipartUpload != nil {
 			rule.AbortIncompleteMultipartUpload = &cos.BucketLifecycleAbortIncompleteMultipartUpload{
 				DaysAfterInitiation: *lifecycle.AbortIncompleteMultipartUpload.DaysAfterInitiation,
 			}
 		}
+		if lifecycle.NoncurrentVersionExpiration != nil {
+			if lifecycle.NoncurrentVersionExpiration.Days == nil {
+				return nil, fmt.Errorf("NoncurrentVersionExpiration days is required")
+			}
+			rule.NoncurrentVersionExpiration = &cos.BucketLifecycleNoncurrentVersion{
+				NoncurrentDays: *lifecycle.NoncurrentVersionExpiration.Days,
+			}
+		}
+		if lifecycle.NoncurrentVersionTransition != nil {
+			if lifecycle.NoncurrentVersionTransition.Days == nil {
+				return nil, fmt.Errorf("NoncurrentVersionTransition days is required")
+			}
+			if lifecycle.NoncurrentVersionTransition.StorageClass == nil {
+				return nil, fmt.Errorf("StorageClass is required")
+			}
+			rule.NoncurrentVersionTransition = []cos.BucketLifecycleNoncurrentVersion{
+				{
+					NoncurrentDays: *lifecycle.NoncurrentVersionTransition.Days,
+					StorageClass:   *lifecycle.NoncurrentVersionTransition.StorageClass,
+				},
+			}
+		}
 
 		if lifecycle.Expiration != nil {
-			rule.Expiration = &cos.BucketLifecycleExpiration{
+			if lifecycle.Expiration.Days == nil {
+				return nil, fmt.Errorf("days is required")
+			}
+			ex := &cos.BucketLifecycleExpiration{
 				Days: *lifecycle.Expiration.Days,
 			}
+			if lifecycle.Expiration.Date != nil {
+				ex.Date = *lifecycle.Expiration.Date
+			}
+			if lifecycle.Expiration.ExpiredObjectDeleteMarker != nil {
+				ex.ExpiredObjectDeleteMarker = *lifecycle.Expiration.ExpiredObjectDeleteMarker
+			}
+			rule.Expiration = ex
 		}
 		if lifecycle.Transition != nil {
 			rule.Transition = []cos.BucketLifecycleTransition{
 				{
-					Days: *lifecycle.Transition.Days,
+					Days:         *lifecycle.Transition.Days,
+					StorageClass: *lifecycle.Transition.StorageClass,
 				},
 			}
 		}
@@ -144,11 +195,11 @@ func (c *CreateBucketLifecycleRequest) ToCOSLifecycle() *cos.BucketPutLifecycleO
 	return &cos.BucketPutLifecycleOptions{
 		XMLName: xml.Name{Local: "LifecycleConfiguration"},
 		Rules:   cosRules,
-	}
+	}, nil
 }
 
 // to aws lifecycle
-func (c *CreateBucketLifecycleRequest) ToAWSS3Lifecycle() *s3.PutBucketLifecycleInput {
+func (c *CreateBucketLifecycleRequest) ToAWSS3Lifecycle() (*s3.PutBucketLifecycleInput, error) {
 	input := &s3.PutBucketLifecycleInput{
 		Bucket: c.Bucket,
 	}
@@ -171,14 +222,33 @@ func (c *CreateBucketLifecycleRequest) ToAWSS3Lifecycle() *s3.PutBucketLifecycle
 				Days: tea.Int64(cast.ToInt64(lifecycle.Transition.Days)),
 			}
 		}
-
+		if lifecycle.AbortIncompleteMultipartUpload != nil {
+			rule.AbortIncompleteMultipartUpload = &s3.AbortIncompleteMultipartUpload{
+				DaysAfterInitiation: tea.Int64(cast.ToInt64(lifecycle.AbortIncompleteMultipartUpload.DaysAfterInitiation)),
+			}
+		}
+		if lifecycle.NoncurrentVersionExpiration != nil {
+			rule.NoncurrentVersionExpiration = &s3.NoncurrentVersionExpiration{
+				NoncurrentDays: tea.Int64(cast.ToInt64(lifecycle.NoncurrentVersionExpiration.Days)),
+			}
+		}
+		if lifecycle.NoncurrentVersionTransition != nil {
+			rule.NoncurrentVersionTransition = &s3.NoncurrentVersionTransition{
+				NoncurrentDays: tea.Int64(cast.ToInt64(lifecycle.NoncurrentVersionTransition.Days)),
+				StorageClass:   lifecycle.NoncurrentVersionTransition.StorageClass,
+			}
+		}
+		if lifecycle.Filter != nil && lifecycle.Filter.Prefix != nil {
+			rule.Prefix = lifecycle.Filter.Prefix
+		} else {
+			return nil, fmt.Errorf("filter is required")
+		}
 		rules[i] = rule
 	}
 	input.SetLifecycleConfiguration(&s3.LifecycleConfiguration{
 		Rules: rules,
 	})
-
-	return input
+	return input, nil
 }
 
 type GetBucketLifecycleRequest struct {

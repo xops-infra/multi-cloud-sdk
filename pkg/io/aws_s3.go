@@ -19,7 +19,11 @@ func (c *awsClient) CreateBucketLifecycle(profile, region string, input model.Cr
 	if err != nil {
 		return err
 	}
-	_, err = client.PutBucketLifecycle(input.ToAWSS3Lifecycle())
+	req, err := input.ToAWSS3Lifecycle()
+	if err != nil {
+		return err
+	}
+	_, err = client.PutBucketLifecycle(req)
 	if err != nil {
 		return err
 	}

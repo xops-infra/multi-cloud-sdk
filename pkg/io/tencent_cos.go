@@ -27,7 +27,10 @@ func (c *tencentClient) CreateBucketLifecycle(profile, region string, input mode
 	if err != nil {
 		return err
 	}
-	param := input.ToCOSLifecycle()
+	param, err := input.ToCOSLifecycle()
+	if err != nil {
+		return err
+	}
 	resp, err := client.Bucket.PutLifecycle(context.Background(), param)
 	if err != nil {
 		return err
