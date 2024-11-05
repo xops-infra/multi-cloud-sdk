@@ -6,6 +6,34 @@ import (
 	"github.com/xops-infra/multi-cloud-sdk/pkg/model"
 )
 
+func (s *CommonService) CreateBucketLifecycle(profile, region string, input model.CreateBucketLifecycleRequest) error {
+	if p, ok := s.Profiles[profile]; ok {
+		switch p.Cloud {
+		case model.AWS:
+			return s.Aws.CreateBucketLifecycle(profile, region, input)
+		case model.TENCENT:
+			return s.Tencent.CreateBucketLifecycle(profile, region, input)
+		default:
+			return fmt.Errorf("%s %s", profile, model.ErrCloudNotSupported.Error())
+		}
+	}
+	return fmt.Errorf("%s %s", profile, model.ErrProfileNotFound.Error())
+}
+
+func (s *CommonService) GetBucketLifecycle(profile, region string, input model.GetBucketLifecycleRequest) (model.GetBucketLifecycleResponse, error) {
+	if p, ok := s.Profiles[profile]; ok {
+		switch p.Cloud {
+		case model.AWS:
+			return s.Aws.GetBucketLifecycle(profile, region, input)
+		case model.TENCENT:
+			return s.Tencent.GetBucketLifecycle(profile, region, input)
+		default:
+			return model.GetBucketLifecycleResponse{}, fmt.Errorf("%s %s", profile, model.ErrCloudNotSupported.Error())
+		}
+	}
+	return model.GetBucketLifecycleResponse{}, fmt.Errorf("%s %s", profile, model.ErrProfileNotFound.Error())
+}
+
 func (s *CommonService) ListBuckets(profile, region string, input model.ListBucketRequest) (model.ListBucketResponse, error) {
 	if p, ok := s.Profiles[profile]; ok {
 		switch p.Cloud {

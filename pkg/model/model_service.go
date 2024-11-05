@@ -55,6 +55,10 @@ type CommonContract interface {
 	CreateBucket(profile, region string, input CreateBucketRequest) error
 	DeleteBucket(profile, region string, input DeleteBucketRequest) (DeleteBucketResponse, error)
 	ListBuckets(profile, region string, input ListBucketRequest) (ListBucketResponse, error)
+
+	CreateBucketLifecycle(profile, region string, input CreateBucketLifecycleRequest) error
+	GetBucketLifecycle(profile, region string, input GetBucketLifecycleRequest) (GetBucketLifecycleResponse, error)
+
 	GetObjectPregisn(profile, region string, input ObjectPregisnRequest) (ObjectPregisnResponse, error)
 	GetObjectPregisnWithAKSK(cloud Cloud, ak, sk, region string, input ObjectPregisnRequest) (ObjectPregisnResponse, error)
 }
