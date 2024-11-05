@@ -4,9 +4,14 @@ golang 开发的，多云供应商的云资源 sdk 的混合，包括 aws,tencen
 go get -u github.com/xops-infra/multi-cloud-sdk@main
 ```
 
+### 说明
+
+由于时间问题，很多借口没有完全实现，只实现了业务用到的部分，如果你需要用到其他接口，欢迎 PR，共建。
+
 ### 支持功能
 
-[cloud.go](pkg/model/cloud.go)
+[model_service.go](pkg/model/model_service.go) 封装的 service 接口，可以屏蔽云差异；
+[model_io.go](pkg/model/model_io.go) 封装的各个云 io 接口，如果你只用到某个云的话，可以直接用这里的借口；
 
 ### 开发日志
 
