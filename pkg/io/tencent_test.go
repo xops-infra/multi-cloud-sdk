@@ -1,6 +1,7 @@
 package io_test
 
 import (
+	"encoding/json"
 	"fmt"
 	"os"
 	"strings"
@@ -368,6 +369,58 @@ func TestCreateSecurityGroupWithPolicies(t *testing.T) {
 					Action:            tea.String("ACCEPT"),
 				},
 			},
+		},
+	})
+	if err != nil {
+		t.Error(err)
+		return
+	}
+	t.Logf("Success. %s", tea.Prettify(resp))
+}
+
+func TestCreateSecurityGroupWithPolicies1(t *testing.T) {
+
+	// 读取本地json文件
+	file, err := os.Open("/tmp/sg.json")
+	if err != nil {
+		t.Error(err)
+		return
+	}
+	defer file.Close()
+
+	// 解析json文件
+	var sgs []map[string]string
+	err = json.NewDecoder(file).Decode(&sgs)
+	if err != nil {
+		t.Error(err)
+		return
+	}
+
+	// 创建sg
+	var ingress []model.SecurityGroupPolicy
+	for _, sg := range sgs {
+		ingress = append(ingress, model.SecurityGroupPolicy{
+			Protocol:          tea.String("TCP"),
+			Port:              tea.String("21,22"),
+			CidrBlock:         tea.String(sg["CidrIp"]),
+			PolicyDescription: tea.String(sg["Description"]),
+			Action:            tea.String("ACCEPT"),
+		})
+	}
+	resp, err := TencentIo.CreateSecurityGroupWithPolicies("tencent", "na-ashburn", model.CreateSecurityGroupWithPoliciesInput{
+		GroupName:        tea.String("0066_aws_cp_ftp"),
+		GroupDescription: tea.String("multi-cloud-sdk"),
+		PolicySet: model.PolicySet{
+			Egress: []model.SecurityGroupPolicy{
+				{
+					Protocol:          tea.String("ALL"),
+					Port:              tea.String("ALL"),
+					CidrBlock:         tea.String("0.0.0.0/0"),
+					PolicyDescription: tea.String("allow all"),
+					Action:            tea.String("ACCEPT"),
+				},
+			},
+			Ingress: ingress,
 		},
 	})
 	if err != nil {

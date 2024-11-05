@@ -62,7 +62,7 @@ func (c *awsClient) DescribeInstances(profile, region string, input model.Descri
 		}
 		req.NextToken = out.NextToken
 
-		// Release memory
+		// Release memory by setting out to nil
 		out = nil
 	}
 
