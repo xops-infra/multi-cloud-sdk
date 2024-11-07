@@ -34,8 +34,12 @@ func (c *awsClient) DescribeInstances(profile, region string, input model.Descri
 	}
 
 	var instances []model.Instance
+
+	var out *ec2.DescribeInstancesOutput
+
 	for {
-		out, err := svc.DescribeInstances(req)
+		// 打印 out 占用内存
+		out, err = svc.DescribeInstances(req)
 		if err != nil {
 			return model.InstanceResponse{}, err
 		}
@@ -55,18 +59,19 @@ func (c *awsClient) DescribeInstances(profile, region string, input model.Descri
 					Owner:      tags.GetOwner(),
 					Platform:   instance.PlatformDetails,
 				})
+
 			}
 		}
 		if out.NextToken == nil {
 			break
 		}
 		req.NextToken = out.NextToken
-
-		// Release memory by setting out to nil
-		out = nil
 	}
 
+	out = nil
+
 	return model.InstanceResponse{Instances: instances}, nil
+
 }
 
 func (c *awsClient) CreateInstance(profile, region string, input model.CreateInstanceInput) (model.CreateInstanceResponse, error) {
