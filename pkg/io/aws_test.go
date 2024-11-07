@@ -76,7 +76,23 @@ func TestDescribeEmrCluster(t *testing.T) {
 	t.Log("Success.", time.Since(timeStart), len(clusters))
 }
 
+// TEST TestAwsDescribeInstances
 func TestAwsDescribeInstances(t *testing.T) {
+	filter := model.InstanceFilter{
+		Size: tea.Int64(6),
+	}
+	instances, err := AwsIo.DescribeInstances("aws", "cn-northwest-1", filter.ToAwsDescribeInstancesInput())
+	if err != nil {
+		t.Error(err)
+		return
+	}
+	for _, instance := range instances.Instances {
+		fmt.Println(*instance.InstanceID, *instance.Name, tea.Prettify(instance.PrivateIP))
+	}
+	t.Log("Success.", len(instances.Instances))
+}
+
+func TestAwsDescribeInstancesAll(t *testing.T) {
 	{
 		timeStart := time.Now()
 		filter := model.InstanceFilter{}
