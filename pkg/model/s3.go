@@ -3,6 +3,7 @@ package model
 import (
 	"encoding/xml"
 	"fmt"
+	"time"
 
 	"github.com/alibabacloud-go/tea/tea"
 	"github.com/aws/aws-sdk-go/service/s3"
@@ -56,13 +57,13 @@ type CreateBucketLifecycleRequest struct {
 }
 
 type Lifecycle struct {
-	ID     *string          `xml:"ID" json:"id" binding:"required"`
-	Filter *LifecycleFilter `xml:"Filter" json:"filter"`
-	// Status                         *bool                                    `xml:"Status" json:"status"`
+	ID                             *string                                  `xml:"ID" json:"id" binding:"required"`
+	Filter                         *LifecycleFilter                         `xml:"Filter" json:"filter"`
+	Status                         *bool                                    `xml:"Status" json:"status"`
 	Expiration                     *LifecycleExpiration                     `xml:"Expiration" json:"expiration"`
 	NoncurrentVersionExpiration    *LifecycleNoncurrentVersionExpiration    `xml:"NoncurrentVersionExpiration" json:"noncurrent_version_expiration"`
-	Transition                     *LifecycleTransition                     `xml:"Transition" json:"transition"`
-	NoncurrentVersionTransition    *LifecycleNoncurrentVersionTransition    `xml:"NoncurrentVersionTransition" json:"noncurrent_version_transition"`
+	Transitions                    []LifecycleTransition                    `xml:"Transition" json:"transition"`
+	NoncurrentVersionTransitions   []LifecycleNoncurrentVersionTransition   `xml:"NoncurrentVersionTransition" json:"noncurrent_version_transition"`
 	AbortIncompleteMultipartUpload *LifecycleAbortIncompleteMultipartUpload `xml:"AbortIncompleteMultipartUpload" json:"abort_incomplete_multipart_upload"`
 }
 
@@ -77,17 +78,19 @@ type LifecycleExpiration struct {
 }
 
 type LifecycleNoncurrentVersionExpiration struct {
-	Days *int
+	NoncurrentDays *int
+	StorageClass   *string
 }
 
 type LifecycleTransition struct {
 	StorageClass *string // "STANDARD" "STANDARD_IA" "ARCHIVE"
+	Date         *string // timestampFormat:"iso8601" "2006-01-02T15:04:05Z"
 	Days         *int
 }
 
 type LifecycleNoncurrentVersionTransition struct {
-	Days         *int
-	StorageClass *string // "STANDARD" "STANDARD_IA" "ARCHIVE"
+	NoncurrentDays *int
+	StorageClass   *string // "STANDARD" "STANDARD_IA" "ARCHIVE"
 }
 
 type LifecycleAbortIncompleteMultipartUpload struct {
@@ -143,25 +146,11 @@ func (c *CreateBucketLifecycleRequest) ToCOSLifecycle() (*cos.BucketPutLifecycle
 			}
 		}
 		if lifecycle.NoncurrentVersionExpiration != nil {
-			if lifecycle.NoncurrentVersionExpiration.Days == nil {
+			if lifecycle.NoncurrentVersionExpiration.NoncurrentDays == nil {
 				return nil, fmt.Errorf("NoncurrentVersionExpiration days is required")
 			}
 			rule.NoncurrentVersionExpiration = &cos.BucketLifecycleNoncurrentVersion{
-				NoncurrentDays: *lifecycle.NoncurrentVersionExpiration.Days,
-			}
-		}
-		if lifecycle.NoncurrentVersionTransition != nil {
-			if lifecycle.NoncurrentVersionTransition.Days == nil {
-				return nil, fmt.Errorf("NoncurrentVersionTransition days is required")
-			}
-			if lifecycle.NoncurrentVersionTransition.StorageClass == nil {
-				return nil, fmt.Errorf("StorageClass is required")
-			}
-			rule.NoncurrentVersionTransition = []cos.BucketLifecycleNoncurrentVersion{
-				{
-					NoncurrentDays: *lifecycle.NoncurrentVersionTransition.Days,
-					StorageClass:   *lifecycle.NoncurrentVersionTransition.StorageClass,
-				},
+				NoncurrentDays: *lifecycle.NoncurrentVersionExpiration.NoncurrentDays,
 			}
 		}
 
@@ -180,13 +169,29 @@ func (c *CreateBucketLifecycleRequest) ToCOSLifecycle() (*cos.BucketPutLifecycle
 			}
 			rule.Expiration = ex
 		}
-		if lifecycle.Transition != nil {
-			rule.Transition = []cos.BucketLifecycleTransition{
-				{
-					Days:         *lifecycle.Transition.Days,
-					StorageClass: *lifecycle.Transition.StorageClass,
-				},
+
+		for _, transition := range lifecycle.Transitions {
+			if transition.StorageClass == nil {
+				return nil, fmt.Errorf("StorageClass is required")
 			}
+			t := cos.BucketLifecycleTransition{}
+			if transition.Days != nil {
+				t.Days = *transition.Days
+			}
+			if transition.Date != nil {
+				t.Date = *transition.Date
+			}
+			t.StorageClass = *transition.StorageClass
+			rule.Transition = append(rule.Transition, t)
+		}
+		for _, transition := range lifecycle.NoncurrentVersionTransitions {
+			if transition.StorageClass == nil {
+				return nil, fmt.Errorf("StorageClass is required")
+			}
+			rule.NoncurrentVersionTransition = append(rule.NoncurrentVersionTransition, cos.BucketLifecycleNoncurrentVersion{
+				StorageClass:   *transition.StorageClass,
+				NoncurrentDays: *transition.NoncurrentDays,
+			})
 		}
 
 		cosRules[i] = rule
@@ -211,17 +216,32 @@ func (c *CreateBucketLifecycleRequest) ToAWSS3Lifecycle() (*s3.PutBucketLifecycl
 		}
 		if lifecycle.Filter != nil && lifecycle.Filter.Prefix != nil {
 			rule.Prefix = lifecycle.Filter.Prefix
+		} else {
+			return nil, fmt.Errorf("filter is required, for bucket use ''")
 		}
 		if lifecycle.Expiration != nil {
 			rule.Expiration = &s3.LifecycleExpiration{
 				Days: tea.Int64(cast.ToInt64(lifecycle.Expiration.Days)),
 			}
 		}
-		if lifecycle.Transition != nil {
+		if len(lifecycle.Transitions) > 1 {
+			return nil, fmt.Errorf("aws only one transition is supported")
+		}
+
+		if len(lifecycle.Transitions) > 0 {
 			rule.Transition = &s3.Transition{
-				Days: tea.Int64(cast.ToInt64(lifecycle.Transition.Days)),
+				Days:         tea.Int64(cast.ToInt64(lifecycle.Transitions[0].Days)),
+				StorageClass: lifecycle.Transitions[0].StorageClass,
+			}
+			if lifecycle.Transitions[0].Date != nil {
+				date, err := time.Parse("2006-01-02", *lifecycle.Transitions[0].Date)
+				if err != nil {
+					return nil, err
+				}
+				rule.Transition.Date = &date
 			}
 		}
+
 		if lifecycle.AbortIncompleteMultipartUpload != nil {
 			rule.AbortIncompleteMultipartUpload = &s3.AbortIncompleteMultipartUpload{
 				DaysAfterInitiation: tea.Int64(cast.ToInt64(lifecycle.AbortIncompleteMultipartUpload.DaysAfterInitiation)),
@@ -229,20 +249,21 @@ func (c *CreateBucketLifecycleRequest) ToAWSS3Lifecycle() (*s3.PutBucketLifecycl
 		}
 		if lifecycle.NoncurrentVersionExpiration != nil {
 			rule.NoncurrentVersionExpiration = &s3.NoncurrentVersionExpiration{
-				NoncurrentDays: tea.Int64(cast.ToInt64(lifecycle.NoncurrentVersionExpiration.Days)),
+				NoncurrentDays: tea.Int64(cast.ToInt64(lifecycle.NoncurrentVersionExpiration.NoncurrentDays)),
 			}
 		}
-		if lifecycle.NoncurrentVersionTransition != nil {
+
+		if len(lifecycle.NoncurrentVersionTransitions) > 1 {
+			return nil, fmt.Errorf("aws only one noncurrent version transition is supported")
+		}
+
+		if len(lifecycle.NoncurrentVersionTransitions) > 0 {
 			rule.NoncurrentVersionTransition = &s3.NoncurrentVersionTransition{
-				NoncurrentDays: tea.Int64(cast.ToInt64(lifecycle.NoncurrentVersionTransition.Days)),
-				StorageClass:   lifecycle.NoncurrentVersionTransition.StorageClass,
+				NoncurrentDays: tea.Int64(cast.ToInt64(lifecycle.NoncurrentVersionTransitions[0].NoncurrentDays)),
+				StorageClass:   lifecycle.NoncurrentVersionTransitions[0].StorageClass,
 			}
 		}
-		if lifecycle.Filter != nil && lifecycle.Filter.Prefix != nil {
-			rule.Prefix = lifecycle.Filter.Prefix
-		} else {
-			return nil, fmt.Errorf("filter is required")
-		}
+
 		rules[i] = rule
 	}
 	input.SetLifecycleConfiguration(&s3.LifecycleConfiguration{
@@ -256,5 +277,5 @@ type GetBucketLifecycleRequest struct {
 }
 
 type GetBucketLifecycleResponse struct {
-	Lifecycle any
+	Lifecycle []Lifecycle
 }

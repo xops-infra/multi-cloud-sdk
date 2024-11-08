@@ -11,6 +11,7 @@ import (
 	"github.com/aws/aws-sdk-go/aws/credentials"
 	"github.com/aws/aws-sdk-go/aws/session"
 	"github.com/aws/aws-sdk-go/service/s3"
+	"github.com/spf13/cast"
 	"github.com/xops-infra/multi-cloud-sdk/pkg/model"
 )
 
@@ -59,10 +60,74 @@ func (c *awsClient) GetBucketLifecycle(profile, region string, input model.GetBu
 		Bucket: input.Bucket,
 	})
 	if err != nil {
+		// 404 返回空
+		if strings.Contains(err.Error(), "NoSuchLifecycleConfiguration") {
+			return model.GetBucketLifecycleResponse{}, nil
+		}
 		return model.GetBucketLifecycleResponse{}, err
 	}
+	var lifecycles []model.Lifecycle
+	for _, lifecycle := range resp.Rules {
+		fmt.Println(tea.Prettify(lifecycle))
+		cosLifecycle := model.Lifecycle{
+			ID: lifecycle.ID,
+		}
+		if lifecycle.Status != nil && *lifecycle.Status == "Enabled" {
+			cosLifecycle.Status = tea.Bool(true)
+		} else {
+			cosLifecycle.Status = tea.Bool(false)
+		}
+		if lifecycle.Prefix != nil {
+			cosLifecycle.Filter = &model.LifecycleFilter{Prefix: lifecycle.Prefix}
+		}
+		if lifecycle.NoncurrentVersionExpiration != nil && lifecycle.NoncurrentVersionExpiration.NoncurrentDays != nil {
+			NonCurrentTransition := model.LifecycleNoncurrentVersionTransition{
+				NoncurrentDays: tea.Int(cast.ToInt(*lifecycle.NoncurrentVersionExpiration.NoncurrentDays)),
+			}
+			cosLifecycle.NoncurrentVersionTransitions = []model.LifecycleNoncurrentVersionTransition{
+				NonCurrentTransition,
+			}
+		}
+
+		if lifecycle.Transition != nil {
+			transition := model.LifecycleTransition{}
+			if lifecycle.Transition.StorageClass != nil {
+				transition.StorageClass = lifecycle.Transition.StorageClass
+			}
+			if lifecycle.Transition.Days != nil {
+				transition.Days = tea.Int(cast.ToInt(*lifecycle.Transition.Days))
+			}
+			if lifecycle.Transition.Date != nil {
+				date := lifecycle.Transition.Date.Format(time.RFC3339)
+				transition.Date = &date
+			}
+			cosLifecycle.Transitions = []model.LifecycleTransition{
+				transition,
+			}
+		}
+
+		if lifecycle.AbortIncompleteMultipartUpload != nil && lifecycle.AbortIncompleteMultipartUpload.DaysAfterInitiation != nil {
+			cosLifecycle.AbortIncompleteMultipartUpload = &model.LifecycleAbortIncompleteMultipartUpload{
+				DaysAfterInitiation: tea.Int(cast.ToInt(*lifecycle.AbortIncompleteMultipartUpload.DaysAfterInitiation)),
+			}
+		}
+		if lifecycle.Expiration != nil {
+			cosLifecycle.Expiration = &model.LifecycleExpiration{}
+			if lifecycle.Expiration.Days != nil {
+				cosLifecycle.Expiration.Days = tea.Int(cast.ToInt(*lifecycle.Expiration.Days))
+			}
+			if lifecycle.Expiration.Date != nil {
+				date := lifecycle.Expiration.Date.Format(time.RFC3339)
+				cosLifecycle.Expiration.Date = &date
+			}
+			if lifecycle.Expiration.ExpiredObjectDeleteMarker != nil {
+				cosLifecycle.Expiration.ExpiredObjectDeleteMarker = lifecycle.Expiration.ExpiredObjectDeleteMarker
+			}
+		}
+		lifecycles = append(lifecycles, cosLifecycle)
+	}
 	return model.GetBucketLifecycleResponse{
-		Lifecycle: resp.Rules,
+		Lifecycle: lifecycles,
 	}, nil
 }
 

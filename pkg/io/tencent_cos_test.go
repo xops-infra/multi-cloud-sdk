@@ -9,9 +9,7 @@ import (
 
 // TEST GetBucketLifecycle
 func TestGetTencentBucketLifecycle(t *testing.T) {
-	resp, err := TencentIo.GetBucketLifecycle(profile, "ap-shanghai", model.GetBucketLifecycleRequest{
-		Bucket: tea.String("examplebucket-1250000000"),
-	})
+	resp, err := TencentIo.GetBucketLifecycle(profile, "ap-shanghai", model.GetBucketLifecycleRequest{})
 	if err != nil {
 		t.Error(err)
 		return
@@ -21,8 +19,8 @@ func TestGetTencentBucketLifecycle(t *testing.T) {
 
 // TEST CreateBucketLifecycle
 func TestCreateBucketLifecycle(t *testing.T) {
-	t.Log("CreateBucketLifecycle")
-	err := TencentIo.CreateBucketLifecycle(profile, "na-ashburn", model.CreateBucketLifecycleRequest{
+	err := TencentIo.CreateBucketLifecycle(profile, "ap-shanghai", model.CreateBucketLifecycleRequest{
+		Bucket: tea.String("examplebucket-1250000000"),
 		Lifecycles: []model.Lifecycle{
 			{
 				ID: tea.String("OPS_BASE"),
@@ -32,20 +30,24 @@ func TestCreateBucketLifecycle(t *testing.T) {
 				AbortIncompleteMultipartUpload: &model.LifecycleAbortIncompleteMultipartUpload{
 					DaysAfterInitiation: tea.Int(20),
 				}, // 20 天删除碎片
-				NoncurrentVersionExpiration: &model.LifecycleNoncurrentVersionExpiration{
-					Days: tea.Int(360),
-				}, // 当前版本文件删除：360 天
-				NoncurrentVersionTransition: &model.LifecycleNoncurrentVersionTransition{
-					Days:         tea.Int(30),
-					StorageClass: tea.String("STANDARD_IA"),
-				}, // 历史版本沉降至低频存储：30 天
-				Transition: &model.LifecycleTransition{
-					Days:         tea.Int(40),
-					StorageClass: tea.String("STANDARD_IA"),
-				}, // 当前版本文件沉降至低频存储：40 天
-				Expiration: &model.LifecycleExpiration{
-					Days: tea.Int(180),
-				}, // 当前版本文件删除：180 天
+				// NoncurrentVersionExpiration: &model.LifecycleNoncurrentVersionExpiration{
+				// 	NoncurrentDays: tea.Int(360),
+				// }, // 当前版本文件删除：360 天
+				// NoncurrentVersionTransitions: []model.LifecycleNoncurrentVersionTransition{
+				// 	{
+				// 		NoncurrentDays: tea.Int(30),
+				// 		StorageClass:   tea.String("STANDARD_IA"),
+				// 	},
+				// }, // 历史版本沉降至低频存储：30 天
+				// Transitions: []model.LifecycleTransition{
+				// 	{
+				// 		Days:         tea.Int(40),
+				// 		StorageClass: tea.String("STANDARD_IA"),
+				// 	},
+				// }, // 当前版本文件沉降至低频存储：40 天
+				// Expiration: &model.LifecycleExpiration{
+				// 	Days: tea.Int(180),
+				// }, // 当前版本文件删除：180 天
 			},
 		},
 	})

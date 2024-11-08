@@ -33,7 +33,63 @@ func (c *tencentClient) GetBucketLifecycle(profile, region string, input model.G
 		}
 		return model.GetBucketLifecycleResponse{}, err
 	}
-	return model.GetBucketLifecycleResponse{Lifecycle: result.Rules}, nil
+
+	var lifecycles []model.Lifecycle
+	for _, lifecycle := range result.Rules {
+		fmt.Println(tea.Prettify(lifecycle))
+		cosLifecycle := model.Lifecycle{
+			ID: &lifecycle.ID,
+		}
+		if lifecycle.Filter != nil {
+			cosLifecycle.Filter = &model.LifecycleFilter{Prefix: &lifecycle.Filter.Prefix}
+		}
+
+		var NonCurrentTransitions []model.LifecycleNoncurrentVersionTransition
+		for _, transition := range lifecycle.NoncurrentVersionTransition {
+			NonCurrentTransitions = append(NonCurrentTransitions, model.LifecycleNoncurrentVersionTransition{
+				StorageClass:   &transition.StorageClass,
+				NoncurrentDays: &transition.NoncurrentDays,
+			})
+		}
+		cosLifecycle.NoncurrentVersionTransitions = NonCurrentTransitions
+
+		var transitions []model.LifecycleTransition
+		for _, transition := range lifecycle.Transition {
+			transitions = append(transitions, model.LifecycleTransition{
+				StorageClass: &transition.StorageClass,
+				Days:         &transition.Days,
+			})
+		}
+		cosLifecycle.Transitions = transitions
+
+		if lifecycle.AbortIncompleteMultipartUpload != nil {
+			cosLifecycle.AbortIncompleteMultipartUpload = &model.LifecycleAbortIncompleteMultipartUpload{
+				DaysAfterInitiation: &lifecycle.AbortIncompleteMultipartUpload.DaysAfterInitiation,
+			}
+		}
+
+		if lifecycle.Expiration != nil {
+			cosLifecycle.Expiration = &model.LifecycleExpiration{
+				Days: &lifecycle.Expiration.Days,
+			}
+		}
+
+		if lifecycle.NoncurrentVersionExpiration != nil {
+			cosLifecycle.NoncurrentVersionExpiration = &model.LifecycleNoncurrentVersionExpiration{
+				NoncurrentDays: &lifecycle.NoncurrentVersionExpiration.NoncurrentDays,
+				StorageClass:   &lifecycle.NoncurrentVersionExpiration.StorageClass,
+			}
+		}
+
+		if lifecycle.Status != "Disabled" {
+			cosLifecycle.Status = tea.Bool(true)
+		} else {
+			cosLifecycle.Status = tea.Bool(false)
+		}
+
+		lifecycles = append(lifecycles, cosLifecycle)
+	}
+	return model.GetBucketLifecycleResponse{Lifecycle: lifecycles}, nil
 }
 
 func (c *tencentClient) CreateBucketLifecycle(profile, region string, input model.CreateBucketLifecycleRequest) error {

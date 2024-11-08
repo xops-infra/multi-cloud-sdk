@@ -25,7 +25,7 @@ func TestAwsCreateBucketLifecycle(t *testing.T) {
 			{
 				ID: tea.String("删除桶数据"),
 				NoncurrentVersionExpiration: &model.LifecycleNoncurrentVersionExpiration{
-					Days: tea.Int(1),
+					NoncurrentDays: tea.Int(1),
 				},
 				AbortIncompleteMultipartUpload: &model.LifecycleAbortIncompleteMultipartUpload{
 					DaysAfterInitiation: tea.Int(3),
