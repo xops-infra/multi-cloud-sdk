@@ -202,5 +202,7 @@ func (c *tencentClient) getObjectPregisn(client *cos.Client, region string, inpu
 	if err != nil {
 		return model.ObjectPregisnResponse{}, err
 	}
+	// 替换 %2F 为 /，解决腾讯签名对象下载文件带上 key问题
+	url.Path = strings.Replace(url.Path, "%2F", "/", -1)
 	return model.ObjectPregisnResponse{Url: url.String()}, nil
 }
