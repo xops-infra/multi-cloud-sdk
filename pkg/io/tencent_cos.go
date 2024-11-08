@@ -16,7 +16,24 @@ import (
 )
 
 func (c *tencentClient) GetBucketLifecycle(profile, region string, input model.GetBucketLifecycleRequest) (model.GetBucketLifecycleResponse, error) {
-	panic("implement me")
+	if input.Bucket == nil || region == "" {
+		return model.GetBucketLifecycleResponse{}, fmt.Errorf("bucket name or region is empty")
+	}
+	client, err := c.io.GetTencentCosLifecycleClient(profile, region, *input.Bucket)
+	if err != nil {
+		return model.GetBucketLifecycleResponse{}, err
+	}
+	result, resp, err := client.Bucket.GetLifecycle(context.Background())
+	if err != nil {
+		if resp.StatusCode == http.StatusNotFound {
+			// 没有直接返回 nil
+			return model.GetBucketLifecycleResponse{
+				Lifecycle: nil,
+			}, nil
+		}
+		return model.GetBucketLifecycleResponse{}, err
+	}
+	return model.GetBucketLifecycleResponse{Lifecycle: result.Rules}, nil
 }
 
 func (c *tencentClient) CreateBucketLifecycle(profile, region string, input model.CreateBucketLifecycleRequest) error {

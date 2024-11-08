@@ -7,11 +7,22 @@ import (
 	"github.com/xops-infra/multi-cloud-sdk/pkg/model"
 )
 
+// TEST GetBucketLifecycle
+func TestGetTencentBucketLifecycle(t *testing.T) {
+	resp, err := TencentIo.GetBucketLifecycle(profile, "ap-shanghai", model.GetBucketLifecycleRequest{
+		Bucket: tea.String("examplebucket-1250000000"),
+	})
+	if err != nil {
+		t.Error(err)
+		return
+	}
+	t.Log(tea.Prettify(resp))
+}
+
 // TEST CreateBucketLifecycle
 func TestCreateBucketLifecycle(t *testing.T) {
 	t.Log("CreateBucketLifecycle")
 	err := TencentIo.CreateBucketLifecycle(profile, "na-ashburn", model.CreateBucketLifecycleRequest{
-		Bucket: tea.String("examplebucket-1250000000"),
 		Lifecycles: []model.Lifecycle{
 			{
 				ID: tea.String("OPS_BASE"),
