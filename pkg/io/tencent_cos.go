@@ -36,7 +36,6 @@ func (c *tencentClient) GetBucketLifecycle(profile, region string, input model.G
 
 	var lifecycles []model.Lifecycle
 	for _, lifecycle := range result.Rules {
-		fmt.Println(tea.Prettify(lifecycle))
 		cosLifecycle := model.Lifecycle{
 			ID: &lifecycle.ID,
 		}
@@ -104,11 +103,10 @@ func (c *tencentClient) CreateBucketLifecycle(profile, region string, input mode
 	if err != nil {
 		return err
 	}
-	resp, err := client.Bucket.PutLifecycle(context.Background(), param)
+	_, err = client.Bucket.PutLifecycle(context.Background(), param)
 	if err != nil {
 		return err
 	}
-	fmt.Printf(tea.Prettify(resp))
 	return nil
 }
 
