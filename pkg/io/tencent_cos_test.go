@@ -1,11 +1,38 @@
 package io_test
 
 import (
+	"encoding/json"
+	"os"
 	"testing"
 
 	"github.com/alibabacloud-go/tea/tea"
 	"github.com/xops-infra/multi-cloud-sdk/pkg/model"
 )
+
+var lifecycleFile = "../../lifecycle.json"
+
+func TestCreateCOSLifecycle(t *testing.T) {
+	// 解析 jason 文件
+	data, err := os.ReadFile(lifecycleFile)
+	if err != nil {
+		panic(err)
+	}
+	var lifecycleNewJson []model.Lifecycle
+	err = json.Unmarshal(data, &lifecycleNewJson)
+	if err != nil {
+		panic(err)
+	}
+	req := model.CreateBucketLifecycleRequest{
+		Bucket:     tea.String("zhoushoujiantest-1251949819"),
+		Lifecycles: lifecycleNewJson,
+	}
+
+	err = TencentIo.CreateBucketLifecycle(profile, "na-ashburn", req)
+	if err != nil {
+		t.Error(err)
+	}
+
+}
 
 // TEST GetBucketLifecycle
 func TestGetTencentBucketLifecycle(t *testing.T) {

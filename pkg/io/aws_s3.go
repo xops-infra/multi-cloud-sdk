@@ -20,7 +20,7 @@ func (c *awsClient) CreateBucketLifecycle(profile, region string, input model.Cr
 	if err != nil {
 		return err
 	}
-	req, err := input.ToAWSS3Lifecycle()
+	req, err := input.ToS3Lifecycle()
 	if err != nil {
 		return err
 	}
@@ -97,10 +97,10 @@ func (c *awsClient) GetBucketLifecycle(profile, region string, input model.GetBu
 			if lifecycle.Transition.Days != nil {
 				transition.Days = tea.Int(cast.ToInt(*lifecycle.Transition.Days))
 			}
-			if lifecycle.Transition.Date != nil {
-				date := lifecycle.Transition.Date.Format(time.RFC3339)
-				transition.Date = &date
-			}
+			// if lifecycle.Transition.Date != nil {
+			// 	date := lifecycle.Transition.Date.Format(time.RFC3339)
+			// 	transition.Date = &date
+			// }
 			cosLifecycle.Transitions = []model.LifecycleTransition{
 				transition,
 			}
@@ -116,10 +116,10 @@ func (c *awsClient) GetBucketLifecycle(profile, region string, input model.GetBu
 			if lifecycle.Expiration.Days != nil {
 				cosLifecycle.Expiration.Days = tea.Int(cast.ToInt(*lifecycle.Expiration.Days))
 			}
-			if lifecycle.Expiration.Date != nil {
-				date := lifecycle.Expiration.Date.Format(time.RFC3339)
-				cosLifecycle.Expiration.Date = &date
-			}
+			// if lifecycle.Expiration.Date != nil {
+			// 	date := lifecycle.Expiration.Date.Format(time.RFC3339)
+			// 	cosLifecycle.Expiration.Date = &date
+			// }
 			if lifecycle.Expiration.ExpiredObjectDeleteMarker != nil {
 				cosLifecycle.Expiration.ExpiredObjectDeleteMarker = lifecycle.Expiration.ExpiredObjectDeleteMarker
 			}

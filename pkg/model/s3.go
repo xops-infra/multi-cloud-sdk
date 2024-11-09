@@ -3,7 +3,6 @@ package model
 import (
 	"encoding/xml"
 	"fmt"
-	"time"
 
 	"github.com/alibabacloud-go/tea/tea"
 	"github.com/aws/aws-sdk-go/service/s3"
@@ -72,29 +71,29 @@ type LifecycleFilter struct {
 }
 
 type LifecycleExpiration struct {
-	Days                      *int
-	Date                      *string
-	ExpiredObjectDeleteMarker *bool
+	Days *int `xml:"Days" json:"days"`
+	// Date                      *string `xml:"Date" json:"date"` // timestampFormat:"iso8601" "2006-01-02T15:04:05Z"
+	ExpiredObjectDeleteMarker *bool `xml:"ExpiredObjectDeleteMarker" json:"expired_object_delete_marker"`
 }
 
 type LifecycleNoncurrentVersionExpiration struct {
-	NoncurrentDays *int
-	StorageClass   *string
+	NoncurrentDays *int    `xml:"NoncurrentDays" json:"noncurrent_days"`
+	StorageClass   *string `xml:"StorageClass" json:"storage_class"` // "STANDARD" "STANDARD_IA" "ARCHIVE"
 }
 
 type LifecycleTransition struct {
-	StorageClass *string // "STANDARD" "STANDARD_IA" "ARCHIVE"
-	Date         *string // timestampFormat:"iso8601" "2006-01-02T15:04:05Z"
-	Days         *int
+	StorageClass *string `xml:"StorageClass" json:"storage_class"` // "STANDARD" "STANDARD_IA" "ARCHIVE"
+	// Date         *string `xml:"Date" json:"date"`                  // timestampFormat:"iso8601" "2006-01-02T15:04:05Z"
+	Days *int `xml:"Days" json:"days"`
 }
 
 type LifecycleNoncurrentVersionTransition struct {
-	NoncurrentDays *int
-	StorageClass   *string // "STANDARD" "STANDARD_IA" "ARCHIVE"
+	NoncurrentDays *int    `xml:"NoncurrentDays" json:"noncurrent_days"`
+	StorageClass   *string `xml:"StorageClass" json:"storage_class"` // "STANDARD" "STANDARD_IA" "ARCHIVE"
 }
 
 type LifecycleAbortIncompleteMultipartUpload struct {
-	DaysAfterInitiation *int
+	DaysAfterInitiation *int `xml:"DaysAfterInitiation" json:"days_after_initiation"`
 }
 
 /*
@@ -138,9 +137,14 @@ func (c *CreateBucketLifecycleRequest) ToCOSLifecycle() (*cos.BucketPutLifecycle
 			rule.Filter = &cos.BucketLifecycleFilter{
 				Prefix: *lifecycle.Filter.Prefix,
 			}
+		} else {
+			return nil, fmt.Errorf("filter is required")
 		}
 
 		if lifecycle.AbortIncompleteMultipartUpload != nil {
+			if lifecycle.AbortIncompleteMultipartUpload.DaysAfterInitiation == nil {
+				return nil, fmt.Errorf("AbortIncompleteMultipartUpload days is required")
+			}
 			rule.AbortIncompleteMultipartUpload = &cos.BucketLifecycleAbortIncompleteMultipartUpload{
 				DaysAfterInitiation: *lifecycle.AbortIncompleteMultipartUpload.DaysAfterInitiation,
 			}
@@ -149,21 +153,26 @@ func (c *CreateBucketLifecycleRequest) ToCOSLifecycle() (*cos.BucketPutLifecycle
 			if lifecycle.NoncurrentVersionExpiration.NoncurrentDays == nil {
 				return nil, fmt.Errorf("NoncurrentVersionExpiration days is required")
 			}
-			rule.NoncurrentVersionExpiration = &cos.BucketLifecycleNoncurrentVersion{
+			ne := &cos.BucketLifecycleNoncurrentVersion{
 				NoncurrentDays: *lifecycle.NoncurrentVersionExpiration.NoncurrentDays,
 			}
+			if lifecycle.NoncurrentVersionExpiration.StorageClass != nil {
+				ne.StorageClass = *lifecycle.NoncurrentVersionExpiration.StorageClass
+			}
+			rule.NoncurrentVersionExpiration = ne
 		}
 
 		if lifecycle.Expiration != nil {
 			if lifecycle.Expiration.Days == nil {
 				return nil, fmt.Errorf("days is required")
 			}
-			ex := &cos.BucketLifecycleExpiration{
-				Days: *lifecycle.Expiration.Days,
+			ex := &cos.BucketLifecycleExpiration{}
+			if lifecycle.Expiration.Days != nil {
+				ex.Days = *lifecycle.Expiration.Days
 			}
-			if lifecycle.Expiration.Date != nil {
-				ex.Date = *lifecycle.Expiration.Date
-			}
+			// if lifecycle.Expiration.Date != nil {
+			// 	ex.Date = *lifecycle.Expiration.Date
+			// }
 			if lifecycle.Expiration.ExpiredObjectDeleteMarker != nil {
 				ex.ExpiredObjectDeleteMarker = *lifecycle.Expiration.ExpiredObjectDeleteMarker
 			}
@@ -178,20 +187,26 @@ func (c *CreateBucketLifecycleRequest) ToCOSLifecycle() (*cos.BucketPutLifecycle
 			if transition.Days != nil {
 				t.Days = *transition.Days
 			}
-			if transition.Date != nil {
-				t.Date = *transition.Date
+			// if transition.Date != nil {
+			// 	t.Date = *transition.Date
+			// }
+			if transition.StorageClass != nil {
+				t.StorageClass = *transition.StorageClass
 			}
-			t.StorageClass = *transition.StorageClass
 			rule.Transition = append(rule.Transition, t)
 		}
 		for _, transition := range lifecycle.NoncurrentVersionTransitions {
 			if transition.StorageClass == nil {
 				return nil, fmt.Errorf("StorageClass is required")
 			}
-			rule.NoncurrentVersionTransition = append(rule.NoncurrentVersionTransition, cos.BucketLifecycleNoncurrentVersion{
-				StorageClass:   *transition.StorageClass,
-				NoncurrentDays: *transition.NoncurrentDays,
-			})
+			nt := cos.BucketLifecycleNoncurrentVersion{}
+			if transition.NoncurrentDays != nil {
+				nt.NoncurrentDays = *transition.NoncurrentDays
+			}
+			if transition.StorageClass != nil {
+				nt.StorageClass = *transition.StorageClass
+			}
+			rule.NoncurrentVersionTransition = append(rule.NoncurrentVersionTransition, nt)
 		}
 
 		cosRules[i] = rule
@@ -204,7 +219,7 @@ func (c *CreateBucketLifecycleRequest) ToCOSLifecycle() (*cos.BucketPutLifecycle
 }
 
 // to aws lifecycle
-func (c *CreateBucketLifecycleRequest) ToAWSS3Lifecycle() (*s3.PutBucketLifecycleInput, error) {
+func (c *CreateBucketLifecycleRequest) ToS3Lifecycle() (*s3.PutBucketLifecycleInput, error) {
 	input := &s3.PutBucketLifecycleInput{
 		Bucket: c.Bucket,
 	}
@@ -220,6 +235,9 @@ func (c *CreateBucketLifecycleRequest) ToAWSS3Lifecycle() (*s3.PutBucketLifecycl
 			return nil, fmt.Errorf("filter is required, for bucket use ''")
 		}
 		if lifecycle.Expiration != nil {
+			if lifecycle.Expiration.Days == nil {
+				return nil, fmt.Errorf("days is required")
+			}
 			rule.Expiration = &s3.LifecycleExpiration{
 				Days: tea.Int64(cast.ToInt64(lifecycle.Expiration.Days)),
 			}
@@ -229,16 +247,19 @@ func (c *CreateBucketLifecycleRequest) ToAWSS3Lifecycle() (*s3.PutBucketLifecycl
 		}
 
 		if len(lifecycle.Transitions) > 0 {
-			rule.Transition = &s3.Transition{
-				Days:         tea.Int64(cast.ToInt64(lifecycle.Transitions[0].Days)),
-				StorageClass: lifecycle.Transitions[0].StorageClass,
+			rule.Transition = &s3.Transition{}
+			// if lifecycle.Transitions[0].Date != nil {
+			// 	date, err := time.Parse("2006-01-02", *lifecycle.Transitions[0].Date)
+			// 	if err != nil {
+			// 		return nil, err
+			// 	}
+			// 	rule.Transition.Date = &date
+			// }
+			if lifecycle.Transitions[0].Days != nil {
+				rule.Transition.Days = tea.Int64(cast.ToInt64(lifecycle.Transitions[0].Days))
 			}
-			if lifecycle.Transitions[0].Date != nil {
-				date, err := time.Parse("2006-01-02", *lifecycle.Transitions[0].Date)
-				if err != nil {
-					return nil, err
-				}
-				rule.Transition.Date = &date
+			if lifecycle.Transitions[0].StorageClass != nil {
+				rule.Transition.StorageClass = lifecycle.Transitions[0].StorageClass
 			}
 		}
 
