@@ -211,7 +211,7 @@ func (c *CreateBucketLifecycleRequest) ToCOSLifecycle() (*cos.BucketPutLifecycle
 
 		cosRules[i] = rule
 	}
-	fmt.Println(tea.Prettify(cosRules))
+	// fmt.Println(tea.Prettify(cosRules))
 	return &cos.BucketPutLifecycleOptions{
 		XMLName: xml.Name{Local: "LifecycleConfiguration"},
 		Rules:   cosRules,
