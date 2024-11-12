@@ -12,8 +12,7 @@ import (
 
 // Instance
 func (c *tencentClient) DescribeInstances(profile, region string, input model.DescribeInstancesInput) (model.InstanceResponse, error) {
-	var instances []model.Instance
-
+	instances := make(map[string]model.Instance, 0)
 	client, err := c.io.GetTencentCvmClient(profile, region)
 	if err != nil {
 		return model.InstanceResponse{}, err
@@ -51,7 +50,10 @@ func (c *tencentClient) DescribeInstances(profile, region string, input model.De
 			return model.InstanceResponse{}, err
 		}
 		for _, instanceSet := range response.Response.InstanceSet {
-			instances = append(instances, model.Instance{
+			if _, ok := instances[*instanceSet.InstanceId]; ok {
+				continue
+			}
+			instances[*instanceSet.InstanceId] = model.Instance{
 				Profile:    profile,
 				KeyIDs:     instanceSet.LoginSettings.KeyIds,
 				InstanceID: instanceSet.InstanceId,
@@ -63,13 +65,17 @@ func (c *tencentClient) DescribeInstances(profile, region string, input model.De
 				Tags:       model.TencentTagsToModelTags(instanceSet.Tags),
 				Owner:      model.TencentTagsToModelTags(instanceSet.Tags).GetOwner(),
 				Platform:   instanceSet.OsName,
-			})
+			}
 		}
 		pages = pages + 1
 	}
+	instance := make([]model.Instance, 0)
+	for _, v := range instances {
+		instance = append(instance, v)
+	}
 
 	return model.InstanceResponse{
-		Instances:  instances,
+		Instances:  instance,
 		NextMarker: nil,
 	}, nil
 }
