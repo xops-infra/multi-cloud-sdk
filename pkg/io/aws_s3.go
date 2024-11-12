@@ -115,12 +115,6 @@ func (c *awsClient) GetBucketLifecycle(profile, region string, input model.GetBu
 			cosLifecycle.Expiration = &model.LifecycleExpiration{}
 			if lifecycle.Expiration.Days != nil {
 				cosLifecycle.Expiration.Days = tea.Int(cast.ToInt(*lifecycle.Expiration.Days))
-			}
-			// if lifecycle.Expiration.Date != nil {
-			// 	date := lifecycle.Expiration.Date.Format(time.RFC3339)
-			// 	cosLifecycle.Expiration.Date = &date
-			// }
-			if lifecycle.Expiration.ExpiredObjectDeleteMarker != nil {
 				cosLifecycle.Expiration.ExpiredObjectDeleteMarker = lifecycle.Expiration.ExpiredObjectDeleteMarker
 			}
 		}

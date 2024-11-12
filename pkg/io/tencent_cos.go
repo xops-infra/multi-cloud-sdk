@@ -45,10 +45,10 @@ func (c *tencentClient) GetBucketLifecycle(profile, region string, input model.G
 		}
 
 		var NonCurrentTransitions []model.LifecycleNoncurrentVersionTransition
-		for _, transition := range lifecycle.NoncurrentVersionTransition {
+		for _, nonTransition := range lifecycle.NoncurrentVersionTransition {
 			NonCurrentTransitions = append(NonCurrentTransitions, model.LifecycleNoncurrentVersionTransition{
-				StorageClass:   &transition.StorageClass,
-				NoncurrentDays: &transition.NoncurrentDays,
+				StorageClass:   &nonTransition.StorageClass,
+				NoncurrentDays: &nonTransition.NoncurrentDays,
 			})
 		}
 		cosLifecycle.NoncurrentVersionTransitions = NonCurrentTransitions
@@ -70,7 +70,8 @@ func (c *tencentClient) GetBucketLifecycle(profile, region string, input model.G
 
 		if lifecycle.Expiration != nil {
 			cosLifecycle.Expiration = &model.LifecycleExpiration{
-				Days: &lifecycle.Expiration.Days,
+				Days:                      &lifecycle.Expiration.Days,
+				ExpiredObjectDeleteMarker: &lifecycle.Expiration.ExpiredObjectDeleteMarker,
 			}
 		}
 
