@@ -36,8 +36,9 @@ func (c *tencentClient) GetBucketLifecycle(profile, region string, input model.G
 
 	var lifecycles []model.Lifecycle
 	for _, lifecycle := range result.Rules {
+		id := lifecycle.ID
 		cosLifecycle := model.Lifecycle{
-			ID: &lifecycle.ID,
+			ID: &id,
 		}
 		if lifecycle.Filter != nil {
 			cosLifecycle.Filter = &model.LifecycleFilter{Prefix: &lifecycle.Filter.Prefix}

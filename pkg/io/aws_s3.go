@@ -68,9 +68,9 @@ func (c *awsClient) GetBucketLifecycle(profile, region string, input model.GetBu
 	}
 	var lifecycles []model.Lifecycle
 	for _, lifecycle := range resp.Rules {
-		fmt.Println(tea.Prettify(lifecycle))
+		id := lifecycle.ID
 		cosLifecycle := model.Lifecycle{
-			ID: lifecycle.ID,
+			ID: id,
 		}
 		if lifecycle.Status != nil && *lifecycle.Status == "Enabled" {
 			cosLifecycle.Status = tea.Bool(true)
