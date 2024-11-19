@@ -79,6 +79,8 @@ func (c *awsClient) GetBucketLifecycle(profile, region string, input model.GetBu
 		}
 		if lifecycle.Prefix != nil {
 			cosLifecycle.Filter = &model.LifecycleFilter{Prefix: lifecycle.Prefix}
+		} else {
+			cosLifecycle.Filter = &model.LifecycleFilter{Prefix: tea.String("")} // 默认为空 表示全桶
 		}
 		if lifecycle.NoncurrentVersionExpiration != nil && lifecycle.NoncurrentVersionExpiration.NoncurrentDays != nil {
 			NonCurrentTransition := model.LifecycleNoncurrentVersionTransition{

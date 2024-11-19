@@ -42,6 +42,8 @@ func (c *tencentClient) GetBucketLifecycle(profile, region string, input model.G
 		}
 		if lifecycle.Filter != nil {
 			cosLifecycle.Filter = &model.LifecycleFilter{Prefix: &lifecycle.Filter.Prefix}
+		} else {
+			cosLifecycle.Filter = &model.LifecycleFilter{Prefix: tea.String("")} // 表示全桶
 		}
 
 		var NonCurrentTransitions []model.LifecycleNoncurrentVersionTransition

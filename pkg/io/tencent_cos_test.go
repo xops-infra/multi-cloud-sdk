@@ -36,7 +36,9 @@ func TestCreateCOSLifecycle(t *testing.T) {
 
 // TEST GetBucketLifecycle
 func TestGetTencentBucketLifecycle(t *testing.T) {
-	resp, err := TencentIo.GetBucketLifecycle(profile, "ap-shanghai", model.GetBucketLifecycleRequest{})
+	resp, err := TencentIo.GetBucketLifecycle(profile, "ap-shanghai", model.GetBucketLifecycleRequest{
+		Bucket: tea.String("devops-public-1251949819"),
+	})
 	if err != nil {
 		t.Error(err)
 		return
