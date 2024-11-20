@@ -149,7 +149,7 @@ func (t *Tags) Scan(value interface{}) error {
 }
 
 // Value implements the Valuer interface for Tags
-func (t *Tags) Value() (driver.Value, error) {
+func (t Tags) Value() (driver.Value, error) {
 	return json.Marshal(t)
 }
 
