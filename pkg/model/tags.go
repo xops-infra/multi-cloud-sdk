@@ -1,6 +1,9 @@
 package model
 
 import (
+	"database/sql/driver"
+	"encoding/json"
+	"errors"
 	"strings"
 
 	"github.com/aws/aws-sdk-go/aws"
@@ -134,6 +137,20 @@ func (t Tags) GetTeam() *string {
 		}
 	}
 	return nil
+}
+
+// for gorm
+func (t Tags) Scan(value interface{}) error {
+	bytes, ok := value.([]byte)
+	if !ok {
+		return errors.New("type assertion to []byte failed")
+	}
+	return json.Unmarshal(bytes, t)
+}
+
+// Value implements the Valuer interface for Tags
+func (t Tags) Value() (driver.Value, error) {
+	return json.Marshal(t)
 }
 
 type Tag struct {
