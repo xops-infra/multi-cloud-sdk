@@ -140,7 +140,7 @@ func (t Tags) GetTeam() *string {
 }
 
 // for gorm
-func (t Tags) Scan(value interface{}) error {
+func (t *Tags) Scan(value interface{}) error {
 	bytes, ok := value.([]byte)
 	if !ok {
 		return errors.New("type assertion to []byte failed")
@@ -149,7 +149,7 @@ func (t Tags) Scan(value interface{}) error {
 }
 
 // Value implements the Valuer interface for Tags
-func (t Tags) Value() (driver.Value, error) {
+func (t *Tags) Value() (driver.Value, error) {
 	return json.Marshal(t)
 }
 
