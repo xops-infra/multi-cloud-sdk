@@ -6,6 +6,7 @@ import (
 	"github.com/xops-infra/multi-cloud-sdk/pkg/model"
 )
 
+// 注意这里没有适配到标签匹配的功能，目前只能用前缀匹配，使用时候千万注意，会把标签匹配的适配为全桶范围
 func (s *CommonService) CreateBucketLifecycle(profile, region string, input model.CreateBucketLifecycleRequest) error {
 	if p, ok := s.Profiles[profile]; ok {
 		switch p.Cloud {
