@@ -311,4 +311,6 @@ type Image struct {
 
 type InstanceType struct {
 	Type string `json:"type"`
+	CPU  int64  `json:"cpu"`
+	Mem  int64  `json:"mem"`
 }

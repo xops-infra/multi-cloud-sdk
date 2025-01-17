@@ -349,7 +349,9 @@ func (c *tencentClient) DescribeInstanceTypes(profile, region string) ([]model.I
 	instanceTypes := make([]model.InstanceType, 0)
 	for _, instanceType := range response.Response.InstanceTypeConfigSet {
 		instanceTypes = append(instanceTypes, model.InstanceType{
-			Type: *instanceType.InstanceType,
+			Type: tea.StringValue(instanceType.InstanceType),
+			CPU:  tea.Int64Value(instanceType.CPU),
+			Mem:  tea.Int64Value(instanceType.Memory),
 		})
 	}
 	return instanceTypes, nil

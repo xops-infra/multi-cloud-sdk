@@ -161,9 +161,12 @@ func (c *awsClient) DescribeInstanceTypes(profile, region string) ([]model.Insta
 			return nil, err
 		}
 		for _, instanceType := range response.InstanceTypes {
-			instanceTypes = append(instanceTypes, model.InstanceType{
-				Type: *instanceType.InstanceType,
-			})
+			t := model.InstanceType{
+				Type: tea.StringValue(instanceType.InstanceType),
+				CPU:  tea.Int64Value(instanceType.VCpuInfo.DefaultVCpus),
+				Mem:  tea.Int64Value(instanceType.MemoryInfo.SizeInMiB),
+			}
+			instanceTypes = append(instanceTypes, t)
 		}
 		if response.NextToken == nil {
 			break
