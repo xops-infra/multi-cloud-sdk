@@ -32,6 +32,39 @@ func init() {
 	AwsIo = io.NewAwsClient(clientIo)
 }
 
+func TestDescribeAwsImages(t *testing.T) {
+	timeStart := time.Now()
+	images, err := AwsIo.DescribeImages("aws", "cn-northwest-1", model.CommonFilter{})
+	if err != nil {
+		t.Error(err)
+	}
+	t.Log("Success.", time.Since(timeStart), len(images))
+}
+
+func TestQueryAwsKeyPairs(t *testing.T) {
+	timeStart := time.Now()
+	keyPairs, err := AwsIo.DescribeKeyPairs("aws", "cn-northwest-1", model.CommonFilter{})
+	if err != nil {
+		t.Error(err)
+	}
+	for _, keyPair := range keyPairs {
+		fmt.Println(tea.Prettify(keyPair))
+	}
+	t.Log("Success.", time.Since(timeStart), len(keyPairs))
+}
+
+func TestQueryAwsSecurityGroups(t *testing.T) {
+	timeStart := time.Now()
+	securityGroups, err := AwsIo.QuerySecurityGroups("aws", "cn-northwest-1", model.CommonFilter{})
+	if err != nil {
+		t.Error(err)
+	}
+	for _, securityGroup := range securityGroups {
+		fmt.Println(tea.Prettify(securityGroup))
+	}
+	t.Log("Success.", time.Since(timeStart), len(securityGroups))
+}
+
 func TestQueryEmrCluster(t *testing.T) {
 	timeStart := time.Now()
 	period := 24 * time.Hour

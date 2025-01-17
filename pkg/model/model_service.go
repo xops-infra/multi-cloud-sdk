@@ -46,11 +46,14 @@ type CommonContract interface {
 	CreateInstance(profile, region string, input CreateInstanceInput) (CreateInstanceResponse, error)
 	ModifyInstance(profile, region string, input ModifyInstanceInput) (ModifyInstanceResponse, error)
 	DeleteInstance(profile, region string, input DeleteInstanceInput) (DeleteInstanceResponse, error)
+	DescribeImages(profile, region string, input CommonFilter) ([]Image, error)
+	DescribeKeyPairs(profile, region string, input CommonFilter) ([]KeyPair, error)
 
 	QueryVPCs(profile, region string, input CommonFilter) ([]VPC, error)
 	QuerySubnets(profile, region string, input CommonFilter) ([]Subnet, error)
 	QueryEIPs(profile, region string, input CommonFilter) ([]EIP, error)
 	QueryNATs(profile, region string, input CommonFilter) ([]NAT, error)
+	QuerySecurityGroups(profile, region string, input CommonFilter) ([]SecurityGroup, error)
 
 	CreateBucket(profile, region string, input CreateBucketRequest) error
 	DeleteBucket(profile, region string, input DeleteBucketRequest) (DeleteBucketResponse, error)

@@ -290,3 +290,21 @@ func (i *DeleteInstanceInput) ToTencentTerminateInstancesRequest() *cvm.Terminat
 type DeleteInstanceResponse struct {
 	Meta any `json:"meta"`
 }
+
+type SecurityGroup struct {
+	ID   string `json:"id"`
+	Name string `json:"name"`
+}
+
+type KeyPair struct {
+	ID        string `json:"id"`
+	Name      string `json:"name"`
+	PublicKey string `json:"public_ley"`
+}
+
+type Image struct {
+	ID       string `json:"id"`
+	Name     string `json:"name"`
+	Arch     string `json:"arch"`
+	Platform string `json:"platform"`
+}

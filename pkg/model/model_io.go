@@ -5,12 +5,15 @@ type CloudIO interface {
 	CreateInstance(profile, region string, input CreateInstanceInput) (CreateInstanceResponse, error)
 	ModifyInstance(profile, region string, input ModifyInstanceInput) (ModifyInstanceResponse, error)
 	DeleteInstance(profile, region string, input DeleteInstanceInput) (DeleteInstanceResponse, error)
+	DescribeKeyPairs(profile, region string, input CommonFilter) ([]KeyPair, error)
+	DescribeImages(profile, region string, input CommonFilter) ([]Image, error)
 
 	// VPC
 	QueryVPC(profile, region string, input CommonFilter) ([]VPC, error)
 	QuerySubnet(profile, region string, input CommonFilter) ([]Subnet, error)
 	QueryEIP(profile, region string, input CommonFilter) ([]EIP, error)
 	QueryNAT(profile, region string, input CommonFilter) ([]NAT, error)
+	QuerySecurityGroups(profile, region string, input CommonFilter) ([]SecurityGroup, error)
 	CreateSecurityGroupWithPolicies(profile, region string, input CreateSecurityGroupWithPoliciesInput) (CreateSecurityGroupWithPoliciesResponse, error) // 创建安全组并添加策略
 	CreateSecurityGroupPolicies(profile, region string, input CreateSecurityGroupPoliciesInput) (CreateSecurityGroupPoliciesResponse, error)             // 创建安全组策略
 
@@ -27,17 +30,11 @@ type CloudIO interface {
 
 	// tencent region is not required
 	DescribeDomainList(profile, region string, input DescribeDomainListRequest) (DescribeDomainListResponse, error)
-	// tencent region is not required
 	DescribeRecordList(profile, region string, input DescribeRecordListRequest) (DescribeRecordListResponse, error)
-	// tencent region is not required
 	DescribeRecordListWithPages(profile, region string, input DescribeRecordListWithPageRequest) (ListRecordsPageResponse, error)
-	// tencent region is not required
 	DescribeRecord(profile, region string, input DescribeRecordRequest) (Record, error)
-	// tencent region is not required
 	CreateRecord(profile, region string, input CreateRecordRequest) (CreateRecordResponse, error)
-	// tencent region is not required
 	ModifyRecord(profile, region string, ignoreType bool, input ModifyRecordRequest) error
-	// tencent region is not required
 	DeleteRecord(profile, region string, input DeleteRecordRequest) (CommonDnsResponse, error)
 
 	// Private_Dns
@@ -66,4 +63,5 @@ type CloudIO interface {
 	ListBucket(profile, region string, input ListBucketRequest) (ListBucketResponse, error) // 比官方多支持了 aws location 返回，并且都带上了tag返回。
 	GetObjectPregisn(profile, region string, input ObjectPregisnRequest) (ObjectPregisnResponse, error)
 	GetObjectPregisnWithAKSK(ak, sk, region string, input ObjectPregisnRequest) (ObjectPregisnResponse, error) // 支持AKSK的方式获取对象的预签名URL
+
 }

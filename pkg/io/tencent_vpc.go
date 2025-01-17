@@ -2,6 +2,7 @@ package io
 
 import (
 	"fmt"
+	"strconv"
 
 	"github.com/alibabacloud-go/tea/tea"
 	"github.com/spf13/cast"
@@ -206,4 +207,32 @@ func (c *tencentClient) CreateSecurityGroupPolicies(profile, region string, inpu
 	return model.CreateSecurityGroupPoliciesResponse{
 		Result: response,
 	}, nil
+}
+
+func (c *tencentClient) QuerySecurityGroups(profile, region string, input model.CommonFilter) ([]model.SecurityGroup, error) {
+	client, err := c.io.GetTencentVpcClient(profile, region)
+	if err != nil {
+		return nil, err
+	}
+	request := tencentVpc.NewDescribeSecurityGroupsRequest()
+	// request.Limit = tea.String("10")
+	securityGroups := make([]model.SecurityGroup, 0)
+	for {
+		response, err := client.DescribeSecurityGroups(request)
+		if err != nil {
+			return nil, err
+		}
+		for _, securityGroup := range response.Response.SecurityGroupSet {
+			securityGroups = append(securityGroups, model.SecurityGroup{
+				ID:   *securityGroup.SecurityGroupId,
+				Name: *securityGroup.SecurityGroupName,
+			})
+		}
+		if response.Response.TotalCount != nil && *response.Response.TotalCount == uint64(len(securityGroups)) {
+			// fmt.Println("total count", *response.Response.TotalCount, "len", len(securityGroups))
+			break
+		}
+		request.Offset = tea.String(strconv.Itoa(len(securityGroups)))
+	}
+	return securityGroups, nil
 }

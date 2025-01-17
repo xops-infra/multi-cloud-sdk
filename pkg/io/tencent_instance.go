@@ -4,6 +4,7 @@ import (
 	"fmt"
 
 	"github.com/alibabacloud-go/tea/tea"
+	"github.com/spf13/cast"
 	"github.com/tencentcloud/tencentcloud-sdk-go/tencentcloud/common"
 	"github.com/tencentcloud/tencentcloud-sdk-go/tencentcloud/common/errors"
 	cvm "github.com/tencentcloud/tencentcloud-sdk-go/tencentcloud/cvm/v20170312"
@@ -265,4 +266,69 @@ func (c *tencentClient) DeleteInstance(profile, region string, input model.Delet
 	return model.DeleteInstanceResponse{
 		Meta: response.ToJsonString(),
 	}, nil
+}
+
+func (c *tencentClient) DescribeKeyPairs(profile, region string, input model.CommonFilter) ([]model.KeyPair, error) {
+	client, err := c.io.GetTencentCvmClient(profile, region)
+	if err != nil {
+		return nil, err
+	}
+	keyPairs := make([]model.KeyPair, 0)
+	request := cvm.NewDescribeKeyPairsRequest()
+	// request.Limit = tea.Int64(2)
+	for {
+		response, err := client.DescribeKeyPairs(request)
+		if _, ok := err.(*errors.TencentCloudSDKError); ok {
+			return nil, fmt.Errorf("an api error has returned: %s", err)
+		}
+		if err != nil {
+			return nil, err
+		}
+		for _, keyPair := range response.Response.KeyPairSet {
+			keyPairs = append(keyPairs, model.KeyPair{
+				ID:        *keyPair.KeyId,
+				Name:      *keyPair.KeyName,
+				PublicKey: *keyPair.PublicKey,
+			})
+		}
+		if response.Response.TotalCount != nil && *response.Response.TotalCount == int64(len(keyPairs)) {
+			break
+		}
+		request.Offset = tea.Int64(cast.ToInt64(len(keyPairs)))
+		// fmt.Println(cast.ToInt64(len(keyPairs)))
+	}
+	return keyPairs, nil
+}
+
+func (c *tencentClient) DescribeImages(profile, region string, input model.CommonFilter) ([]model.Image, error) {
+	client, err := c.io.GetTencentCvmClient(profile, region)
+	if err != nil {
+		return nil, err
+	}
+	images := make([]model.Image, 0)
+	request := cvm.NewDescribeImagesRequest()
+	// request.Limit = tea.Uint64(10)
+	for {
+		response, err := client.DescribeImages(request)
+		if _, ok := err.(*errors.TencentCloudSDKError); ok {
+			return nil, fmt.Errorf("an api error has returned: %s", err)
+		}
+		if err != nil {
+			return nil, err
+		}
+		for _, image := range response.Response.ImageSet {
+			images = append(images, model.Image{
+				ID:       *image.ImageId,
+				Name:     *image.ImageName,
+				Arch:     *image.Architecture,
+				Platform: *image.Platform,
+			})
+		}
+		if response.Response.TotalCount != nil && *response.Response.TotalCount == int64(len(images)) {
+			break
+		}
+		request.Offset = tea.Uint64(cast.ToUint64(len(images)))
+		// fmt.Println(cast.ToUint64(len(images)))
+	}
+	return images, nil
 }

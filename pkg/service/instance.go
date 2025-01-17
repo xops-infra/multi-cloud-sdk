@@ -62,3 +62,31 @@ func (s *CommonService) DeleteInstance(profile, region string, input model.Delet
 	}
 	return model.DeleteInstanceResponse{}, fmt.Errorf("%s %s", profile, model.ErrProfileNotFound.Error())
 }
+
+func (s *CommonService) DescribeKeyPairs(profile, region string, input model.CommonFilter) ([]model.KeyPair, error) {
+	if p, ok := s.Profiles[profile]; ok {
+		switch p.Cloud {
+		case model.AWS:
+			return s.Aws.DescribeKeyPairs(profile, region, input)
+		case model.TENCENT:
+			return s.Tencent.DescribeKeyPairs(profile, region, input)
+		default:
+			return nil, fmt.Errorf("%s %s", profile, model.ErrCloudNotSupported.Error())
+		}
+	}
+	return nil, fmt.Errorf("%s %s", profile, model.ErrProfileNotFound.Error())
+}
+
+func (s *CommonService) DescribeImages(profile, region string, input model.CommonFilter) ([]model.Image, error) {
+	if p, ok := s.Profiles[profile]; ok {
+		switch p.Cloud {
+		case model.AWS:
+			return s.Aws.DescribeImages(profile, region, input)
+		case model.TENCENT:
+			return s.Tencent.DescribeImages(profile, region, input)
+		default:
+			return nil, fmt.Errorf("%s %s", profile, model.ErrCloudNotSupported.Error())
+		}
+	}
+	return nil, fmt.Errorf("%s %s", profile, model.ErrProfileNotFound.Error())
+}

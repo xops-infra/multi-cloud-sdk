@@ -39,6 +39,43 @@ func init() {
 	TencentIo = io.NewTencentClient(clientIo)
 }
 
+func TestDescribeKeyPairs(t *testing.T) {
+	timeStart := time.Now()
+	keyPairs, err := TencentIo.DescribeKeyPairs("tencent", "ap-shanghai", model.CommonFilter{})
+	if err != nil {
+		t.Error(err)
+		return
+	}
+	for _, keyPair := range keyPairs {
+		fmt.Println(tea.Prettify(keyPair))
+	}
+	t.Log("Success.", time.Since(timeStart), len(keyPairs))
+}
+
+func TestDescribeImages(t *testing.T) {
+	timeStart := time.Now()
+	images, err := TencentIo.DescribeImages("tencent", "ap-shanghai", model.CommonFilter{})
+	if err != nil {
+		t.Error(err)
+		return
+	}
+	for _, image := range images {
+		fmt.Println(tea.Prettify(image))
+	}
+	t.Log("Success.", time.Since(timeStart), len(images))
+}
+
+func TestQuerySecurityGroups(t *testing.T) {
+	timeStart := time.Now()
+	filter := model.CommonFilter{}
+	securityGroups, err := TencentIo.QuerySecurityGroups("tencent", "ap-shanghai", filter)
+	if err != nil {
+		t.Error(err)
+		return
+	}
+	t.Log("Success.", time.Since(timeStart), len(securityGroups))
+}
+
 func TestQueryTencentEmrCluster(t *testing.T) {
 	timeStart := time.Now()
 	filter := model.EmrFilter{

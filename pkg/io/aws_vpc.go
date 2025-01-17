@@ -154,6 +154,35 @@ func (c *awsClient) QueryNAT(profile, region string, input model.CommonFilter) (
 	return nats, nil
 }
 
+func (c *awsClient) QuerySecurityGroups(profile, region string, input model.CommonFilter) ([]model.SecurityGroup, error) {
+	svc, err := c.io.GetAwsEc2Client(profile, region)
+	if err != nil {
+		return nil, err
+	}
+	var securityGroups []model.SecurityGroup
+	_input := &ec2.DescribeSecurityGroupsInput{}
+	if input.ID != "" {
+		_input.GroupIds = []*string{aws.String(input.ID)}
+	}
+	for {
+		out, err := svc.DescribeSecurityGroups(_input)
+		if err != nil {
+			return nil, err
+		}
+		for _, securityGroup := range out.SecurityGroups {
+			securityGroups = append(securityGroups, model.SecurityGroup{
+				ID:   *securityGroup.GroupId,
+				Name: *securityGroup.GroupName,
+			})
+		}
+		if out.NextToken == nil {
+			break
+		}
+		_input.NextToken = out.NextToken
+	}
+	return securityGroups, nil
+}
+
 // CreateSecurityGroupWithPolicies
 func (c *awsClient) CreateSecurityGroupWithPolicies(profile, region string, input model.CreateSecurityGroupWithPoliciesInput) (model.CreateSecurityGroupWithPoliciesResponse, error) {
 	panic("implement me")

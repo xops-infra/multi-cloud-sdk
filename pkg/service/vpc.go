@@ -61,3 +61,17 @@ func (s *CommonService) QuerySubnets(profile, region string, input model.CommonF
 	}
 	return nil, fmt.Errorf("%s %s", profile, model.ErrProfileNotFound.Error())
 }
+
+func (s *CommonService) QuerySecurityGroups(profile, region string, input model.CommonFilter) ([]model.SecurityGroup, error) {
+	if p, ok := s.Profiles[profile]; ok {
+		switch p.Cloud {
+		case model.AWS:
+			return s.Aws.QuerySecurityGroups(profile, region, input)
+		case model.TENCENT:
+			return s.Tencent.QuerySecurityGroups(profile, region, input)
+		default:
+			return nil, fmt.Errorf("%s %s", profile, model.ErrCloudNotSupported.Error())
+		}
+	}
+	return nil, fmt.Errorf("%s %s", profile, model.ErrProfileNotFound.Error())
+}
