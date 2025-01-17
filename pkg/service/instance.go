@@ -90,3 +90,17 @@ func (s *CommonService) DescribeImages(profile, region string, input model.Commo
 	}
 	return nil, fmt.Errorf("%s %s", profile, model.ErrProfileNotFound.Error())
 }
+
+func (s *CommonService) DescribeInstanceTypes(profile, region string) ([]model.InstanceType, error) {
+	if p, ok := s.Profiles[profile]; ok {
+		switch p.Cloud {
+		case model.AWS:
+			return s.Aws.DescribeInstanceTypes(profile, region)
+		case model.TENCENT:
+			return s.Tencent.DescribeInstanceTypes(profile, region)
+		default:
+			return nil, fmt.Errorf("%s %s", profile, model.ErrCloudNotSupported.Error())
+		}
+	}
+	return nil, fmt.Errorf("%s %s", profile, model.ErrProfileNotFound.Error())
+}

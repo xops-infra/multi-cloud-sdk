@@ -7,6 +7,7 @@ type CloudIO interface {
 	DeleteInstance(profile, region string, input DeleteInstanceInput) (DeleteInstanceResponse, error)
 	DescribeKeyPairs(profile, region string, input CommonFilter) ([]KeyPair, error)
 	DescribeImages(profile, region string, input CommonFilter) ([]Image, error)
+	DescribeInstanceTypes(profile, region string) ([]InstanceType, error)
 
 	// VPC
 	QueryVPC(profile, region string, input CommonFilter) ([]VPC, error)

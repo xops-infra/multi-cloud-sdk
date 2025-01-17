@@ -308,3 +308,7 @@ type Image struct {
 	Arch     string `json:"arch"`
 	Platform string `json:"platform"`
 }
+
+type InstanceType struct {
+	Type string `json:"type"`
+}

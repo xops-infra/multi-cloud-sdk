@@ -147,3 +147,28 @@ func (c *awsClient) DescribeImages(profile, region string, input model.CommonFil
 	}
 	return images, nil
 }
+
+func (c *awsClient) DescribeInstanceTypes(profile, region string) ([]model.InstanceType, error) {
+	svc, err := c.io.GetAwsEc2Client(profile, region)
+	if err != nil {
+		return nil, err
+	}
+	instanceTypes := make([]model.InstanceType, 0)
+	request := &ec2.DescribeInstanceTypesInput{}
+	for {
+		response, err := svc.DescribeInstanceTypes(request)
+		if err != nil {
+			return nil, err
+		}
+		for _, instanceType := range response.InstanceTypes {
+			instanceTypes = append(instanceTypes, model.InstanceType{
+				Type: *instanceType.InstanceType,
+			})
+		}
+		if response.NextToken == nil {
+			break
+		}
+		request.NextToken = response.NextToken
+	}
+	return instanceTypes, nil
+}

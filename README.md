@@ -15,6 +15,11 @@ go get -u github.com/xops-infra/multi-cloud-sdk@main
 
 ### 开发日志
 
+- 2025-01:
+  - feat: add 安全组接口
+  - feat: add 实例接口
+  - feat: add 镜像接口
+  - feat: add 机器类型接口
 - 2024-11:
   - feat: add 对象存储生命周期管理，初步调试几个接口。
 - 2024-04:

@@ -31,6 +31,17 @@ func init() {
 	clientIo := io.NewCloudClient(profiles)
 	AwsIo = io.NewAwsClient(clientIo)
 }
+func TestDescribeAwsInstanceTypes(t *testing.T) {
+	timeStart := time.Now()
+	instanceTypes, err := AwsIo.DescribeInstanceTypes("aws", "cn-northwest-1")
+	if err != nil {
+		t.Error(err)
+	}
+	for _, instanceType := range instanceTypes {
+		fmt.Println(tea.Prettify(instanceType))
+	}
+	t.Log("Success.", time.Since(timeStart), len(instanceTypes))
+}
 
 func TestDescribeAwsImages(t *testing.T) {
 	timeStart := time.Now()

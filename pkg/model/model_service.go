@@ -48,6 +48,7 @@ type CommonContract interface {
 	DeleteInstance(profile, region string, input DeleteInstanceInput) (DeleteInstanceResponse, error)
 	DescribeImages(profile, region string, input CommonFilter) ([]Image, error)
 	DescribeKeyPairs(profile, region string, input CommonFilter) ([]KeyPair, error)
+	DescribeInstanceTypes(profile, region string) ([]InstanceType, error)
 
 	QueryVPCs(profile, region string, input CommonFilter) ([]VPC, error)
 	QuerySubnets(profile, region string, input CommonFilter) ([]Subnet, error)

@@ -39,6 +39,18 @@ func init() {
 	TencentIo = io.NewTencentClient(clientIo)
 }
 
+func TestDescribeInstanceTypes(t *testing.T) {
+	timeStart := time.Now()
+	instanceTypes, err := TencentIo.DescribeInstanceTypes("tencent", "ap-shanghai")
+	if err != nil {
+		t.Error(err)
+		return
+	}
+	for _, instanceType := range instanceTypes {
+		fmt.Println(tea.Prettify(instanceType))
+	}
+	t.Log("Success.", time.Since(timeStart), len(instanceTypes))
+}
 func TestDescribeKeyPairs(t *testing.T) {
 	timeStart := time.Now()
 	keyPairs, err := TencentIo.DescribeKeyPairs("tencent", "ap-shanghai", model.CommonFilter{})

@@ -332,3 +332,25 @@ func (c *tencentClient) DescribeImages(profile, region string, input model.Commo
 	}
 	return images, nil
 }
+
+func (c *tencentClient) DescribeInstanceTypes(profile, region string) ([]model.InstanceType, error) {
+	client, err := c.io.GetTencentCvmClient(profile, region)
+	if err != nil {
+		return nil, err
+	}
+	request := cvm.NewDescribeInstanceTypeConfigsRequest()
+	response, err := client.DescribeInstanceTypeConfigs(request)
+	if _, ok := err.(*errors.TencentCloudSDKError); ok {
+		return nil, fmt.Errorf("an api error has returned: %s", err)
+	}
+	if err != nil {
+		return nil, err
+	}
+	instanceTypes := make([]model.InstanceType, 0)
+	for _, instanceType := range response.Response.InstanceTypeConfigSet {
+		instanceTypes = append(instanceTypes, model.InstanceType{
+			Type: *instanceType.InstanceType,
+		})
+	}
+	return instanceTypes, nil
+}

@@ -9,8 +9,8 @@ import (
 )
 
 func TestGetBucketLifecycle(t *testing.T) {
-	resp, err := AwsIo.GetBucketLifecycle("aws", "us-east-1", model.GetBucketLifecycleRequest{
-		Bucket: tea.String("zhoushoujiantest"),
+	resp, err := AwsIo.GetBucketLifecycle("aws", "cn-northwest-1", model.GetBucketLifecycleRequest{
+		Bucket: tea.String("ops-9554"),
 	})
 	if err != nil {
 		t.Error(err)
