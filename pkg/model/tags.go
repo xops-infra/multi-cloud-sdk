@@ -79,6 +79,18 @@ func (t Tags) ToAWSS3Tags() []*s3.Tag {
 	return tags
 }
 
+// to aws emr tags
+func (t Tags) ToAWSEmrTags() []*emr.Tag {
+	var tags []*emr.Tag
+	for _, tag := range t {
+		tags = append(tags, &emr.Tag{
+			Key:   aws.String(tag.Key),
+			Value: aws.String(tag.Value),
+		})
+	}
+	return tags
+}
+
 // to tencent cos tags
 func (t Tags) ToTencentCosTags() []cos.BucketTaggingTag {
 	var tags []cos.BucketTaggingTag
