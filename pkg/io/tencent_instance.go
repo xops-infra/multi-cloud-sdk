@@ -55,17 +55,18 @@ func (c *tencentClient) DescribeInstances(profile, region string, input model.De
 				continue
 			}
 			instances[*instanceSet.InstanceId] = model.Instance{
-				Profile:    profile,
-				KeyIDs:     instanceSet.LoginSettings.KeyIds,
-				InstanceID: instanceSet.InstanceId,
-				Name:       instanceSet.InstanceName,
-				Region:     instanceSet.Placement.Zone,
-				Status:     model.ToInstanceStatus(*instanceSet.InstanceState),
-				PublicIP:   instanceSet.PublicIpAddresses,
-				PrivateIP:  instanceSet.PrivateIpAddresses,
-				Tags:       model.TencentTagsToModelTags(instanceSet.Tags),
-				Owner:      model.TencentTagsToModelTags(instanceSet.Tags).GetOwner(),
-				Platform:   instanceSet.OsName,
+				Profile:      profile,
+				KeyIDs:       instanceSet.LoginSettings.KeyIds,
+				InstanceID:   instanceSet.InstanceId,
+				Name:         instanceSet.InstanceName,
+				Region:       instanceSet.Placement.Zone,
+				Status:       model.ToInstanceStatus(*instanceSet.InstanceState),
+				PublicIP:     instanceSet.PublicIpAddresses,
+				PrivateIP:    instanceSet.PrivateIpAddresses,
+				Tags:         model.TencentTagsToModelTags(instanceSet.Tags),
+				Owner:        model.TencentTagsToModelTags(instanceSet.Tags).GetOwner(),
+				InstanceType: instanceSet.InstanceType,
+				Platform:     instanceSet.OsName,
 			}
 		}
 		pages = pages + 1

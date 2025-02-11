@@ -9,17 +9,18 @@ import (
 )
 
 type Instance struct {
-	Name       *string        `json:"name"`
-	InstanceID *string        `json:"instance_id" gorm:"primarykey"`
-	Profile    string         `json:"profile"`
-	KeyIDs     []*string      `json:"key_ids" gorm:"serializer:json"`
-	Region     *string        `json:"region"`
-	PrivateIP  []*string      `json:"private_ip" gorm:"serializer:json"`
-	Platform   *string        `json:"platform"`
-	PublicIP   []*string      `json:"public_ip" gorm:"serializer:json"`
-	Status     InstanceStatus `json:"status"`
-	Owner      *string        `json:"owner"`
-	Tags       *Tags          `json:"tags" gorm:"serializer:json"`
+	Name         *string        `json:"name"`
+	InstanceID   *string        `json:"instance_id" gorm:"primarykey"`
+	Profile      string         `json:"profile"`
+	KeyIDs       []*string      `json:"key_ids" gorm:"serializer:json"`
+	Region       *string        `json:"region"`
+	PrivateIP    []*string      `json:"private_ip" gorm:"serializer:json"`
+	Platform     *string        `json:"platform"`
+	PublicIP     []*string      `json:"public_ip" gorm:"serializer:json"`
+	Status       InstanceStatus `json:"status"`
+	Owner        *string        `json:"owner"`
+	InstanceType *string        `json:"instance_type"`
+	Tags         *Tags          `json:"tags" gorm:"serializer:json"`
 }
 
 type InstanceFilter struct {
