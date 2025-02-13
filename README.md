@@ -15,6 +15,10 @@ go get -u github.com/xops-infra/multi-cloud-sdk@main
 
 ### 开发日志
 
+- 2025-02:
+  - feat: add instance type 字段
+  - fix: 修复腾讯云查询子网接口，支持分页
+  
 - 2025-01:
   - feat: add 安全组接口
   - feat: add 实例接口

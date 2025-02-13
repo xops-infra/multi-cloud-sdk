@@ -39,6 +39,20 @@ func init() {
 	TencentIo = io.NewTencentClient(clientIo)
 }
 
+// TEST QuerySubnet
+func TestQuerySubnet(t *testing.T) {
+	timeStart := time.Now()
+	subnets, err := TencentIo.QuerySubnet("tencent", "ap-shanghai", model.CommonFilter{})
+	if err != nil {
+		t.Error(err)
+		return
+	}
+	for _, subnet := range subnets {
+		fmt.Println(tea.Prettify(subnet))
+	}
+	t.Log("Success.", time.Since(timeStart), len(subnets))
+}
+
 func TestDescribeInstanceTypes(t *testing.T) {
 	timeStart := time.Now()
 	instanceTypes, err := TencentIo.DescribeInstanceTypes("tencent", "ap-shanghai")

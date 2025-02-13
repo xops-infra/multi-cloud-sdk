@@ -61,29 +61,36 @@ func (c *tencentClient) QuerySubnet(profile, region string, input model.CommonFi
 			},
 		}
 	}
-	response, err := client.DescribeSubnets(request)
-	if err != nil {
-		return nil, err
-	}
+	// request.Limit = tea.String("20")
 	var subnets []model.Subnet
-	for _, subnet := range response.Response.SubnetSet {
-		createTime, _ := model.TimeParse(*subnet.CreatedTime)
-		subnets = append(subnets, model.Subnet{
-			ID:                      subnet.SubnetId,
-			Region:                  region,
-			Account:                 profile,
-			CloudProvider:           model.TENCENT,
-			Tags:                    model.TencentVpcTagsFmt(subnet.TagSet),
-			VpcID:                   subnet.VpcId,
-			Name:                    subnet.SubnetName,
-			CidrBlock:               subnet.CidrBlock,
-			IsDefault:               subnet.IsDefault,
-			Zone:                    subnet.Zone,
-			RouteTableId:            subnet.RouteTableId,
-			CreatedTime:             &createTime,
-			AvailableIpAddressCount: cast.ToInt64(subnet.AvailableIpAddressCount),
-			NetworkAclId:            subnet.NetworkAclId,
-		})
+	for {
+		response, err := client.DescribeSubnets(request)
+		if err != nil {
+			return nil, err
+		}
+		for _, subnet := range response.Response.SubnetSet {
+			createTime, _ := model.TimeParse(*subnet.CreatedTime)
+			subnets = append(subnets, model.Subnet{
+				ID:                      subnet.SubnetId,
+				Region:                  region,
+				Account:                 profile,
+				CloudProvider:           model.TENCENT,
+				Tags:                    model.TencentVpcTagsFmt(subnet.TagSet),
+				VpcID:                   subnet.VpcId,
+				Name:                    subnet.SubnetName,
+				CidrBlock:               subnet.CidrBlock,
+				IsDefault:               subnet.IsDefault,
+				Zone:                    subnet.Zone,
+				RouteTableId:            subnet.RouteTableId,
+				CreatedTime:             &createTime,
+				AvailableIpAddressCount: cast.ToInt64(subnet.AvailableIpAddressCount),
+				NetworkAclId:            subnet.NetworkAclId,
+			})
+		}
+		if response.Response.TotalCount != nil && *response.Response.TotalCount == uint64(len(subnets)) {
+			break
+		}
+		request.Offset = tea.String(strconv.Itoa(len(subnets)))
 	}
 	return subnets, nil
 }
