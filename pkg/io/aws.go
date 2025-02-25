@@ -66,3 +66,17 @@ func (c *awsClient) UpdatePicture(profile, region string, input model.UpdatePict
 func (c *awsClient) SearchPicture(profile, region string, input model.SearchPictureRequest) (model.SearchPictureResponse, error) {
 	return model.SearchPictureResponse{}, nil
 }
+
+func (c *awsClient) CreateSqs(profile, region string, input model.CreateSqsRequest) error {
+	client, err := c.io.GetAwsSqsClient(profile, region)
+	if err != nil {
+		return fmt.Errorf("get aws sqs client failed, %v", err)
+	}
+
+	_, err = client.CreateQueue(input.ToCreateQueueInput())
+	if err != nil {
+		return fmt.Errorf("create aws sqs failed, %v", err)
+	}
+
+	return nil
+}

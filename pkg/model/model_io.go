@@ -65,4 +65,6 @@ type CloudIO interface {
 	GetObjectPregisn(profile, region string, input ObjectPregisnRequest) (ObjectPregisnResponse, error)
 	GetObjectPregisnWithAKSK(ak, sk, region string, input ObjectPregisnRequest) (ObjectPregisnResponse, error) // 支持AKSK的方式获取对象的预签名URL
 
+	// SQS
+	CreateSqs(profile, region string, input CreateSqsRequest) error
 }

@@ -204,3 +204,28 @@ func TestAwsDescribeInstancesAll(t *testing.T) {
 		t.Log("Status Success.", time.Since(timeStart), len(instances.Instances))
 	}
 }
+
+// TestAwsCreateSqs
+func TestAwsCreateSqs(t *testing.T) {
+	err := AwsIo.CreateSqs("aws", "cn-northwest-1", model.CreateSqsRequest{
+		QueueName: "zhoushoujian",
+		Type:      "normal",
+		Config: model.SqsConfig{
+			VisibilityTimeout:  3600,
+			MessageRetention:   86400,
+			MaximumMessageSize: 262144,
+			ReceiveWaitTime:    20,
+			DelaySeconds:       0,
+		},
+		Policy:     `{"Version":"2012-10-17","Statement":[{"Effect":"Allow","Action":"sqs:SendMessage","Resource":"*","Condition":{"ArnEquals":{"aws:SourceArn":"arn:aws:s3:*:*:*/*"}}}]}`,
+		Encryption: false,
+		Tags: map[string]string{
+			"Owner": "zhoushoujian",
+		},
+	})
+	if err != nil {
+		t.Error(err)
+		return
+	}
+	t.Log("Success.")
+}

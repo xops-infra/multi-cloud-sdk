@@ -15,6 +15,7 @@ import (
 	"github.com/aws/aws-sdk-go/service/route53"
 	"github.com/aws/aws-sdk-go/service/route53domains"
 	"github.com/aws/aws-sdk-go/service/s3"
+	"github.com/aws/aws-sdk-go/service/sqs"
 	"github.com/tencentyun/cos-go-sdk-v5"
 	"github.com/xops-infra/multi-cloud-sdk/pkg/model"
 
@@ -113,6 +114,15 @@ func (c *cloudClient) GetAwsEc2Client(accountId, region string) (*ec2.EC2, error
 	}
 	sess.Config.Region = aws.String(region)
 	return ec2.New(sess), nil
+}
+
+func (c *cloudClient) GetAwsSqsClient(accountId, region string) (*sqs.SQS, error) {
+	sess, err := c.getAWSSession(accountId)
+	if err != nil {
+		return nil, err
+	}
+	sess.Config.Region = aws.String(region)
+	return sqs.New(sess), nil
 }
 
 // getAwsObjectStorageClient

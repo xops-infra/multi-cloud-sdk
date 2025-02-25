@@ -7,6 +7,7 @@ import (
 	"github.com/aws/aws-sdk-go/service/route53"
 	"github.com/aws/aws-sdk-go/service/route53domains"
 	"github.com/aws/aws-sdk-go/service/s3"
+	"github.com/aws/aws-sdk-go/service/sqs"
 	cvm "github.com/tencentcloud/tencentcloud-sdk-go/tencentcloud/cvm/v20170312"
 	dnspod "github.com/tencentcloud/tencentcloud-sdk-go/tencentcloud/dnspod/v20210323"
 	tencentEmr "github.com/tencentcloud/tencentcloud-sdk-go/tencentcloud/emr/v20190103"
@@ -20,6 +21,7 @@ import (
 
 type ClientIo interface {
 	GetAwsEc2Client(profile, region string) (*ec2.EC2, error)
+	GetAwsSqsClient(profile, region string) (*sqs.SQS, error)
 	GetAWSEmrClient(profile, region string) (*emr.EMR, error)
 	GetAWSCredential(profile string) (*credentials.Credentials, error)
 	GetAWSS3Client(profile, region string) (*s3.S3, error)
