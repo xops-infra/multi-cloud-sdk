@@ -58,8 +58,8 @@ type CreateSqsRequest struct {
 func (c *CreateSqsRequest) ToCreateQueueInput() *sqs.CreateQueueInput {
 	// 规范化队列名称（AWS要求只能包含字母数字、连字符和下划线）
 	queueName := strings.ToLower(c.QueueName)
-	queueName = strings.ReplaceAll(queueName, "_", "-")
-	queueName = strings.ReplaceAll(queueName, " ", "-")
+	// queueName = strings.ReplaceAll(queueName, "_", "-")
+	// queueName = strings.ReplaceAll(queueName, " ", "-")
 
 	r := &sqs.CreateQueueInput{
 		QueueName: aws.String(queueName),
