@@ -46,16 +46,22 @@ type SqsConfig struct {
 }
 
 type CreateSqsRequest struct {
-	QueueName  string            `json:"queue_name"`
-	Type       string            `json:"type"`   // normal | fifo
-	Policy     string            `json:"policy"` // 策略
-	Config     SqsConfig         `json:"config"`
-	Encryption bool              `json:"encryption"` // 是否开启加密
-	Tags       map[string]string `json:"tags"`       // 标签
+	QueueName     string            `json:"queue_name"`
+	Type          string            `json:"type"`   // normal | fifo
+	Policy        string            `json:"policy"` // 策略
+	Config        SqsConfig         `json:"config"`
+	Encryption    bool              `json:"encryption"`     // 是否开启加密
+	RedrivePolicy *RedrivePolicy    `json:"redrive_policy"` // 死信队列策略
+	Tags          map[string]string `json:"tags"`           // 标签
+}
+
+type RedrivePolicy struct {
+	MaxReceiveCount     string `json:"max_receive_count" default:"10"`
+	DeadLetterTargetArn string `json:"dead_letter_target_arn"`
 }
 
 // to sqs.CreateQueueInput
-func (c *CreateSqsRequest) ToCreateQueueInput() *sqs.CreateQueueInput {
+func (c *CreateSqsRequest) ToCreateQueueInput() (*sqs.CreateQueueInput, error) {
 	// 规范化队列名称（AWS要求只能包含字母数字、连字符和下划线）
 	queueName := strings.ToLower(c.QueueName)
 	// queueName = strings.ReplaceAll(queueName, "_", "-")
@@ -77,6 +83,15 @@ func (c *CreateSqsRequest) ToCreateQueueInput() *sqs.CreateQueueInput {
 		r.Attributes["FifoQueue"] = aws.String("true")
 		r.QueueName = aws.String(strings.TrimSuffix(queueName, ".fifo") + ".fifo")
 	}
+	if c.RedrivePolicy != nil {
+		if c.RedrivePolicy.MaxReceiveCount == "" {
+			c.RedrivePolicy.MaxReceiveCount = "10"
+		}
+		if c.RedrivePolicy.DeadLetterTargetArn == "" {
+			return nil, fmt.Errorf("dead_letter_target_arn is required")
+		}
+		r.Attributes["RedrivePolicy"] = aws.String(fmt.Sprintf(`{"maxReceiveCount":"%s","deadLetterTargetArn":"%s"}`, c.RedrivePolicy.MaxReceiveCount, c.RedrivePolicy.DeadLetterTargetArn))
+	}
 	for k, v := range c.Tags {
 		r.Tags[k] = aws.String(v)
 	}
@@ -87,5 +102,5 @@ func (c *CreateSqsRequest) ToCreateQueueInput() *sqs.CreateQueueInput {
 	}
 
 	fmt.Println(tea.Prettify(r))
-	return r
+	return r, nil
 }

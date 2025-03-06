@@ -73,7 +73,12 @@ func (c *awsClient) CreateSqs(profile, region string, input model.CreateSqsReque
 		return fmt.Errorf("get aws sqs client failed, %v", err)
 	}
 
-	_, err = client.CreateQueue(input.ToCreateQueueInput())
+	createInput, err := input.ToCreateQueueInput()
+	if err != nil {
+		return fmt.Errorf("create aws sqs failed, %v", err)
+	}
+
+	_, err = client.CreateQueue(createInput)
 	if err != nil {
 		return fmt.Errorf("create aws sqs failed, %v", err)
 	}

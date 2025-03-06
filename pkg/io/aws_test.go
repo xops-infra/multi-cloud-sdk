@@ -208,14 +208,18 @@ func TestAwsDescribeInstancesAll(t *testing.T) {
 // TestAwsCreateSqs
 func TestAwsCreateSqs(t *testing.T) {
 	err := AwsIo.CreateSqs("aws", "cn-northwest-1", model.CreateSqsRequest{
-		QueueName: "zhoushoujian",
-		Type:      "normal",
+		QueueName: "zhoushoujian3",
+		Type:      "fifo",
 		Config: model.SqsConfig{
 			VisibilityTimeout:  3600,
 			MessageRetention:   86400,
 			MaximumMessageSize: 262144,
 			ReceiveWaitTime:    20,
 			DelaySeconds:       0,
+		},
+		RedrivePolicy: &model.RedrivePolicy{
+			MaxReceiveCount:     "5",
+			DeadLetterTargetArn: "arn:aws-cn:sqs:cn-northwest-1:955466075186:zhoushoujian2.fifo",
 		},
 		Policy:     `{"Version":"2012-10-17","Statement":[{"Effect":"Allow","Action":"sqs:SendMessage","Resource":"*","Condition":{"ArnEquals":{"aws:SourceArn":"arn:aws:s3:*:*:*/*"}}}]}`,
 		Encryption: false,
