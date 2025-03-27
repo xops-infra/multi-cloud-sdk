@@ -50,18 +50,20 @@ func (c *awsClient) DescribeInstances(profile, region string, input model.Descri
 			for _, instance := range reservation.Instances {
 				tags := model.AwsTagsToModelTags(instance.Tags)
 				instances = append(instances, model.Instance{
-					Profile:      profile,
-					KeyIDs:       []*string{instance.KeyName},
-					InstanceID:   instance.InstanceId,
-					Name:         tags.GetName(),
-					Region:       instance.Placement.AvailabilityZone,
-					Status:       model.ToInstanceStatus(strings.ToUpper(*instance.State.Name)),
-					PublicIP:     []*string{instance.PublicIpAddress},
-					PrivateIP:    []*string{instance.PrivateIpAddress},
-					Tags:         tags,
-					Owner:        tags.GetOwner(),
-					InstanceType: instance.InstanceType,
-					Platform:     instance.PlatformDetails,
+					Profile:            profile,
+					KeyIDs:             []*string{instance.KeyName},
+					InstanceID:         instance.InstanceId,
+					Name:               tags.GetName(),
+					Region:             instance.Placement.AvailabilityZone,
+					Status:             model.ToInstanceStatus(strings.ToUpper(*instance.State.Name)),
+					PublicIP:           []*string{instance.PublicIpAddress},
+					PrivateIP:          []*string{instance.PrivateIpAddress},
+					Tags:               tags,
+					Owner:              tags.GetOwner(),
+					InstanceType:       instance.InstanceType,
+					Platform:           instance.PlatformDetails,
+					InstanceChargeType: instance.InstanceType,
+					CreatedTime:        instance.LaunchTime,
 				})
 
 			}

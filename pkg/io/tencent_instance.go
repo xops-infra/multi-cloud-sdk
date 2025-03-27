@@ -2,6 +2,7 @@ package io
 
 import (
 	"fmt"
+	"time"
 
 	"github.com/alibabacloud-go/tea/tea"
 	"github.com/spf13/cast"
@@ -54,19 +55,25 @@ func (c *tencentClient) DescribeInstances(profile, region string, input model.De
 			if _, ok := instances[*instanceSet.InstanceId]; ok {
 				continue
 			}
+			createdTime, err := time.Parse(time.RFC3339, tea.StringValue(instanceSet.CreatedTime))
+			if err != nil {
+				return model.InstanceResponse{}, err
+			}
 			instances[*instanceSet.InstanceId] = model.Instance{
-				Profile:      profile,
-				KeyIDs:       instanceSet.LoginSettings.KeyIds,
-				InstanceID:   instanceSet.InstanceId,
-				Name:         instanceSet.InstanceName,
-				Region:       instanceSet.Placement.Zone,
-				Status:       model.ToInstanceStatus(*instanceSet.InstanceState),
-				PublicIP:     instanceSet.PublicIpAddresses,
-				PrivateIP:    instanceSet.PrivateIpAddresses,
-				Tags:         model.TencentTagsToModelTags(instanceSet.Tags),
-				Owner:        model.TencentTagsToModelTags(instanceSet.Tags).GetOwner(),
-				InstanceType: instanceSet.InstanceType,
-				Platform:     instanceSet.OsName,
+				Profile:            profile,
+				KeyIDs:             instanceSet.LoginSettings.KeyIds,
+				InstanceID:         instanceSet.InstanceId,
+				Name:               instanceSet.InstanceName,
+				Region:             instanceSet.Placement.Zone,
+				Status:             model.ToInstanceStatus(*instanceSet.InstanceState),
+				PublicIP:           instanceSet.PublicIpAddresses,
+				PrivateIP:          instanceSet.PrivateIpAddresses,
+				Tags:               model.TencentTagsToModelTags(instanceSet.Tags),
+				Owner:              model.TencentTagsToModelTags(instanceSet.Tags).GetOwner(),
+				InstanceType:       instanceSet.InstanceType,
+				Platform:           instanceSet.OsName,
+				InstanceChargeType: instanceSet.InstanceChargeType,
+				CreatedTime:        &createdTime,
 			}
 		}
 		pages = pages + 1

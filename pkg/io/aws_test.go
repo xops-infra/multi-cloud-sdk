@@ -131,7 +131,7 @@ func TestAwsDescribeInstances(t *testing.T) {
 		return
 	}
 	for _, instance := range instances.Instances {
-		fmt.Println(*instance.InstanceID, *instance.Name, tea.Prettify(instance.PrivateIP))
+		fmt.Println(*instance.InstanceID, *instance.CreatedTime, tea.Prettify(instance.InstanceChargeType))
 	}
 	t.Log("Success.", len(instances.Instances))
 }
