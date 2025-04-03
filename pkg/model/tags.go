@@ -272,7 +272,7 @@ type RemoveTagsInput struct {
 }
 
 type ModifyTagsInput struct {
-	Resource *string `json:"resource" binding:"required"`
-	Key      *string `json:"key" binding:"required"`
-	Value    *string `json:"value" binding:"required"`
+	InstanceId *string `json:"instance_id" binding:"required"`
+	Key        *string `json:"key" binding:"required"`
+	Value      *string `json:"value" binding:"required"`
 }

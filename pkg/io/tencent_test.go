@@ -39,6 +39,20 @@ func init() {
 	TencentIo = io.NewTencentClient(clientIo)
 }
 
+// test ModifyTagsForResource
+func TestModifyTagsForResource(t *testing.T) {
+	err := TencentIo.ModifyTagsForResource("tencent", "ap-shanghai", model.ModifyTagsInput{
+		InstanceId: tea.String("ins-1oy0zn7n"),
+		Key:        tea.String("Team"),
+		Value:      tea.String("ops"),
+	})
+	if err != nil {
+		t.Error(err)
+		return
+	}
+	t.Log("Success.")
+}
+
 // TEST QuerySubnet
 func TestQuerySubnet(t *testing.T) {
 	timeStart := time.Now()

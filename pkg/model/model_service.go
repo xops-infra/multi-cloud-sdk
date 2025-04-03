@@ -50,6 +50,12 @@ type CommonContract interface {
 	DescribeKeyPairs(profile, region string, input CommonFilter) ([]KeyPair, error)
 	DescribeInstanceTypes(profile, region string) ([]InstanceType, error)
 
+	// tags
+	CreateTags(profile, region string, input CreateTagsInput) error
+	AddTagsToResource(profile, region string, input AddTagsInput) error
+	RemoveTagsFromResource(profile, region string, input RemoveTagsInput) error
+	ModifyTagsForResource(profile, region string, input ModifyTagsInput) error
+
 	QueryVPCs(profile, region string, input CommonFilter) ([]VPC, error)
 	QuerySubnets(profile, region string, input CommonFilter) ([]Subnet, error)
 	QueryEIPs(profile, region string, input CommonFilter) ([]EIP, error)
