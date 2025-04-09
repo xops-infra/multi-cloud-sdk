@@ -48,6 +48,7 @@ func (i *awsClient) DescribeVolumes(profile, region string, input model.Describe
 				Size:        volume.Size,
 				Zone:        volume.AvailabilityZone,
 				Profile:     profile,
+				Region:      region,
 				Status:      volume.State,
 				Tags:        &tags,
 				CreatedTime: volume.CreateTime,

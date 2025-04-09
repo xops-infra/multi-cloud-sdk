@@ -59,6 +59,7 @@ func (i *tencentClient) DescribeVolumes(profile, region string, input model.Desc
 				Status:      disk.DiskState,
 				Zone:        disk.Placement.Zone,
 				Profile:     profile,
+				Region:      region,
 				Tags:        &tags,
 				CreatedTime: &createdTime,
 			})

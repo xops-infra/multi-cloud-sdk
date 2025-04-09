@@ -16,6 +16,7 @@ type Volume struct {
 	Status      *string           `json:"status" gorm:"column:status"`             // volume status
 	Zone        *string           `json:"zone" gorm:"column:zone"`                 // availability zone
 	Profile     string            `json:"profile" gorm:"column:profile"`           // cloud profile
+	Region      string            `json:"region" gorm:"column:region"`             // cloud region
 	Tags        *Tags             `json:"tags" gorm:"column:tags;type:json"`       // volume tags
 	CreatedTime *time.Time        `json:"created_time" gorm:"column:created_time"` // creation time
 }
