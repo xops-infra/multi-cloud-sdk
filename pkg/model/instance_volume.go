@@ -1,26 +1,38 @@
 package model
 
 import (
+	"database/sql/driver"
+	"encoding/json"
 	"time"
 )
 
 // Volume represents a cloud disk volume
 type Volume struct {
-	VolumeID    *string             `json:"volume_id"`
-	Attachments []*VolumeAttachment `json:"attachments"`
-	Name        *string             `json:"name"`
-	Size        *int64              `json:"size"`         // GB
-	Type        *string             `json:"type"`         // volume type
-	Status      *string             `json:"status"`       // volume status
-	Zone        *string             `json:"zone"`         // availability zone
-	Profile     string              `json:"profile"`      // cloud profile
-	Tags        *Tags               `json:"tags"`         // volume tags
-	CreatedTime *time.Time          `json:"created_time"` // creation time
+	VolumeID    *string           `json:"volume_id" gorm:"column:volume_id"`
+	Attachments VolumeAttachments `json:"attachments" gorm:"column:attachments;type:json"`
+	Name        *string           `json:"name" gorm:"column:name"`
+	Size        *int64            `json:"size" gorm:"column:size"`                 // GB
+	Type        *string           `json:"type" gorm:"column:type"`                 // volume type
+	Status      *string           `json:"status" gorm:"column:status"`             // volume status
+	Zone        *string           `json:"zone" gorm:"column:zone"`                 // availability zone
+	Profile     string            `json:"profile" gorm:"column:profile"`           // cloud profile
+	Tags        *Tags             `json:"tags" gorm:"column:tags;type:json"`       // volume tags
+	CreatedTime *time.Time        `json:"created_time" gorm:"column:created_time"` // creation time
 }
 
 type VolumeAttachment struct {
 	InstanceID         *string `json:"instance_id"`
 	DeleteWithInstance *bool   `json:"delete_with_instance"`
+}
+
+type VolumeAttachments []*VolumeAttachment
+
+func (v VolumeAttachments) Value() (driver.Value, error) {
+	return json.Marshal(v)
+}
+
+func (v *VolumeAttachments) Scan(value interface{}) error {
+	return json.Unmarshal(value.([]byte), v)
 }
 
 // DescribeVolumesInput represents the input for describing volumes
