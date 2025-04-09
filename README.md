@@ -15,6 +15,9 @@ go get -u github.com/xops-infra/multi-cloud-sdk@main
 
 ### 开发日志
 
+- 2025-04:
+  - feat: add 腾讯云云硬盘接口
+  
 - 2025-02:
   - feat: add sqs 接口
   - feat: add instance type 字段

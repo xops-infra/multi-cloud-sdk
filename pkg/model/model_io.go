@@ -9,6 +9,14 @@ type CloudIO interface {
 	DescribeImages(profile, region string, input CommonFilter) ([]Image, error)
 	DescribeInstanceTypes(profile, region string) ([]InstanceType, error)
 
+	// Volume
+	DescribeVolumes(profile, region string, input DescribeVolumesInput) ([]Volume, error)
+	CreateVolume(profile, region string, input CreateVolumeInput) (string, error)
+	ModifyVolume(profile, region string, input ModifyVolumeInput) error
+	DeleteVolume(profile, region string, input DeleteVolumeInput) error
+	AttachVolume(profile, region string, input AttachVolumeInput) error
+	DetachVolume(profile, region string, input DetachVolumeInput) error
+
 	// VPC
 	QueryVPC(profile, region string, input CommonFilter) ([]VPC, error)
 	QuerySubnet(profile, region string, input CommonFilter) ([]Subnet, error)

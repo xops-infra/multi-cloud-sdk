@@ -8,7 +8,8 @@ require (
 	github.com/joho/godotenv v1.5.1
 	github.com/spf13/cast v1.5.1
 	github.com/stretchr/testify v1.3.0
-	github.com/tencentcloud/tencentcloud-sdk-go/tencentcloud/common v1.0.872
+	github.com/tencentcloud/tencentcloud-sdk-go/tencentcloud/cbs v1.0.1136
+	github.com/tencentcloud/tencentcloud-sdk-go/tencentcloud/common v1.0.1136
 	github.com/tencentcloud/tencentcloud-sdk-go/tencentcloud/cvm v1.0.745
 	github.com/tencentcloud/tencentcloud-sdk-go/tencentcloud/dnspod v1.0.762
 	github.com/tencentcloud/tencentcloud-sdk-go/tencentcloud/emr v1.0.753

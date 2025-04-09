@@ -8,6 +8,7 @@ import (
 	"github.com/aws/aws-sdk-go/service/route53domains"
 	"github.com/aws/aws-sdk-go/service/s3"
 	"github.com/aws/aws-sdk-go/service/sqs"
+	cbs "github.com/tencentcloud/tencentcloud-sdk-go/tencentcloud/cbs/v20170312"
 	cvm "github.com/tencentcloud/tencentcloud-sdk-go/tencentcloud/cvm/v20170312"
 	dnspod "github.com/tencentcloud/tencentcloud-sdk-go/tencentcloud/dnspod/v20210323"
 	tencentEmr "github.com/tencentcloud/tencentcloud-sdk-go/tencentcloud/emr/v20190103"
@@ -29,6 +30,7 @@ type ClientIo interface {
 	GetAwsRoute53DomainClient(profile string) (*route53domains.Route53Domains, error)
 
 	GetTencentCvmClient(profile, region string) (*cvm.Client, error)
+	GetTencentCbsClient(profile, region string) (*cbs.Client, error)
 	GetTencentEmrClient(profile, region string) (*tencentEmr.Client, error)
 	GetTencentVpcClient(profile, region string) (*tencentVpc.Client, error)
 	GetTencentCosClient(profile, region string) (*cos.Client, error)

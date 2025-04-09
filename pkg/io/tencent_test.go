@@ -197,6 +197,21 @@ func TestCreateEmrCluster(t *testing.T) {
 	t.Log("Success.", time.Since(timeStart), instances)
 }
 
+func TestDescribeVolumes(t *testing.T) {
+	timeStart := time.Now()
+	volumes, err := TencentIo.DescribeVolumes("tencent", "ap-beijing", model.DescribeVolumesInput{
+		VolumeIDs: []string{"disk-703vadur"},
+	})
+	if err != nil {
+		t.Error(err)
+		return
+	}
+	for _, volume := range volumes {
+		fmt.Println(tea.Prettify(volume))
+	}
+	t.Log("Success.", time.Since(timeStart), len(volumes))
+}
+
 func TestListInstance(t *testing.T) {
 	timeStart := time.Now()
 	filter := model.InstanceFilter{}

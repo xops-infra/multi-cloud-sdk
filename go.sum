@@ -50,13 +50,16 @@ github.com/spf13/cast v1.5.1/go.mod h1:b9PdjNptOpzXr7Rq1q9gJML/2cdGQAo69NKzQ10KN
 github.com/stretchr/objx v0.1.0/go.mod h1:HFkY916IF+rwdDfMAkV7OtwuqBVzrE8GR6GFx+wExME=
 github.com/stretchr/testify v1.3.0 h1:TivCn/peBQ7UY8ooIcPgZFpTNSz0Q2U6UrFlUfqbe0Q=
 github.com/stretchr/testify v1.3.0/go.mod h1:M5WIy9Dh21IEIfnGCwXGc5bZfKNJtfHm1UVUgZn+9EI=
+github.com/tencentcloud/tencentcloud-sdk-go/tencentcloud/cbs v1.0.1136 h1:tIKQhYauJEctvo5gpDxShGrmXU1yrtX+ff1mktQVT7o=
+github.com/tencentcloud/tencentcloud-sdk-go/tencentcloud/cbs v1.0.1136/go.mod h1:wFtf77QR7nuakfl7srLpV0ifClJVbfebQ0WW9JA/35o=
 github.com/tencentcloud/tencentcloud-sdk-go/tencentcloud/common v1.0.563/go.mod h1:7sCQWVkxcsR38nffDW057DRGk8mUjK1Ing/EFOK8s8Y=
 github.com/tencentcloud/tencentcloud-sdk-go/tencentcloud/common v1.0.745/go.mod h1:7sCQWVkxcsR38nffDW057DRGk8mUjK1Ing/EFOK8s8Y=
 github.com/tencentcloud/tencentcloud-sdk-go/tencentcloud/common v1.0.753/go.mod h1:7sCQWVkxcsR38nffDW057DRGk8mUjK1Ing/EFOK8s8Y=
 github.com/tencentcloud/tencentcloud-sdk-go/tencentcloud/common v1.0.759/go.mod h1:7sCQWVkxcsR38nffDW057DRGk8mUjK1Ing/EFOK8s8Y=
 github.com/tencentcloud/tencentcloud-sdk-go/tencentcloud/common v1.0.762/go.mod h1:7sCQWVkxcsR38nffDW057DRGk8mUjK1Ing/EFOK8s8Y=
-github.com/tencentcloud/tencentcloud-sdk-go/tencentcloud/common v1.0.872 h1:CdZVOWfN+IOaa09p5Ed2Sk920T5kAjLTI/AimxKRKXs=
 github.com/tencentcloud/tencentcloud-sdk-go/tencentcloud/common v1.0.872/go.mod h1:r5r4xbfxSaeR04b166HGsBa/R4U3SueirEUpXGuw+Q0=
+github.com/tencentcloud/tencentcloud-sdk-go/tencentcloud/common v1.0.1136 h1:xrqnd0FYAIRMuTSyNh71QGvStkZczdqswJr51vqZZH4=
+github.com/tencentcloud/tencentcloud-sdk-go/tencentcloud/common v1.0.1136/go.mod h1:r5r4xbfxSaeR04b166HGsBa/R4U3SueirEUpXGuw+Q0=
 github.com/tencentcloud/tencentcloud-sdk-go/tencentcloud/cvm v1.0.745 h1:jCQntg9xTMBSnmn54LXvxFj7gMQKeyeUINFWgqodwjM=
 github.com/tencentcloud/tencentcloud-sdk-go/tencentcloud/cvm v1.0.745/go.mod h1:lNuOG+UzBf+urZI0OSJET6iW09aOJsG15LJI8wOMcN0=
 github.com/tencentcloud/tencentcloud-sdk-go/tencentcloud/dnspod v1.0.762 h1:RULTNDhFBJxB2j3klRgg8uZBoyiz2ansm10r5LRoWLs=

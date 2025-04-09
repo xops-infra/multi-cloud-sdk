@@ -19,6 +19,7 @@ import (
 	"github.com/tencentyun/cos-go-sdk-v5"
 	"github.com/xops-infra/multi-cloud-sdk/pkg/model"
 
+	cbs "github.com/tencentcloud/tencentcloud-sdk-go/tencentcloud/cbs/v20170312"
 	"github.com/tencentcloud/tencentcloud-sdk-go/tencentcloud/common"
 	"github.com/tencentcloud/tencentcloud-sdk-go/tencentcloud/common/profile"
 	cvm "github.com/tencentcloud/tencentcloud-sdk-go/tencentcloud/cvm/v20170312"
@@ -170,6 +171,15 @@ func (c *cloudClient) getTencentCredential(accountId string) (*common.Credential
 		return nil, fmt.Errorf("tencent credential %s not found, Keys: %s", accountId, strings.TrimSuffix(keys, ","))
 	}
 	return credential, nil
+}
+
+func (c *cloudClient) GetTencentCbsClient(accountId, region string) (*cbs.Client, error) {
+	credential, err := c.getTencentCredential(accountId)
+	if err != nil {
+		return nil, err
+	}
+	clientProfile := profile.NewClientProfile()
+	return cbs.NewClient(credential, region, clientProfile)
 }
 
 // get TencnetEmrClient
