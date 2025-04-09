@@ -8,7 +8,7 @@ import (
 
 // Volume represents a cloud disk volume
 type Volume struct {
-	VolumeID    *string           `json:"volume_id" gorm:"column:volume_id"`
+	VolumeID    *string           `json:"volume_id" gorm:"column:volume_id;primary_key"`
 	Attachments VolumeAttachments `json:"attachments" gorm:"column:attachments;type:json"`
 	Name        *string           `json:"name" gorm:"column:name"`
 	Size        *int64            `json:"size" gorm:"column:size"`                 // GB
