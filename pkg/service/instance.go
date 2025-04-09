@@ -104,3 +104,17 @@ func (s *CommonService) DescribeInstanceTypes(profile, region string) ([]model.I
 	}
 	return nil, fmt.Errorf("%s %s", profile, model.ErrProfileNotFound.Error())
 }
+
+func (s *CommonService) DescribeVolumes(profile, region string, input model.DescribeVolumesInput) ([]model.Volume, error) {
+	if p, ok := s.Profiles[profile]; ok {
+		switch p.Cloud {
+		case model.AWS:
+			return s.Aws.DescribeVolumes(profile, region, input)
+		case model.TENCENT:
+			return s.Tencent.DescribeVolumes(profile, region, input)
+		default:
+			return nil, fmt.Errorf("%s %s", profile, model.ErrCloudNotSupported.Error())
+		}
+	}
+	return nil, fmt.Errorf("%s %s", profile, model.ErrProfileNotFound.Error())
+}

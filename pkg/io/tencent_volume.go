@@ -43,18 +43,24 @@ func (i *tencentClient) DescribeVolumes(profile, region string, input model.Desc
 			}
 			// "2025-04-09 11:00:20"
 			createdTime, _ := time.Parse("2006-01-02 15:04:05", *disk.CreateTime)
+			var attachments []*model.VolumeAttachment
+			for _, instanceID := range disk.InstanceIdList {
+				attachments = append(attachments, &model.VolumeAttachment{
+					InstanceID:         instanceID,
+					DeleteWithInstance: disk.DeleteWithInstance,
+				})
+			}
 			volumes = append(volumes, model.Volume{
-				VolumeID:           disk.DiskId,
-				InstanceID:         disk.InstanceId,
-				Name:               disk.DiskName,
-				Size:               &size,
-				Type:               disk.DiskType,
-				Status:             disk.DiskState,
-				Zone:               disk.Placement.Zone,
-				Profile:            profile,
-				Tags:               &tags,
-				CreatedTime:        &createdTime,
-				DeleteWithInstance: disk.DeleteWithInstance,
+				VolumeID:    disk.DiskId,
+				Name:        disk.DiskName,
+				Attachments: attachments,
+				Size:        &size,
+				Type:        disk.DiskType,
+				Status:      disk.DiskState,
+				Zone:        disk.Placement.Zone,
+				Profile:     profile,
+				Tags:        &tags,
+				CreatedTime: &createdTime,
 			})
 		}
 		if len(volumes) >= int(*response.Response.TotalCount) {

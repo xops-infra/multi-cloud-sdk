@@ -73,6 +73,16 @@ func (t Tags) GetName() *string {
 	return nil
 }
 
+// 更通用的方法
+func (t Tags) GetTagValueByKey(key string) *string {
+	for _, tag := range t {
+		if tag.Key == key {
+			return aws.String(tag.Value)
+		}
+	}
+	return nil
+}
+
 // get Owner
 func (t Tags) GetOwner() *string {
 	for _, tag := range t {

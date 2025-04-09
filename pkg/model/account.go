@@ -2,6 +2,7 @@ package model
 
 import (
 	"github.com/aws/aws-sdk-go/aws/credentials"
+	"github.com/aws/aws-sdk-go/service/ebs"
 	"github.com/aws/aws-sdk-go/service/ec2"
 	"github.com/aws/aws-sdk-go/service/emr"
 	"github.com/aws/aws-sdk-go/service/route53"
@@ -22,6 +23,7 @@ import (
 
 type ClientIo interface {
 	GetAwsEc2Client(profile, region string) (*ec2.EC2, error)
+	GetAwsEbsClient(profile, region string) (*ebs.EBS, error)
 	GetAwsSqsClient(profile, region string) (*sqs.SQS, error)
 	GetAWSEmrClient(profile, region string) (*emr.EMR, error)
 	GetAWSCredential(profile string) (*credentials.Credentials, error)

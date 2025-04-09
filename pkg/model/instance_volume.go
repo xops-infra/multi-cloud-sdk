@@ -6,17 +6,21 @@ import (
 
 // Volume represents a cloud disk volume
 type Volume struct {
-	VolumeID           *string    `json:"volume_id"`
-	InstanceID         *string    `json:"instance_id"`
-	Name               *string    `json:"name"`
-	Size               *int64     `json:"size"`                 // GB
-	Type               *string    `json:"type"`                 // volume type
-	Status             *string    `json:"status"`               // volume status
-	Zone               *string    `json:"zone"`                 // availability zone
-	Profile            string     `json:"profile"`              // cloud profile
-	Tags               *Tags      `json:"tags"`                 // volume tags
-	DeleteWithInstance *bool      `json:"delete_with_instance"` // whether delete with instance
-	CreatedTime        *time.Time `json:"created_time"`         // creation time
+	VolumeID    *string             `json:"volume_id"`
+	Attachments []*VolumeAttachment `json:"attachments"`
+	Name        *string             `json:"name"`
+	Size        *int64              `json:"size"`         // GB
+	Type        *string             `json:"type"`         // volume type
+	Status      *string             `json:"status"`       // volume status
+	Zone        *string             `json:"zone"`         // availability zone
+	Profile     string              `json:"profile"`      // cloud profile
+	Tags        *Tags               `json:"tags"`         // volume tags
+	CreatedTime *time.Time          `json:"created_time"` // creation time
+}
+
+type VolumeAttachment struct {
+	InstanceID         *string `json:"instance_id"`
+	DeleteWithInstance *bool   `json:"delete_with_instance"`
 }
 
 // DescribeVolumesInput represents the input for describing volumes

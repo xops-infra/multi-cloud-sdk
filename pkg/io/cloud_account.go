@@ -10,6 +10,7 @@ import (
 	"github.com/aws/aws-sdk-go/aws"
 	"github.com/aws/aws-sdk-go/aws/credentials"
 	"github.com/aws/aws-sdk-go/aws/session"
+	"github.com/aws/aws-sdk-go/service/ebs"
 	"github.com/aws/aws-sdk-go/service/ec2"
 	"github.com/aws/aws-sdk-go/service/emr"
 	"github.com/aws/aws-sdk-go/service/route53"
@@ -148,6 +149,16 @@ func (c *cloudClient) GetAwsRoute53Client(accountId, region string) (*route53.Ro
 	}
 	sess.Config.Region = tea.String(region) // must has region
 	return route53.New(sess), nil
+}
+
+// getAwsEbsClient
+func (c *cloudClient) GetAwsEbsClient(accountId, region string) (*ebs.EBS, error) {
+	sess, err := c.getAWSSession(accountId)
+	if err != nil {
+		return nil, err
+	}
+	sess.Config.Region = tea.String(region)
+	return ebs.New(sess), nil
 }
 
 // getAwsRoute53DomainClient

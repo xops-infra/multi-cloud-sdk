@@ -71,4 +71,6 @@ type CommonContract interface {
 
 	GetObjectPregisn(profile, region string, input ObjectPregisnRequest) (ObjectPregisnResponse, error)
 	GetObjectPregisnWithAKSK(cloud Cloud, ak, sk, region string, input ObjectPregisnRequest) (ObjectPregisnResponse, error)
+
+	DescribeVolumes(profile, region string, input DescribeVolumesInput) ([]Volume, error)
 }

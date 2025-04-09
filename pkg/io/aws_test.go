@@ -120,6 +120,18 @@ func TestDescribeEmrCluster(t *testing.T) {
 	t.Log("Success.", time.Since(timeStart), len(clusters))
 }
 
+func TestDescribeAwsVolumes(t *testing.T) {
+	timeStart := time.Now()
+	volumes, err := AwsIo.DescribeVolumes("aws", "cn-northwest-1", model.DescribeVolumesInput{
+		// VolumeIDs: []string{"vol-xxx"},
+	})
+	if err != nil {
+		t.Error(err)
+		return
+	}
+	t.Log("Success.", time.Since(timeStart), len(volumes))
+}
+
 // TEST TestAwsDescribeInstances
 func TestAwsDescribeInstances(t *testing.T) {
 	filter := model.InstanceFilter{
