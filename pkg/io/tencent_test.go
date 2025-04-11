@@ -331,7 +331,7 @@ func TestCreateInstance(t *testing.T) {
 }
 
 func TestModifyInstance(t *testing.T) {
-	instancesIds := []*string{tea.String("ins-iwh5ysbx")}
+	instancesIds := []string{"ins-iwh5ysbx"}
 
 	// // StartInstance
 	// {
@@ -406,7 +406,7 @@ func TestModifyInstance(t *testing.T) {
 func TestChangeInstanceType(t *testing.T) {
 	resp, err := TencentIo.ModifyInstance("tencent", "ap-shanghai", model.ModifyInstanceInput{
 		Action:       model.ChangeInstanceType,
-		InstanceIDs:  []*string{tea.String("ins-k7fdkyi1")},
+		InstanceIDs:  []string{"ins-k7fdkyi1"},
 		InstanceType: tea.String("SA5.2XLARGE32"),
 	})
 	if err != nil {
@@ -420,7 +420,7 @@ func TestChangeInstanceType(t *testing.T) {
 func TestResetInstance(t *testing.T) {
 	resp, err := TencentIo.ModifyInstance("tencent", "ap-shanghai", model.ModifyInstanceInput{
 		Action:      model.ResetInstance,
-		InstanceIDs: []*string{tea.String("ins-xx")},
+		InstanceIDs: []string{"ins-xx"},
 	})
 	if err != nil {
 		t.Error(err)

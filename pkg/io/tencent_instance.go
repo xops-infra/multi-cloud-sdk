@@ -127,20 +127,42 @@ func (c *tencentClient) QueryRegions(profile, region string) (*cvm.DescribeZones
 }
 
 func (c *tencentClient) ModifyInstance(profile, region string, input model.ModifyInstanceInput) (model.ModifyInstanceResponse, error) {
+	instanceIDs := make([]*string, 0)
+	for _, instanceID := range input.InstanceIDs {
+		if instanceID == "" {
+			continue
+		}
+		instanceIDs = append(instanceIDs, tea.String(instanceID))
+	}
 	switch input.Action {
 	case model.StartInstance:
-		return c.StartInstance(profile, region, input.InstanceIDs)
+		return c.StartInstance(profile, region, instanceIDs)
 	case model.StopInstance:
-		return c.StopInstance(profile, region, input.InstanceIDs)
+		return c.StopInstance(profile, region, instanceIDs)
 	case model.RebootInstance:
-		return c.RebootInstance(profile, region, input.InstanceIDs)
+		return c.RebootInstance(profile, region, instanceIDs)
 	case model.ResetInstance:
-		return c.ResetInstance(profile, region, input.InstanceIDs)
+		return c.ResetInstance(profile, region, instanceIDs)
 	case model.ChangeInstanceType:
 		if input.InstanceType == nil {
 			return model.ModifyInstanceResponse{}, fmt.Errorf("instance type is required")
 		}
-		return c.ChangeInstanceType(profile, region, input.InstanceIDs, input.InstanceType)
+		return c.ChangeInstanceType(profile, region, instanceIDs, input.InstanceType)
+	case model.ChangeInstanceTags:
+		if input.ModifyTagsInput == nil {
+			return model.ModifyInstanceResponse{}, fmt.Errorf("modify tags input is required")
+		}
+		for _, instanceID := range input.InstanceIDs {
+			err := c.ModifyTagsForResource(profile, region, model.ModifyTagsInput{
+				InstanceId: tea.String(instanceID),
+				Key:        input.ModifyTagsInput.Key,
+				Value:      input.ModifyTagsInput.Value,
+			})
+			if err != nil {
+				return model.ModifyInstanceResponse{}, err
+			}
+		}
+		return model.ModifyInstanceResponse{}, nil
 	default:
 		return model.ModifyInstanceResponse{}, fmt.Errorf("unsupported action: %s", input.Action)
 	}

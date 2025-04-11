@@ -255,9 +255,10 @@ type CreateInstanceResponse struct {
 }
 
 type ModifyInstanceInput struct {
-	Action       ModifyAction
-	InstanceIDs  []*string `json:"instance_ids"`  // ["ins-r8hr2upy","ins-5d8a23rs"]
-	InstanceType *string   `json:"instance_type"` // Action="change_instance_type" 时必填
+	Action          ModifyAction
+	InstanceIDs     []string         `json:"instance_ids"`      // ["ins-r8hr2upy","ins-5d8a23rs"]
+	InstanceType    *string          `json:"instance_type"`     // Action="change_instance_type" 时必填
+	ModifyTagsInput *ModifyTagsInput `json:"modify_tags_input"` // Action="change_instance_tags" 时必填
 }
 
 type ModifyAction string
