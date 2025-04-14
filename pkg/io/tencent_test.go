@@ -244,7 +244,7 @@ func TestListInstance(t *testing.T) {
 		return
 	}
 	for _, instance := range instances.Instances {
-		fmt.Println(*instance.InstanceID, *instance.CreatedTime, tea.Prettify(instance.InstanceChargeType))
+		fmt.Println(*instance.Zone, *instance.CreatedTime, tea.Prettify(instance.InstanceChargeType))
 	}
 	t.Log("Success.", time.Since(timeStart), len(instances.Instances))
 }

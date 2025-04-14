@@ -62,9 +62,10 @@ func (c *tencentClient) DescribeInstances(profile, region string, input model.De
 			instances[*instanceSet.InstanceId] = model.Instance{
 				Profile:            profile,
 				KeyIDs:             instanceSet.LoginSettings.KeyIds,
+				Zone:               instanceSet.Placement.Zone,
 				InstanceID:         instanceSet.InstanceId,
 				Name:               instanceSet.InstanceName,
-				Region:             instanceSet.Placement.Zone,
+				Region:             &region,
 				Status:             model.ToInstanceStatus(*instanceSet.InstanceState),
 				PublicIP:           instanceSet.PublicIpAddresses,
 				PrivateIP:          instanceSet.PrivateIpAddresses,

@@ -13,6 +13,7 @@ type Instance struct {
 	Name               *string        `json:"name"`
 	InstanceID         *string        `json:"instance_id" gorm:"primarykey"`
 	Profile            string         `json:"profile"`
+	Zone               *string        `json:"zone"`
 	KeyIDs             []*string      `json:"key_ids" gorm:"serializer:json"`
 	Region             *string        `json:"region"`
 	PrivateIP          []*string      `json:"private_ip" gorm:"serializer:json"`
