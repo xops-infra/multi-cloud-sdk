@@ -49,6 +49,7 @@ type CommonContract interface {
 	DescribeImages(profile, region string, input CommonFilter) ([]Image, error)
 	DescribeKeyPairs(profile, region string, input CommonFilter) ([]KeyPair, error)
 	DescribeInstanceTypes(profile, region string) ([]InstanceType, error)
+	DescribeInstancePrice(profile, region string, input DescribeInstancePriceInput) (DescribeInstancePriceResponse, error)
 
 	// tags
 	CreateTags(profile, region string, input CreateTagsInput) error
