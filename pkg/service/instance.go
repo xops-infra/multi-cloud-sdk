@@ -118,3 +118,18 @@ func (s *CommonService) DescribeVolumes(profile, region string, input model.Desc
 	}
 	return nil, fmt.Errorf("%s %s", profile, model.ErrProfileNotFound.Error())
 }
+
+func (s *CommonService) DescribeInstancePrice(profile, region string, input model.DescribeInstancePriceInput) (model.DescribeInstancePriceResponse, error) {
+	if p, ok := s.Profiles[profile]; ok {
+		switch p.Cloud {
+		case model.AWS:
+			// AWS暂不支持包年包月价格查询
+			return model.DescribeInstancePriceResponse{}, fmt.Errorf("%s %s", profile, "AWS does not support prepaid price inquiry")
+		case model.TENCENT:
+			return s.Tencent.DescribeInstancePrice(profile, region, input)
+		default:
+			return model.DescribeInstancePriceResponse{}, fmt.Errorf("%s %s", profile, model.ErrCloudNotSupported.Error())
+		}
+	}
+	return model.DescribeInstancePriceResponse{}, fmt.Errorf("%s %s", profile, model.ErrProfileNotFound.Error())
+}

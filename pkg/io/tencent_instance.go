@@ -386,3 +386,43 @@ func (c *tencentClient) DescribeInstanceTypes(profile, region string) ([]model.I
 	}
 	return instanceTypes, nil
 }
+
+func (t *tencentClient) DescribeInstancePrice(profile, region string, input model.DescribeInstancePriceInput) (model.DescribeInstancePriceResponse, error) {
+	client, err := t.io.GetTencentCvmClient(profile, region)
+	if err != nil {
+		return model.DescribeInstancePriceResponse{}, err
+	}
+
+	request := cvm.NewInquiryPriceRunInstancesRequest()
+	request.Placement = &cvm.Placement{
+		Zone: input.Zone,
+	}
+	request.ImageId = input.ImageId
+	request.InstanceChargeType = common.StringPtr("PREPAID")
+	request.InstanceChargePrepaid = &cvm.InstanceChargePrepaid{
+		Period: input.Period,
+	}
+	request.InstanceType = input.InstanceType
+	request.SystemDisk = &cvm.SystemDisk{
+		DiskType: input.SystemDisk.Type,
+		DiskSize: input.SystemDisk.Size,
+	}
+	for _, dataDisk := range input.DataDisks {
+		request.DataDisks = append(request.DataDisks, &cvm.DataDisk{
+			DiskType: dataDisk.Type,
+			DiskSize: dataDisk.Size,
+		})
+	}
+
+	response, err := client.InquiryPriceRunInstances(request)
+	if err != nil {
+		return model.DescribeInstancePriceResponse{}, err
+	}
+
+	return model.DescribeInstancePriceResponse{
+		OriginalPrice: response.Response.Price.InstancePrice.OriginalPrice,
+		DiscountPrice: response.Response.Price.InstancePrice.DiscountPrice,
+		Discount:      response.Response.Price.InstancePrice.Discount,
+		Currency:      tea.String("CNY"),
+	}, nil
+}

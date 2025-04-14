@@ -178,3 +178,7 @@ func (c *awsClient) DescribeInstanceTypes(profile, region string) ([]model.Insta
 	}
 	return instanceTypes, nil
 }
+
+func (c *awsClient) DescribeInstancePrice(profile, region string, input model.DescribeInstancePriceInput) (model.DescribeInstancePriceResponse, error) {
+	panic("implement me")
+}

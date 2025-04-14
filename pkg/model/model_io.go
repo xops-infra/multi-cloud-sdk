@@ -8,6 +8,8 @@ type CloudIO interface {
 	DescribeKeyPairs(profile, region string, input CommonFilter) ([]KeyPair, error)
 	DescribeImages(profile, region string, input CommonFilter) ([]Image, error)
 	DescribeInstanceTypes(profile, region string) ([]InstanceType, error)
+	// 机器包年包月费用查询
+	DescribeInstancePrice(profile, region string, input DescribeInstancePriceInput) (DescribeInstancePriceResponse, error)
 
 	// Volume
 	DescribeVolumes(profile, region string, input DescribeVolumesInput) ([]Volume, error)

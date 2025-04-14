@@ -39,6 +39,29 @@ func init() {
 	TencentIo = io.NewTencentClient(clientIo)
 }
 
+// test DescribeInstancePrice
+func TestDescribeInstancePrice(t *testing.T) {
+	price, err := TencentIo.DescribeInstancePrice("tencent", "ap-beijing", model.DescribeInstancePriceInput{
+		InstanceType: tea.String("S5.6XLARGE96"),
+		ImageId:      tea.String("img-1u6l2i9l"),
+		Period:       tea.Int64(1),
+		Zone:         tea.String("ap-beijing-7"),
+		SystemDisk: &model.Disk{
+			Size: tea.Int64(100),
+		},
+		// DataDisks: []model.Disk{
+		// 	{Size: tea.Int64(100)},
+		// 	{Size: tea.Int64(100)},
+		// 	{Size: tea.Int64(100)},
+		// },
+	})
+	if err != nil {
+		t.Error(err)
+		return
+	}
+	t.Logf("Success. %s", tea.Prettify(price))
+}
+
 // test ModifyTagsForResource
 func TestModifyTagsForResource(t *testing.T) {
 	err := TencentIo.ModifyTagsForResource("tencent", "ap-shanghai", model.ModifyTagsInput{
