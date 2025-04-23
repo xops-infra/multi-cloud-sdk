@@ -66,8 +66,26 @@ func TestDescribeInstancePrice(t *testing.T) {
 func TestModifyTagsForResource(t *testing.T) {
 	err := TencentIo.ModifyTagsForResource("tencent", "ap-shanghai", model.ModifyTagsInput{
 		InstanceId: tea.String("ins-1oy0zn7n"),
-		Key:        tea.String("Team"),
-		Value:      tea.String("ops"),
+		Key:        tea.String("ExpireTime"),
+		Value:      tea.String("2025123112"),
+	})
+	if err != nil {
+		t.Error(err)
+		return
+	}
+	t.Log("Success.")
+}
+
+// Test AddTagsToResource
+func TestAddTagsToResource(t *testing.T) {
+	err := TencentIo.AddTagsToResource("tencent", "ap-shanghai", model.AddTagsInput{
+		InstanceIds: []*string{tea.String("ins-hs9y7cqv")},
+		Tags: model.Tags{
+			{
+				Key:   "ExpireTime",
+				Value: "2025123122",
+			},
+		},
 	})
 	if err != nil {
 		t.Error(err)
@@ -351,79 +369,6 @@ func TestCreateInstance(t *testing.T) {
 		return
 	}
 	t.Logf("Success. %s", tea.Prettify(resp))
-}
-
-func TestModifyInstance(t *testing.T) {
-	instancesIds := []string{"ins-iwh5ysbx"}
-
-	// // StartInstance
-	// {
-	// 	resp, err := TencentIo.ModifyInstance("tencent", "ap-shanghai", model.ModifyInstanceInput{
-	// 		Action:      model.StartInstance,
-	// 		InstanceIDs: instancesIds,
-	// 	})
-	// 	if err != nil {
-	// 		t.Error(err)
-	// 		return
-	// 	}
-	// 	t.Logf("StartInstance Success. %s", tea.Prettify(resp))
-	// 	time.Sleep(30 * time.Second)
-	// }
-	// // RebootInstance
-	// {
-	// 	resp, err := TencentIo.ModifyInstance("tencent", "ap-shanghai", model.ModifyInstanceInput{
-	// 		Action:      model.RebootInstance,
-	// 		InstanceIDs: instancesIds,
-	// 	})
-	// 	if err != nil {
-	// 		t.Error(err)
-	// 		return
-	// 	}
-	// 	t.Logf("RebootInstance Success. %s", tea.Prettify(resp))
-	// 	time.Sleep(30 * time.Second)
-	// }
-
-	// ResetInstance
-	{
-		resp, err := TencentIo.ModifyInstance("tencent", "ap-shanghai", model.ModifyInstanceInput{
-			Action:      model.ResetInstance,
-			InstanceIDs: instancesIds,
-		})
-		if err != nil {
-			t.Error(err)
-			return
-		}
-		t.Logf("ResetInstance Success. %s", tea.Prettify(resp))
-		time.Sleep(30 * time.Second)
-	}
-
-	// StopInstance
-	// {
-	// 	resp, err := TencentIo.ModifyInstance("tencent", "ap-shanghai", model.ModifyInstanceInput{
-	// 		Action:      model.StopInstance,
-	// 		InstanceIDs: instancesIds,
-	// 	})
-	// 	if err != nil {
-	// 		t.Error(err)
-	// 		return
-	// 	}
-	// 	t.Logf("StopInstance Success. %s", tea.Prettify(resp))
-	// 	time.Sleep(30 * time.Second)
-	// }
-
-	// ChangeInstanceType
-	// {
-	// 	resp, err := TencentIo.ModifyInstance("tencent", "ap-shanghai", model.ModifyInstanceInput{
-	// 		Action:       model.ChangeInstanceType,
-	// 		InstanceIDs:  instancesIds,
-	// 		InstanceType: tea.String("SA5.MEDIUM2"),
-	// 	})
-	// 	if err != nil {
-	// 		t.Error(err)
-	// 		return
-	// 	}
-	// 	t.Logf("ChangeInstanceType Success. %s", tea.Prettify(resp))
-	// }
 }
 
 func TestChangeInstanceType(t *testing.T) {

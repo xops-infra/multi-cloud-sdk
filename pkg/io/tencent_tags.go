@@ -34,11 +34,23 @@ func (c *tencentClient) AddTagsToResource(profile, region string, input model.Ad
 	if err != nil {
 		return err
 	}
+
+	var resources []*string
+	for _, instanceId := range input.InstanceIds {
+		resource, err := getResourceById(region, *instanceId)
+		if err != nil {
+			return err
+		}
+		resources = append(resources, tea.String(resource))
+	}
 	request := tencentTag.NewTagResourcesRequest()
-	request.ResourceList = input.ResourceList
+	request.ResourceList = resources
 	request.Tags = input.Tags.ToTencentTags()
-	_, err = svc.TagResources(request)
-	return err
+	resp, err := svc.TagResources(request)
+	if err != nil {
+		return fmt.Errorf("resp: %v, err: %v", resp, err)
+	}
+	return nil
 }
 
 func (c *tencentClient) RemoveTagsFromResource(profile, region string, input model.RemoveTagsInput) error {
@@ -47,7 +59,11 @@ func (c *tencentClient) RemoveTagsFromResource(profile, region string, input mod
 		return err
 	}
 	request := tencentTag.NewUnTagResourcesRequest()
-	request.ResourceList = input.ResourceList
+	resource, err := getResourceById(region, *input.InstanceId)
+	if err != nil {
+		return err
+	}
+	request.ResourceList = []*string{tea.String(resource)}
 	request.TagKeys = input.Keys
 	_, err = svc.UnTagResources(request)
 	return err

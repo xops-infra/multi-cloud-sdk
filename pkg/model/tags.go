@@ -272,13 +272,13 @@ func TencentVpcTagsFmt(tags []*tencentVpc.Tag) *Tags {
 }
 
 type AddTagsInput struct {
-	Tags         Tags      `json:"tags"`
-	ResourceList []*string `json:"resource_list"` // 资源列表(qcs::cvm:ap-beijing:uin/1234567:instance/ins-123)
+	Tags        Tags      `json:"tags"`
+	InstanceIds []*string `json:"instance_ids" binding:"required"`
 }
 
 type RemoveTagsInput struct {
-	ResourceList []*string `json:"resource_list"` // 资源列表(qcs::cvm:ap-beijing:uin/1234567:instance/ins-123)
-	Keys         []*string `json:"keys"`
+	InstanceId *string   `json:"instance_id" binding:"required"`
+	Keys       []*string `json:"keys"`
 }
 
 type ModifyTagsInput struct {
