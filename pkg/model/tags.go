@@ -4,7 +4,9 @@ import (
 	"database/sql/driver"
 	"encoding/json"
 	"errors"
+	"fmt"
 	"strings"
+	"time"
 
 	"github.com/aws/aws-sdk-go/aws"
 	"github.com/aws/aws-sdk-go/service/ec2"
@@ -81,6 +83,31 @@ func (t Tags) GetTagValueByKey(key string) *string {
 		}
 	}
 	return nil
+}
+
+// 获取到期时间ExpireTime 格式支持 202506101220 2025061012 20250610
+func (t Tags) GetTimeByKey(key string, location *time.Location) (*time.Time, error) {
+	if location == nil {
+		location = time.Local
+	}
+	expireTime := t.GetTagValueByKey(key)
+	if expireTime == nil {
+		return nil, fmt.Errorf("key %s not found", key)
+	}
+	expireTimeStr := *expireTime
+	switch len(expireTimeStr) {
+	case 10:
+		expireTimeStr += "00"
+	case 12:
+		expireTimeStr += ""
+	case 14:
+		expireTimeStr = expireTimeStr[:12]
+	}
+	_expireTime, err := time.ParseInLocation("200601021504", expireTimeStr, location)
+	if err != nil {
+		return nil, err
+	}
+	return &_expireTime, nil
 }
 
 // get Owner
