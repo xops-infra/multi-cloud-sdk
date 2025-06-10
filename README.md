@@ -15,6 +15,8 @@ go get -u github.com/xops-infra/multi-cloud-sdk@main
 
 ### 开发日志
 
+- 2025-06:
+  - feat: add 腾讯云实例计费类型切换接口
 - 2025-04:
   - feat: add 腾讯云云硬盘接口
   

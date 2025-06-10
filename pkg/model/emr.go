@@ -53,8 +53,17 @@ func (t InstanceChargeType) ToTencentEmrChargeType() *uint64 {
 	return tea.Uint64(0)
 }
 
+func (t InstanceChargeType) TString() *string {
+	return (*string)(t.String())
+}
+
 func (t InstanceChargeType) String() *InstanceChargeType {
 	return &t
+}
+
+// IsValid 判断是否是有效的实例计费类型,腾讯只支持 2 个类型 按量和包年包月
+func (t InstanceChargeType) IsValidForTencent() bool {
+	return t == POSTPAID_BY_HOUR || t == PREPAID
 }
 
 type InstancePolicy string

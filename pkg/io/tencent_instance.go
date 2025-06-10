@@ -149,6 +149,11 @@ func (c *tencentClient) ModifyInstance(profile, region string, input model.Modif
 			return model.ModifyInstanceResponse{}, fmt.Errorf("instance type is required")
 		}
 		return c.ChangeInstanceType(profile, region, instanceIDs, input.InstanceType)
+	case model.ChangeInstanceChargeType:
+		if input.InstanceChargeType == nil {
+			return model.ModifyInstanceResponse{}, fmt.Errorf("instance charge type is required")
+		}
+		return c.ChangeInstanceChargeType(profile, region, instanceIDs, input.InstanceChargeType)
 	case model.ChangeInstanceTags:
 		if input.ModifyTagsInput == nil {
 			return model.ModifyInstanceResponse{}, fmt.Errorf("modify tags input is required")
@@ -167,6 +172,42 @@ func (c *tencentClient) ModifyInstance(profile, region string, input model.Modif
 	default:
 		return model.ModifyInstanceResponse{}, fmt.Errorf("unsupported action: %s", input.Action)
 	}
+}
+
+func (c *tencentClient) ChangeInstanceChargeType(profile, region string, instanceIDs []*string, instanceChargeType *model.InstanceChargeType) (model.ModifyInstanceResponse, error) {
+	client, err := c.io.GetTencentCvmClient(profile, region)
+	if err != nil {
+		return model.ModifyInstanceResponse{}, err
+	}
+	request := cvm.NewModifyInstancesChargeTypeRequest()
+	request.InstanceIds = instanceIDs
+	// 腾讯云支持 2 个类型
+	request.InstanceChargeType = instanceChargeType.TString()
+	if !instanceChargeType.IsValidForTencent() {
+		return model.ModifyInstanceResponse{}, fmt.Errorf("invalid instance charge type: %s", *instanceChargeType)
+	}
+
+	// 处理包年包月，默认开启一个月的自动续费
+	if *instanceChargeType == model.PREPAID {
+		request.InstanceChargePrepaid = &cvm.InstanceChargePrepaid{
+			Period:    tea.Int64(1),
+			RenewFlag: tea.String("NOTIFY_AND_AUTO_RENEW"), // 账户充足时自动续费
+		}
+	}
+
+	// 处理机器磁盘类型，不切换
+	request.ModifyPortableDataDisk = tea.Bool(false)
+
+	response, err := client.ModifyInstancesChargeType(request)
+	if _, ok := err.(*errors.TencentCloudSDKError); ok {
+		return model.ModifyInstanceResponse{}, fmt.Errorf("an api error has returned: %s", err)
+	}
+	if err != nil {
+		return model.ModifyInstanceResponse{}, err
+	}
+	return model.ModifyInstanceResponse{
+		Meta: response.ToJsonString(),
+	}, nil
 }
 
 func (c *tencentClient) StartInstance(profile, region string, instances []*string) (model.ModifyInstanceResponse, error) {

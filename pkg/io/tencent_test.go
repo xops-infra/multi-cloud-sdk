@@ -522,3 +522,17 @@ func TestCreateSecurityGroupPolicies(t *testing.T) {
 	}
 	t.Logf("Success. %s", tea.Prettify(resp))
 }
+
+// test ChangeInstanceChargeType
+func TestChangeInstanceChargeType(t *testing.T) {
+	resp, err := TencentIo.ModifyInstance("tencent", "ap-beijing", model.ModifyInstanceInput{
+		Action:             model.ChangeInstanceChargeType,
+		InstanceIDs:        []string{"ins-xxx"},
+		InstanceChargeType: model.PREPAID.String(),
+	})
+	if err != nil {
+		t.Error(err)
+		return
+	}
+	t.Logf("Success. %s", tea.Prettify(resp))
+}

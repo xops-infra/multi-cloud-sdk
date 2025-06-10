@@ -147,22 +147,22 @@ type InstanceResponse struct {
 
 // Create
 type CreateInstanceInput struct {
-	Name               *string   `json:"name"`
-	Count              *int64    `json:"count" default:"1"` // 默认 1 个
-	ImageID            *string   `json:"image_id"`
-	InstanceType       *string   `json:"instance_type"`
-	InstanceChargeType *string   `json:"instance_charge_type"` // 默认按需
-	Zone               *string   `json:"zone"`                 // 这里写可用区 ID后台转换
-	SystemDisk         *Disk     `json:"system_disk"`
-	DataDisks          []Disk    `json:"data_disks"`
-	RoleName           *string   `json:"role_name"`
-	VpcID              *string   `json:"vpc_id"`
-	SecurityGroupIDs   []*string `json:"security_group_ids"`
-	SubnetID           *string   `json:"subnet_id"`
-	UserData           *string   `json:"user_data"` // base64
-	Password           *string   `json:"password"`
-	KeyIds             []*string `json:"key_ids"`
-	Tags               Tags      `json:"tags"`
+	Name               *string             `json:"name"`
+	Count              *int64              `json:"count" default:"1"` // 默认 1 个
+	ImageID            *string             `json:"image_id"`
+	InstanceType       *string             `json:"instance_type"`
+	InstanceChargeType *InstanceChargeType `json:"instance_charge_type"` // 默认按需
+	Zone               *string             `json:"zone"`                 // 这里写可用区 ID后台转换
+	SystemDisk         *Disk               `json:"system_disk"`
+	DataDisks          []Disk              `json:"data_disks"`
+	RoleName           *string             `json:"role_name"`
+	VpcID              *string             `json:"vpc_id"`
+	SecurityGroupIDs   []*string           `json:"security_group_ids"`
+	SubnetID           *string             `json:"subnet_id"`
+	UserData           *string             `json:"user_data"` // base64
+	Password           *string             `json:"password"`
+	KeyIds             []*string           `json:"key_ids"`
+	Tags               Tags                `json:"tags"`
 }
 
 type Disk struct {
@@ -193,7 +193,7 @@ func (i *CreateInstanceInput) ToTencentRunInstancesRequest() *cvm.RunInstancesRe
 	request := cvm.NewRunInstancesRequest()
 	request.InstanceChargeType = common.StringPtr("POSTPAID_BY_HOUR")
 	if i.InstanceChargeType != nil {
-		request.InstanceChargeType = i.InstanceChargeType
+		request.InstanceChargeType = i.InstanceChargeType.TString()
 	}
 	request.InstanceCount = common.Int64Ptr(1)
 	if i.Count != nil {
@@ -256,10 +256,11 @@ type CreateInstanceResponse struct {
 }
 
 type ModifyInstanceInput struct {
-	Action          ModifyAction
-	InstanceIDs     []string `json:"instance_ids"`  // ["ins-r8hr2upy","ins-5d8a23rs"]
-	InstanceType    *string  `json:"instance_type"` // Action="change_instance_type" 时必填
-	ModifyTagsInput *struct {
+	Action             ModifyAction
+	InstanceIDs        []string            `json:"instance_ids"`         // ["ins-r8hr2upy","ins-5d8a23rs"]
+	InstanceType       *string             `json:"instance_type"`        // Action="change_instance_type" 时必填
+	InstanceChargeType *InstanceChargeType `json:"instance_charge_type"` // Action="change_instance_charge_type" 时必填
+	ModifyTagsInput    *struct {
 		Key   *string `json:"key"`
 		Value *string `json:"value"`
 	} `json:"modify_tags_input"` // Action="change_instance_tags" 时必填
@@ -268,12 +269,14 @@ type ModifyInstanceInput struct {
 type ModifyAction string
 
 const (
-	StartInstance      ModifyAction = "start_instance"
-	StopInstance       ModifyAction = "stop_instance"
-	RebootInstance     ModifyAction = "reboot_instance"
-	ResetInstance      ModifyAction = "reset_instance"
-	ChangeInstanceType ModifyAction = "change_instance_type"
-	ChangeInstanceTags ModifyAction = "change_instance_tags"
+	StartInstance            ModifyAction = "start_instance"
+	StopInstance             ModifyAction = "stop_instance"
+	RebootInstance           ModifyAction = "reboot_instance"
+	ResetInstance            ModifyAction = "reset_instance"
+	ChangeInstanceType       ModifyAction = "change_instance_type"
+	ChangeInstanceTags       ModifyAction = "change_instance_tags"
+	ChangeInstanceChargeType ModifyAction = "change_instance_charge_type"
+	ChangeInstanceDiskType   ModifyAction = "change_instance_disk_type"
 )
 
 type ModifyInstanceResponse struct {
