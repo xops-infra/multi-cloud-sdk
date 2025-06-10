@@ -4,7 +4,6 @@ import (
 	"database/sql/driver"
 	"encoding/json"
 	"errors"
-	"fmt"
 	"strings"
 	"time"
 
@@ -92,7 +91,7 @@ func (t Tags) GetTimeByKey(key string, location *time.Location) (*time.Time, err
 	}
 	expireTime := t.GetTagValueByKey(key)
 	if expireTime == nil {
-		return nil, fmt.Errorf("key %s not found", key)
+		return nil, nil
 	}
 	expireTimeStr := *expireTime
 	switch len(expireTimeStr) {
