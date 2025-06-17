@@ -356,7 +356,7 @@ func TestCreateTags(t *testing.T) {
 func TestCreateInstance(t *testing.T) {
 	resp, err := TencentIo.CreateInstance("tencent", "ap-shanghai", model.CreateInstanceInput{
 		Name:             tea.String("multi-cloud-sdk-test"),
-		ImageID:          tea.String("img-hdt9xxkt"),
+		ImageID:          tea.String("img-xx"),
 		InstanceType:     tea.String("SA5.MEDIUM2"),
 		KeyIds:           []*string{tea.String(os.Getenv("TEST_TENCENT_KEY_ID"))},
 		Zone:             tea.String("ap-shanghai-5"),
@@ -374,8 +374,32 @@ func TestCreateInstance(t *testing.T) {
 func TestChangeInstanceType(t *testing.T) {
 	resp, err := TencentIo.ModifyInstance("tencent", "ap-shanghai", model.ModifyInstanceInput{
 		Action:       model.ChangeInstanceType,
-		InstanceIDs:  []string{"ins-k7fdkyi1"},
+		InstanceIDs:  []string{"ins-xx"},
 		InstanceType: tea.String("SA5.2XLARGE32"),
+	})
+	if err != nil {
+		t.Error(err)
+		return
+	}
+	t.Logf("Success. %s", tea.Prettify(resp))
+}
+
+func TestStartInstance(t *testing.T) {
+	resp, err := TencentIo.ModifyInstance("tencent", "ap-shanghai", model.ModifyInstanceInput{
+		Action:      model.StartInstance,
+		InstanceIDs: []string{"ins-xx"},
+	})
+	if err != nil {
+		t.Error(err)
+		return
+	}
+	t.Logf("Success. %s", tea.Prettify(resp))
+}
+
+func TestStopInstance(t *testing.T) {
+	resp, err := TencentIo.ModifyInstance("tencent", "ap-shanghai", model.ModifyInstanceInput{
+		Action:      model.StopInstance,
+		InstanceIDs: []string{"ins-xx"},
 	})
 	if err != nil {
 		t.Error(err)
@@ -527,7 +551,7 @@ func TestCreateSecurityGroupPolicies(t *testing.T) {
 func TestChangeInstanceChargeType(t *testing.T) {
 	resp, err := TencentIo.ModifyInstance("tencent", "ap-beijing", model.ModifyInstanceInput{
 		Action:             model.ChangeInstanceChargeType,
-		InstanceIDs:        []string{"ins-xxx"},
+		InstanceIDs:        []string{"ins-pkgv6nib"},
 		InstanceChargeType: model.PREPAID.String(),
 	})
 	if err != nil {

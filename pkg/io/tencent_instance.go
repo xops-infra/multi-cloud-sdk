@@ -236,6 +236,7 @@ func (c *tencentClient) StopInstance(profile, region string, instances []*string
 	}
 	request := cvm.NewStopInstancesRequest()
 	request.InstanceIds = instances
+	request.StoppedMode = tea.String("STOP_CHARGING") // 默认关机不收费，但会有问题，机器不够的时候启动不起来
 	response, err := client.StopInstances(request)
 	if _, ok := err.(*errors.TencentCloudSDKError); ok {
 		return model.ModifyInstanceResponse{}, fmt.Errorf("an api error has returned: %s", err)
