@@ -144,7 +144,7 @@ func (r *GetMonitorMetricDataRequest) ToTencentRequest() (*monitor.GetMonitorDat
 		case MetricsTypeStandard:
 			request.MetricName = tea.String("StdStorage") // 标准存储 单位MB
 		case MetricsTypeInfrequent:
-			request.MetricName = tea.String("InfrequentStorage") // 低频存储 单位MB
+			request.MetricName = tea.String("SiaStorage") // 低频存储 单位MB
 		case MetricsTypeArchive:
 			request.MetricName = tea.String("ArcStorage") // 归档存储 单位MB
 		case MetricsTypePutQps:
