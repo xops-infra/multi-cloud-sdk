@@ -71,3 +71,17 @@ func (s *CommonService) ModifyTagsForResource(profile, region string, input mode
 	}
 	return fmt.Errorf("profile %s not found", profile)
 }
+
+// monitor
+
+func (s *CommonService) GetMonitorMetricData(profile, region string, input model.GetMonitorMetricDataRequest) (*model.GetMonitorMetricDataResponse, error) {
+	if p, ok := s.Profiles[profile]; ok {
+		switch p.Cloud {
+		case model.AWS:
+			return s.Aws.GetMonitorMetricData(profile, region, input)
+		case model.TENCENT:
+			return s.Tencent.GetMonitorMetricData(profile, region, input)
+		}
+	}
+	return nil, fmt.Errorf("profile %s not found", profile)
+}

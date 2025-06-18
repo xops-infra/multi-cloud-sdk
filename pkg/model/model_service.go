@@ -16,6 +16,9 @@ func TimeParse(t string) (time.Time, error) {
 // 实现自动区分云的对象接口
 type CommonContract interface {
 	QueryOcr(profile, region string, input OcrRequest) (OcrResponse, error)
+
+	// monitor 获取监控指标
+	GetMonitorMetricData(profile, region string, input GetMonitorMetricDataRequest) (*GetMonitorMetricDataResponse, error)
 	// tiia
 	CreatePicture(profile, region string, input CreatePictureRequest) (CreatePictureResponse, error)
 	GetPictureByName(profile, region string, input CommonPictureRequest) (GetPictureByNameResponse, error)

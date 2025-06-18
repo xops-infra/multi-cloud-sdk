@@ -13,6 +13,7 @@ import (
 	cvm "github.com/tencentcloud/tencentcloud-sdk-go/tencentcloud/cvm/v20170312"
 	dnspod "github.com/tencentcloud/tencentcloud-sdk-go/tencentcloud/dnspod/v20210323"
 	tencentEmr "github.com/tencentcloud/tencentcloud-sdk-go/tencentcloud/emr/v20190103"
+	monitor "github.com/tencentcloud/tencentcloud-sdk-go/tencentcloud/monitor/v20180724"
 	ocr "github.com/tencentcloud/tencentcloud-sdk-go/tencentcloud/ocr/v20181119"
 	privatedns "github.com/tencentcloud/tencentcloud-sdk-go/tencentcloud/privatedns/v20201028"
 	tag "github.com/tencentcloud/tencentcloud-sdk-go/tencentcloud/tag/v20180813"
@@ -42,6 +43,7 @@ type ClientIo interface {
 	GetTencentOcrTiiaClient(profile, region string) (*tiia.Client, error)
 	GetTencentDnsPodClient(profile string) (*dnspod.Client, error)
 	GetTencentPrivateDNSClient(profile string) (*privatedns.Client, error)
+	GetTencentMonitorClient(profile, region string) (*monitor.Client, error)
 }
 
 type ProfileConfig struct {

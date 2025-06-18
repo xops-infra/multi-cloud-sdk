@@ -1,6 +1,10 @@
 package model
 
 type CloudIO interface {
+
+	// monitor
+	GetMonitorMetricData(profile, region string, input GetMonitorMetricDataRequest) (*GetMonitorMetricDataResponse, error)
+
 	DescribeInstances(profile, region string, input DescribeInstancesInput) (InstanceResponse, error)
 	CreateInstance(profile, region string, input CreateInstanceInput) (CreateInstanceResponse, error)
 	ModifyInstance(profile, region string, input ModifyInstanceInput) (ModifyInstanceResponse, error)

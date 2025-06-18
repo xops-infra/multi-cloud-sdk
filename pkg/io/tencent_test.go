@@ -39,6 +39,39 @@ func init() {
 	TencentIo = io.NewTencentClient(clientIo)
 }
 
+// TEST GetMonitorMetricData
+func TestGetMonitorMetricData(t *testing.T) {
+	mt := model.MetricsTypeStandard
+	resp, err := TencentIo.GetMonitorMetricData("tencent", "na-ashburn", model.GetMonitorMetricDataRequest{
+		InstanceType: model.MetricInstanceTypeCOS,
+		MetricsType:  &mt,
+		Instances:    []string{"xxx-1251949819", "xxx-1251949819"},
+	})
+	if err != nil {
+		t.Error(err)
+		return
+	}
+	for _, metric := range resp.MetricDatas {
+		fmt.Println(tea.Prettify(metric.Dimensions))
+		fmt.Println(tea.Prettify(metric.DataPoints))
+	}
+}
+
+// 测试查询 MetricInstanceTypeCVM 磁盘使用率
+func TestGetMonitorMetricDataCVM(t *testing.T) {
+	mt := model.MetricsTypeCvmDiskUsage
+	resp, err := TencentIo.GetMonitorMetricData("tencent", "ap-shanghai", model.GetMonitorMetricDataRequest{
+		InstanceType: model.MetricInstanceTypeCVM,
+		MetricsType:  &mt,
+		Instances:    []string{"ins-xx"},
+	})
+	if err != nil {
+		t.Error(err)
+		return
+	}
+	t.Logf("Success. %s", tea.Prettify(resp))
+}
+
 // test DescribeInstancePrice
 func TestDescribeInstancePrice(t *testing.T) {
 	price, err := TencentIo.DescribeInstancePrice("tencent", "ap-beijing", model.DescribeInstancePriceInput{
@@ -397,15 +430,22 @@ func TestStartInstance(t *testing.T) {
 }
 
 func TestStopInstance(t *testing.T) {
-	resp, err := TencentIo.ModifyInstance("tencent", "ap-shanghai", model.ModifyInstanceInput{
-		Action:      model.StopInstance,
-		InstanceIDs: []string{"ins-xx"},
-	})
-	if err != nil {
-		t.Error(err)
-		return
+	ids := []string{
+		"ins-me4i5a5f",
+		"ins-dqa40cpt",
+		"ins-00twamh9",
 	}
-	t.Logf("Success. %s", tea.Prettify(resp))
+	for _, id := range ids {
+		resp, err := TencentIo.ModifyInstance("tencent", "ap-shanghai", model.ModifyInstanceInput{
+			Action:      model.StopInstance,
+			InstanceIDs: []string{id},
+		})
+		if err != nil {
+			t.Error(err)
+			return
+		}
+		t.Logf("Success. %s", tea.Prettify(resp))
+	}
 }
 
 // TestResetInstance

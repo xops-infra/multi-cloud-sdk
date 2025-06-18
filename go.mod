@@ -9,10 +9,11 @@ require (
 	github.com/spf13/cast v1.5.1
 	github.com/stretchr/testify v1.3.0
 	github.com/tencentcloud/tencentcloud-sdk-go/tencentcloud/cbs v1.0.1136
-	github.com/tencentcloud/tencentcloud-sdk-go/tencentcloud/common v1.0.1136
+	github.com/tencentcloud/tencentcloud-sdk-go/tencentcloud/common v1.0.1180
 	github.com/tencentcloud/tencentcloud-sdk-go/tencentcloud/cvm v1.0.745
 	github.com/tencentcloud/tencentcloud-sdk-go/tencentcloud/dnspod v1.0.762
 	github.com/tencentcloud/tencentcloud-sdk-go/tencentcloud/emr v1.0.753
+	github.com/tencentcloud/tencentcloud-sdk-go/tencentcloud/monitor v1.0.1180
 	github.com/tencentcloud/tencentcloud-sdk-go/tencentcloud/ocr v1.0.759
 	github.com/tencentcloud/tencentcloud-sdk-go/tencentcloud/privatedns v1.0.872
 	github.com/tencentcloud/tencentcloud-sdk-go/tencentcloud/tag v1.0.753

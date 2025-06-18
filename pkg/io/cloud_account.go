@@ -26,6 +26,7 @@ import (
 	cvm "github.com/tencentcloud/tencentcloud-sdk-go/tencentcloud/cvm/v20170312"
 	dnspod "github.com/tencentcloud/tencentcloud-sdk-go/tencentcloud/dnspod/v20210323"
 	tencentEmr "github.com/tencentcloud/tencentcloud-sdk-go/tencentcloud/emr/v20190103"
+	monitor "github.com/tencentcloud/tencentcloud-sdk-go/tencentcloud/monitor/v20180724"
 	ocr "github.com/tencentcloud/tencentcloud-sdk-go/tencentcloud/ocr/v20181119"
 	privatedns "github.com/tencentcloud/tencentcloud-sdk-go/tencentcloud/privatedns/v20201028"
 	tag "github.com/tencentcloud/tencentcloud-sdk-go/tencentcloud/tag/v20180813"
@@ -182,6 +183,15 @@ func (c *cloudClient) getTencentCredential(accountId string) (*common.Credential
 		return nil, fmt.Errorf("tencent credential %s not found, Keys: %s", accountId, strings.TrimSuffix(keys, ","))
 	}
 	return credential, nil
+}
+
+func (c *cloudClient) GetTencentMonitorClient(accountId, region string) (*monitor.Client, error) {
+	credential, err := c.getTencentCredential(accountId)
+	if err != nil {
+		return nil, err
+	}
+	clientProfile := profile.NewClientProfile()
+	return monitor.NewClient(credential, region, clientProfile)
 }
 
 func (c *cloudClient) GetTencentCbsClient(accountId, region string) (*cbs.Client, error) {

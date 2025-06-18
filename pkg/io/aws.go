@@ -16,6 +16,11 @@ func NewAwsClient(io model.ClientIo) model.CloudIO {
 	}
 }
 
+// monitor
+func (c *awsClient) GetMonitorMetricData(profile, region string, input model.GetMonitorMetricDataRequest) (*model.GetMonitorMetricDataResponse, error) {
+	panic("not support for aws")
+}
+
 func (c *awsClient) CreateTags(profile, region string, input model.CreateTagsInput) error {
 	return fmt.Errorf("not support for aws")
 }
