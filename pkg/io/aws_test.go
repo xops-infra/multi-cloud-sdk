@@ -49,7 +49,7 @@ func TestDescribeAwsImages(t *testing.T) {
 	if err != nil {
 		t.Error(err)
 	}
-	t.Log("Success.", time.Since(timeStart), len(images))
+	t.Log("Success.", time.Since(timeStart), tea.Prettify(images))
 }
 
 func TestQueryAwsKeyPairs(t *testing.T) {

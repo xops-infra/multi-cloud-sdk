@@ -124,7 +124,9 @@ func (c *awsClient) DescribeImages(profile, region string, input model.CommonFil
 		return nil, err
 	}
 
-	_input := &ec2.DescribeImagesInput{}
+	_input := &ec2.DescribeImagesInput{
+		Owners: []*string{aws.String("self")},
+	}
 	if input.ID != "" {
 		_input.ImageIds = []*string{aws.String(input.ID)}
 	}
