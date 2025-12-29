@@ -139,7 +139,7 @@ func (c *tencentClient) ModifyInstance(profile, region string, input model.Modif
 	case model.StartInstance:
 		return c.StartInstance(profile, region, instanceIDs)
 	case model.StopInstance:
-		return c.StopInstance(profile, region, instanceIDs)
+		return c.StopInstance(profile, region, instanceIDs, input.ForceStop)
 	case model.RebootInstance:
 		return c.RebootInstance(profile, region, instanceIDs)
 	case model.ResetInstance:
@@ -229,7 +229,7 @@ func (c *tencentClient) StartInstance(profile, region string, instances []*strin
 	}, nil
 }
 
-func (c *tencentClient) StopInstance(profile, region string, instances []*string) (model.ModifyInstanceResponse, error) {
+func (c *tencentClient) StopInstance(profile, region string, instances []*string, forceStop *bool) (model.ModifyInstanceResponse, error) {
 	client, err := c.io.GetTencentCvmClient(profile, region)
 	if err != nil {
 		return model.ModifyInstanceResponse{}, err
@@ -237,6 +237,12 @@ func (c *tencentClient) StopInstance(profile, region string, instances []*string
 	request := cvm.NewStopInstancesRequest()
 	request.InstanceIds = instances
 	request.StoppedMode = tea.String("STOP_CHARGING") // 默认关机不收费，但会有问题，机器不够的时候启动不起来
+	// 默认关闭强制关机，如果指定了 forceStop 则使用指定值
+	if forceStop != nil {
+		request.ForceStop = forceStop
+	} else {
+		request.ForceStop = tea.Bool(false)
+	}
 	response, err := client.StopInstances(request)
 	if _, ok := err.(*errors.TencentCloudSDKError); ok {
 		return model.ModifyInstanceResponse{}, fmt.Errorf("an api error has returned: %s", err)

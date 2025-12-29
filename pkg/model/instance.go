@@ -264,6 +264,7 @@ type ModifyInstanceInput struct {
 		Key   *string `json:"key"`
 		Value *string `json:"value"`
 	} `json:"modify_tags_input"` // Action="change_instance_tags" 时必填
+	ForceStop *bool `json:"force_stop"` // Action="stop_instance" 时可选，是否强制关机，默认 false
 }
 
 type ModifyAction string
