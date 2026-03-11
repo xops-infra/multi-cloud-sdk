@@ -108,6 +108,41 @@ func (c *tencentClient) CreateInstance(profile, region string, input model.Creat
 	}, nil
 }
 
+// RunInstancesWithLaunchTemplate 使用启动模板创建实例
+// https://cloud.tencent.com/document/product/213/66322 查询模板
+// https://cloud.tencent.com/document/product/213/33237 RunInstances 支持 LaunchTemplateId
+func (c *tencentClient) RunInstancesWithLaunchTemplate(profile, region string, input model.RunInstancesWithLaunchTemplateInput) ([]string, error) {
+	client, err := c.io.GetTencentCvmClient(profile, region)
+	if err != nil {
+		return nil, err
+	}
+	request := cvm.NewRunInstancesRequest()
+	request.LaunchTemplate = &cvm.LaunchTemplate{
+		LaunchTemplateId: common.StringPtr(input.TemplateId),
+	}
+	request.InstanceCount = common.Int64Ptr(int64(input.InstanceCount))
+	if input.InstanceName != nil {
+		request.InstanceName = input.InstanceName
+	}
+	if input.AddOnTags != nil && len(*input.AddOnTags) > 0 {
+		request.TagSpecification = input.AddOnTags.ToRunInstanceTags()
+	}
+	response, err := client.RunInstances(request)
+	if _, ok := err.(*errors.TencentCloudSDKError); ok {
+		return nil, fmt.Errorf("an api error has returned: %s", err)
+	}
+	if err != nil {
+		return nil, err
+	}
+	ids := make([]string, 0, len(response.Response.InstanceIdSet))
+	for _, id := range response.Response.InstanceIdSet {
+		if id != nil {
+			ids = append(ids, *id)
+		}
+	}
+	return ids, nil
+}
+
 // 查询可用区列表
 func (c *tencentClient) QueryRegions(profile, region string) (*cvm.DescribeZonesResponse, error) {
 	svc, err := c.io.GetTencentCvmClient(profile, region)

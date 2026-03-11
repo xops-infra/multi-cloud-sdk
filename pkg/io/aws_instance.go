@@ -85,6 +85,10 @@ func (c *awsClient) CreateInstance(profile, region string, input model.CreateIns
 	panic("implement me")
 }
 
+func (c *awsClient) RunInstancesWithLaunchTemplate(profile, region string, input model.RunInstancesWithLaunchTemplateInput) ([]string, error) {
+	return nil, fmt.Errorf("RunInstancesWithLaunchTemplate not supported for AWS, use CreateInstance instead")
+}
+
 func (c *awsClient) ModifyInstance(profile, region string, input model.ModifyInstanceInput) (model.ModifyInstanceResponse, error) {
 	panic("implement me")
 }

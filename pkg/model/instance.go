@@ -255,6 +255,14 @@ type CreateInstanceResponse struct {
 	InstanceIds []*string `json:"instance_ids"`
 }
 
+// RunInstancesWithLaunchTemplateInput 使用启动模板创建实例的入参
+type RunInstancesWithLaunchTemplateInput struct {
+	TemplateId    string  `json:"template_id"`    // 启动模板 ID，如 lt-xxxxx
+	InstanceCount int     `json:"instance_count"` // 创建实例数量
+	InstanceName  *string `json:"instance_name"`  // 实例名称，支持模式串 {R:x}，如 server_{R:1} 创建 server_1, server_2
+	AddOnTags     *Tags   `json:"add_on_tags"`    // 传入 RunInstances 的 tag，会覆盖模板中的同名 tag，如 Owner
+}
+
 type ModifyInstanceInput struct {
 	Action             ModifyAction
 	InstanceIDs        []string            `json:"instance_ids"`         // ["ins-r8hr2upy","ins-5d8a23rs"]

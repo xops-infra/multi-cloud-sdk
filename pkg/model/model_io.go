@@ -7,6 +7,8 @@ type CloudIO interface {
 
 	DescribeInstances(profile, region string, input DescribeInstancesInput) (InstanceResponse, error)
 	CreateInstance(profile, region string, input CreateInstanceInput) (CreateInstanceResponse, error)
+	// RunInstancesWithLaunchTemplate 使用启动模板创建实例，腾讯云支持，AWS 返回不支持
+	RunInstancesWithLaunchTemplate(profile, region string, input RunInstancesWithLaunchTemplateInput) ([]string, error)
 	ModifyInstance(profile, region string, input ModifyInstanceInput) (ModifyInstanceResponse, error)
 	DeleteInstance(profile, region string, input DeleteInstanceInput) (DeleteInstanceResponse, error)
 	DescribeKeyPairs(profile, region string, input CommonFilter) ([]KeyPair, error)
