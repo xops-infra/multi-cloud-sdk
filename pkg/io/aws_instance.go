@@ -93,6 +93,10 @@ func (c *awsClient) ModifyInstance(profile, region string, input model.ModifyIns
 	panic("implement me")
 }
 
+func (c *awsClient) RenameInstance(profile, region, instanceID, instanceName string) error {
+	return fmt.Errorf("rename instance not supported for aws")
+}
+
 func (c *awsClient) DeleteInstance(profile, region string, input model.DeleteInstanceInput) (model.DeleteInstanceResponse, error) {
 	panic("implement me")
 }

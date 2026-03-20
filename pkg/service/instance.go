@@ -49,6 +49,20 @@ func (s *CommonService) ModifyInstance(profile, region string, input model.Modif
 	return model.ModifyInstanceResponse{}, fmt.Errorf("%s %s", profile, model.ErrProfileNotFound.Error())
 }
 
+func (s *CommonService) RenameInstance(profile, region, instanceID, instanceName string) error {
+	if p, ok := s.Profiles[profile]; ok {
+		switch p.Cloud {
+		case model.AWS:
+			return s.Aws.RenameInstance(profile, region, instanceID, instanceName)
+		case model.TENCENT:
+			return s.Tencent.RenameInstance(profile, region, instanceID, instanceName)
+		default:
+			return fmt.Errorf("%s %s", profile, model.ErrCloudNotSupported.Error())
+		}
+	}
+	return fmt.Errorf("%s %s", profile, model.ErrProfileNotFound.Error())
+}
+
 func (s *CommonService) DeleteInstance(profile, region string, input model.DeleteInstanceInput) (model.DeleteInstanceResponse, error) {
 	if p, ok := s.Profiles[profile]; ok {
 		switch p.Cloud {

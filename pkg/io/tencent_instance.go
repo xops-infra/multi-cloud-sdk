@@ -2,6 +2,7 @@ package io
 
 import (
 	"fmt"
+	"strings"
 	"time"
 
 	"github.com/alibabacloud-go/tea/tea"
@@ -207,6 +208,32 @@ func (c *tencentClient) ModifyInstance(profile, region string, input model.Modif
 	default:
 		return model.ModifyInstanceResponse{}, fmt.Errorf("unsupported action: %s", input.Action)
 	}
+}
+
+func (c *tencentClient) RenameInstance(profile, region, instanceID, instanceName string) error {
+	profile = strings.TrimSpace(profile)
+	region = strings.TrimSpace(region)
+	instanceID = strings.TrimSpace(instanceID)
+	instanceName = strings.TrimSpace(instanceName)
+
+	if profile == "" || region == "" || instanceID == "" || instanceName == "" {
+		return fmt.Errorf("profile, region, instanceID and instanceName are required")
+	}
+
+	client, err := c.io.GetTencentCvmClient(profile, region)
+	if err != nil {
+		return err
+	}
+
+	request := cvm.NewModifyInstancesAttributeRequest()
+	request.InstanceIds = []*string{tea.String(instanceID)}
+	request.InstanceName = tea.String(instanceName)
+
+	_, err = client.ModifyInstancesAttribute(request)
+	if _, ok := err.(*errors.TencentCloudSDKError); ok {
+		return fmt.Errorf("an api error has returned: %s", err)
+	}
+	return err
 }
 
 func (c *tencentClient) ChangeInstanceChargeType(profile, region string, instanceIDs []*string, instanceChargeType *model.InstanceChargeType) (model.ModifyInstanceResponse, error) {

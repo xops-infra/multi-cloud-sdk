@@ -48,6 +48,7 @@ type CommonContract interface {
 	DescribeInstances(profile, region string, input InstanceFilter) (InstanceResponse, error)
 	CreateInstance(profile, region string, input CreateInstanceInput) (CreateInstanceResponse, error)
 	ModifyInstance(profile, region string, input ModifyInstanceInput) (ModifyInstanceResponse, error)
+	RenameInstance(profile, region, instanceID, instanceName string) error
 	DeleteInstance(profile, region string, input DeleteInstanceInput) (DeleteInstanceResponse, error)
 	DescribeImages(profile, region string, input CommonFilter) ([]Image, error)
 	DescribeKeyPairs(profile, region string, input CommonFilter) ([]KeyPair, error)
