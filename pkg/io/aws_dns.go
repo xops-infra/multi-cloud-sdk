@@ -130,51 +130,36 @@ func (c *awsClient) DescribeRecordListWithPages(profile, region string, input mo
 
 // DescribeRecordList
 func (c *awsClient) DescribeRecordList(profile, region string, input model.DescribeRecordListRequest) (model.DescribeRecordListResponse, error) {
-
 	client, err := c.io.GetAwsRoute53Client(profile, region)
 	if err != nil {
 		return model.DescribeRecordListResponse{}, err
 	}
 
-	param := &route53.ListResourceRecordSetsInput{
-		HostedZoneId: input.Domain,
-	}
 	domain, err := c.getHostedZoneIdByDomain(profile, region, input.Domain)
 	if err != nil {
 		return model.DescribeRecordListResponse{}, err
 	}
-	param.HostedZoneId = domain.DomainId
 
-	var records []model.Record
+	param := &route53.ListResourceRecordSetsInput{HostedZoneId: domain.DomainId}
 	resp, err := client.ListResourceRecordSets(param)
 	if err != nil {
 		return model.DescribeRecordListResponse{}, err
 	}
+
+	kwLower := ""
+	if input.Keyword != nil {
+		kwLower = strings.ToLower(strings.TrimSpace(*input.Keyword))
+	}
+
+	var allMatched []model.Record
 	for {
 		for _, record := range resp.ResourceRecordSets {
-			var values string
-			for _, value := range record.ResourceRecords {
-				values = *value.Value
+			rec, ok := awsRRSFilterToRecord(domain, record, kwLower)
+			if !ok {
+				continue
 			}
-			if input.Keyword != nil && *input.Keyword != "" {
-				if !strings.Contains(*record.Name, *input.Keyword) {
-					continue
-				}
-			}
-			// 解决httpDecode问题，比如 \\052
-			record.Name = tea.String(strings.ReplaceAll(*record.Name, "\\052", "*"))
-			subDomain := strings.TrimSuffix(*record.Name, fmt.Sprintf("%s.", *domain.Name))
-			records = append(records, model.Record{
-				SubDomain:  tea.String(strings.TrimSuffix(subDomain, ".")),
-				TTL:        tea.Uint64(cast.ToUint64(record.TTL)),
-				Weight:     tea.Uint64(cast.ToUint64(record.Weight)),
-				RecordType: record.Type,
-				Value:      tea.String(values),
-				Status:     record.SetIdentifier,
-				RecordId:   record.Name,
-			})
+			allMatched = append(allMatched, rec)
 		}
-
 		if resp.IsTruncated == nil || !*resp.IsTruncated {
 			break
 		}
@@ -186,11 +171,95 @@ func (c *awsClient) DescribeRecordList(profile, region string, input model.Descr
 			return model.DescribeRecordListResponse{}, err
 		}
 	}
-	return model.DescribeRecordListResponse{
-		Total:      cast.ToInt64(len(records)),
-		RecordList: records,
-	}, nil
 
+	return sliceDescribeRecordListPage(allMatched, input)
+}
+
+func sliceDescribeRecordListPage(allMatched []model.Record, input model.DescribeRecordListRequest) (model.DescribeRecordListResponse, error) {
+	paginate := input.Limit != nil && *input.Limit > 0
+	if !paginate {
+		return model.DescribeRecordListResponse{
+			Total:      cast.ToInt64(len(allMatched)),
+			RecordList: allMatched,
+		}, nil
+	}
+
+	page := int64(1)
+	if input.Page != nil && *input.Page > 0 {
+		page = *input.Page
+	}
+	limit := *input.Limit
+	offset := (page - 1) * limit
+	if offset >= int64(len(allMatched)) {
+		out := model.DescribeRecordListResponse{Total: 0, RecordList: nil}
+		if page > 1 {
+			out.PrePage = tea.Int64(page - 1)
+		}
+		return out, nil
+	}
+
+	end := offset + limit
+	if end > int64(len(allMatched)) {
+		end = int64(len(allMatched))
+	}
+	slice := append([]model.Record(nil), allMatched[offset:end]...)
+
+	out := model.DescribeRecordListResponse{
+		Total:      cast.ToInt64(len(slice)),
+		RecordList: slice,
+	}
+	if page > 1 {
+		out.PrePage = tea.Int64(page - 1)
+	}
+	if end < int64(len(allMatched)) {
+		out.NextPage = tea.Int64(page + 1)
+	}
+	return out, nil
+}
+
+func awsRRSFilterToRecord(domain *model.Domain, rrs *route53.ResourceRecordSet, kwLower string) (model.Record, bool) {
+	name := aws.StringValue(rrs.Name)
+	name = strings.ReplaceAll(name, "\\052", "*")
+	name = strings.ReplaceAll(name, "\\100", "@")
+	name = strings.ReplaceAll(name, "\\043", "#")
+
+	subDomain := strings.TrimSuffix(name, fmt.Sprintf("%s.", *domain.Name))
+	subDomain = strings.TrimSuffix(subDomain, ".")
+
+	var valueStr string
+	if rrs.ResourceRecords != nil {
+		for _, v := range rrs.ResourceRecords {
+			if v != nil && v.Value != nil {
+				valueStr = *v.Value
+			}
+		}
+	}
+	var aliasStr string
+	if rrs.AliasTarget != nil && rrs.AliasTarget.DNSName != nil {
+		aliasStr = *rrs.AliasTarget.DNSName
+	}
+
+	if kwLower != "" {
+		hay := strings.ToLower(strings.Join([]string{name, subDomain, valueStr, aliasStr}, " "))
+		if !strings.Contains(hay, kwLower) {
+			return model.Record{}, false
+		}
+	}
+
+	displayValue := valueStr
+	if displayValue == "" && aliasStr != "" {
+		displayValue = aliasStr
+	}
+
+	return model.Record{
+		SubDomain:  tea.String(subDomain),
+		TTL:        tea.Uint64(cast.ToUint64(rrs.TTL)),
+		Weight:     tea.Uint64(cast.ToUint64(rrs.Weight)),
+		RecordType: rrs.Type,
+		Value:      tea.String(displayValue),
+		Status:     rrs.SetIdentifier,
+		RecordId:   aws.String(name),
+	}, true
 }
 
 // DescribeRecord 完全匹配
@@ -258,24 +327,58 @@ func (c *awsClient) CreateRecord(profile, region string, input model.CreateRecor
 	}, nil
 }
 
-// getHostedZoneIdByDomain domain 为域名或者hostedzoneId
+// getHostedZoneIdByDomain domain 为域名或者 hosted zone id（/hostedzone/...）
 func (c *awsClient) getHostedZoneIdByDomain(profile, region string, domain *string) (*model.Domain, error) {
 	if domain == nil {
 		return nil, fmt.Errorf("domain is required")
 	}
+	client, err := c.io.GetAwsRoute53Client(profile, region)
+	if err != nil {
+		return nil, err
+	}
+
+	if strings.HasPrefix(*domain, "/hostedzone/") {
+		out, err := client.GetHostedZone(&route53.GetHostedZoneInput{Id: domain})
+		if err != nil {
+			return nil, err
+		}
+		hz := out.HostedZone
+		return &model.Domain{
+			DomainId: hz.Id,
+			Name:     tea.String(strings.TrimSuffix(aws.StringValue(hz.Name), ".")),
+			Meta:     hz,
+		}, nil
+	}
+
+	dnsName := *domain
+	if !strings.HasSuffix(dnsName, ".") {
+		dnsName += "."
+	}
+	byNameOut, err := client.ListHostedZonesByName(&route53.ListHostedZonesByNameInput{DNSName: aws.String(dnsName)})
+	if err == nil {
+		want := strings.TrimSuffix(*domain, ".")
+		for _, hz := range byNameOut.HostedZones {
+			got := strings.TrimSuffix(aws.StringValue(hz.Name), ".")
+			if got == want {
+				return &model.Domain{
+					DomainId: hz.Id,
+					Name:     tea.String(got),
+					Meta:     hz,
+				}, nil
+			}
+		}
+	}
+
 	resp, err := c.DescribeDomainList(profile, region, model.DescribeDomainListRequest{})
 	if err != nil {
 		return nil, err
 	}
 	for _, _domain := range resp.DomainList {
-		if strings.HasPrefix(*domain, "/hostedzone/") {
-			if *_domain.DomainId == *domain {
-				return &_domain, nil
-			}
-		} else {
-			if *_domain.Name == *domain {
-				return &_domain, nil
-			}
+		if *_domain.DomainId == *domain {
+			return &_domain, nil
+		}
+		if *_domain.Name == *domain {
+			return &_domain, nil
 		}
 	}
 	return nil, fmt.Errorf("domain not found")

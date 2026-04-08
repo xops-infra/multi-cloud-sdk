@@ -117,15 +117,20 @@ func (c *tencentClient) DescribeRecordList(profile, region string, input model.D
 	if err != nil {
 		return model.DescribeRecordListResponse{}, err
 	}
-	var records []model.Record
-	total := 0
+
+	kwLower := ""
+	if input.Keyword != nil {
+		kwLower = strings.ToLower(strings.TrimSpace(*input.Keyword))
+	}
+
+	var allMatched []model.Record
+	var apiOffset uint64
 	for {
 		for _, record := range resp.Response.RecordList {
-			total++
-			if input.Keyword != nil && *input.Keyword != "" && !strings.Contains(*record.Name, *input.Keyword) {
+			if !tencentRecordMatchesKeyword(record, kwLower) {
 				continue
 			}
-			records = append(records, model.Record{
+			allMatched = append(allMatched, model.Record{
 				RecordId:   tea.String(cast.ToString(record.RecordId)),
 				SubDomain:  record.Name,
 				RecordType: record.Type,
@@ -138,20 +143,34 @@ func (c *tencentClient) DescribeRecordList(profile, region string, input model.D
 				Weight:     record.Weight,
 			})
 		}
-		if total == int(*resp.Response.RecordCountInfo.TotalCount) {
+		apiOffset += uint64(len(resp.Response.RecordList))
+		if apiOffset >= *resp.Response.RecordCountInfo.TotalCount {
 			break
 		}
-		request.Offset = tea.Uint64(cast.ToUint64(len(records)))
+		request.Offset = tea.Uint64(apiOffset)
 		resp, err = client.DescribeRecordList(request)
 		if err != nil {
 			return model.DescribeRecordListResponse{}, err
 		}
 	}
 
-	return model.DescribeRecordListResponse{
-		Total:      cast.ToInt64(len(records)),
-		RecordList: records,
-	}, nil
+	return sliceDescribeRecordListPage(allMatched, input)
+}
+
+func tencentRecordMatchesKeyword(record *dnspod.RecordListItem, kwLower string) bool {
+	if kwLower == "" {
+		return true
+	}
+	name := ""
+	if record.Name != nil {
+		name = strings.ToLower(*record.Name)
+	}
+	val := ""
+	if record.Value != nil {
+		val = strings.ToLower(*record.Value)
+	}
+	hay := name + " " + val
+	return strings.Contains(hay, kwLower)
 }
 
 // DescribeRecord
