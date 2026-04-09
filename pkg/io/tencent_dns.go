@@ -122,12 +122,13 @@ func (c *tencentClient) DescribeRecordList(profile, region string, input model.D
 	if input.Keyword != nil {
 		kwLower = strings.ToLower(strings.TrimSpace(*input.Keyword))
 	}
+	scope := normalizeKeywordScope(input.KeywordScope)
 
 	var allMatched []model.Record
 	var apiOffset uint64
 	for {
 		for _, record := range resp.Response.RecordList {
-			if !tencentRecordMatchesKeyword(record, kwLower) {
+			if !tencentRecordMatchesKeyword(record, kwLower, scope) {
 				continue
 			}
 			allMatched = append(allMatched, model.Record{
@@ -157,7 +158,7 @@ func (c *tencentClient) DescribeRecordList(profile, region string, input model.D
 	return sliceDescribeRecordListPage(allMatched, input)
 }
 
-func tencentRecordMatchesKeyword(record *dnspod.RecordListItem, kwLower string) bool {
+func tencentRecordMatchesKeyword(record *dnspod.RecordListItem, kwLower, scope string) bool {
 	if kwLower == "" {
 		return true
 	}
@@ -169,7 +170,15 @@ func tencentRecordMatchesKeyword(record *dnspod.RecordListItem, kwLower string) 
 	if record.Value != nil {
 		val = strings.ToLower(*record.Value)
 	}
-	hay := name + " " + val
+	var hay string
+	switch scope {
+	case "all":
+		hay = name + " " + val
+	case "value":
+		hay = val
+	default:
+		hay = name
+	}
 	return strings.Contains(hay, kwLower)
 }
 

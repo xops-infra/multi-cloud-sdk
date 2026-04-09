@@ -150,11 +150,12 @@ func (c *awsClient) DescribeRecordList(profile, region string, input model.Descr
 	if input.Keyword != nil {
 		kwLower = strings.ToLower(strings.TrimSpace(*input.Keyword))
 	}
+	scope := normalizeKeywordScope(input.KeywordScope)
 
 	var allMatched []model.Record
 	for {
 		for _, record := range resp.ResourceRecordSets {
-			rec, ok := awsRRSFilterToRecord(domain, record, kwLower)
+			rec, ok := awsRRSFilterToRecord(domain, record, kwLower, scope)
 			if !ok {
 				continue
 			}
@@ -217,7 +218,23 @@ func sliceDescribeRecordListPage(allMatched []model.Record, input model.Describe
 	return out, nil
 }
 
-func awsRRSFilterToRecord(domain *model.Domain, rrs *route53.ResourceRecordSet, kwLower string) (model.Record, bool) {
+func normalizeKeywordScope(s *string) string {
+	if s == nil {
+		return "subdomain"
+	}
+	v := strings.TrimSpace(strings.ToLower(*s))
+	if v == "" {
+		return "subdomain"
+	}
+	switch v {
+	case "all", "value", "subdomain":
+		return v
+	default:
+		return "subdomain"
+	}
+}
+
+func awsRRSFilterToRecord(domain *model.Domain, rrs *route53.ResourceRecordSet, kwLower, scope string) (model.Record, bool) {
 	name := aws.StringValue(rrs.Name)
 	name = strings.ReplaceAll(name, "\\052", "*")
 	name = strings.ReplaceAll(name, "\\100", "@")
@@ -240,7 +257,16 @@ func awsRRSFilterToRecord(domain *model.Domain, rrs *route53.ResourceRecordSet, 
 	}
 
 	if kwLower != "" {
-		hay := strings.ToLower(strings.Join([]string{name, subDomain, valueStr, aliasStr}, " "))
+		var hay string
+		switch scope {
+		case "all":
+			hay = strings.ToLower(strings.Join([]string{name, subDomain, valueStr, aliasStr}, " "))
+		case "value":
+			hay = strings.ToLower(strings.TrimSpace(valueStr + " " + aliasStr))
+		default:
+			// subdomain：只匹配 FQDN/主机记录，不匹配记录值，避免「子域与关键字无关」的错觉
+			hay = strings.ToLower(strings.TrimSpace(name + " " + subDomain))
+		}
 		if !strings.Contains(hay, kwLower) {
 			return model.Record{}, false
 		}

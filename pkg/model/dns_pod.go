@@ -28,12 +28,14 @@ type DescribeRecordListWithPageRequest struct {
 
 // DescribeRecordListRequest 查询解析记录。Keyword 非空时为过滤搜索。
 // Page/Limit：可选。Limit<=0 或未设置时表示不分页，返回全部匹配（兼容 DescribeRecord 等全量场景）。
-// Limit>0 时 Page 默认为 1；Total 表示本页记录条数，非全量匹配总数。
+// Limit>0 时 Page 默认为 1；Total 表示本页 record_list 长度（分页时）；全量时为全部条数。
+// KeywordScope：可选。空或 subdomain=仅匹配主机名/FQDN（默认，避免值里含关键字导致子域看起来不相关）；all=子域+FQDN+记录值+Alias；value=仅记录值/Alias。
 type DescribeRecordListRequest struct {
-	Domain  *string `json:"domain" binding:"required"`
-	Keyword *string `json:"keyword"` // 子域 / FQDN / 记录值模糊匹配，大小写不敏感
-	Page    *int64  `json:"page"`
-	Limit   *int64  `json:"limit"`
+	Domain        *string `json:"domain" binding:"required"`
+	Keyword       *string `json:"keyword"` // 关键字，大小写不敏感；匹配范围见 KeywordScope
+	KeywordScope  *string `json:"keyword_scope"` // subdomain（默认）| all | value
+	Page          *int64  `json:"page"`
+	Limit         *int64  `json:"limit"`
 }
 
 type DescribeRecordListResponse struct {
